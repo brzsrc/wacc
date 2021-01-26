@@ -5,11 +5,18 @@ stages:
 build-job:
   stage: build
   script:
-    - echo "Building the web app..."
+    - echo "Building the WACC compiler..."
     - make
 
 test-job:
   stage: test
   script:
-    - echo "Testing the web app..."
+    - echo "Testing <function 1> the WACC compiler..."
+    - echo "unimplemented"
+
+
+test-job2:
+  stage: test
+  script:
+    - echo "Testing <function 2> of the WACC compiler..."
     - echo "unimplemented"
