@@ -68,6 +68,7 @@ FI: 'fi' ;
 WHILE: 'while' ;
 DO: 'do' ;
 DONE: 'done' ;
+CALL: 'call' ;
 
 //brackets
 OPEN_PARENTHESES: '(' ;
