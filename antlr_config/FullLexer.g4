@@ -57,7 +57,10 @@ NEWPAIR    : 'newpair' ;
 // comments
 SHARP   : '#' ;
 EOL     : '\n' ;
-COMMENT : SHARP ~('\n')* EOL;
+COMMENT : SHARP ~('\n')* EOL -> skip;
+
+// skip space, tab, and newline
+WS : [ \t\r\n]+ -> skip ;
 
 // keywords
 BEGIN   : 'begin' ;
@@ -106,6 +109,3 @@ fragment EQUAL         : '==' ;
 fragment UNEQUAL       : '!=' ;
 fragment AND           : '&&' ;
 fragment OR            : '||' ;
-
-// skip space, tab, and newline
-WS : [ \t\r\n]+ -> skip ;
