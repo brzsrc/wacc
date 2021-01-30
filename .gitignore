@@ -9,5 +9,5 @@ src/antlr
 *~
 
 #ignore the .idea folder created by intellij or MacOS
-./.idea
+.idea
 .DS_Store
