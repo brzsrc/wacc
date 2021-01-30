@@ -47,6 +47,7 @@ NEWPAIR: 'newpair' ;
 //comments
 SHARP: '#' ;
 EOL: '\n' ;
+COMMENT: SHARP (~['"\\])* EOL;
 
 //keywords
 BEGIN: 'begin' ;
@@ -69,6 +70,8 @@ WHILE: 'while' ;
 DO: 'do' ;
 DONE: 'done' ;
 CALL: 'call' ;
+SEMICOLON: ';';
+COMMA: ',';
 
 //brackets
 OPEN_PARENTHESES: '(' ;
