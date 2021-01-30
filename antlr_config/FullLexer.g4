@@ -57,7 +57,7 @@ NEWPAIR    : 'newpair' ;
 // comments
 SHARP   : '#' ;
 EOL     : '\n' ;
-COMMENT : SHARP ~(EOL)* EOL;
+COMMENT : SHARP ~('\n')* EOL;
 
 // keywords
 BEGIN   : 'begin' ;
