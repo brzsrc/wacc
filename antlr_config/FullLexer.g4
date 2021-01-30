@@ -3,6 +3,14 @@ lexer grammar FullLexer;
 /* Main body of Array, Pair and Comment unimplemented
  * might put them in parser later (not sure) */
 
+// skip space, tab, and newline
+WS : [ \t\r\n]+ -> skip ;
+
+// comments
+SHARP   : '#' ;
+EOL     : '\n' ;
+COMMENT : SHARP ~('\n')* EOL -> skip;
+
 // type
 BASE_TYPE: 'int'
          | 'bool'
@@ -30,9 +38,6 @@ BINOP : MUL
       | AND 
       | OR ;
 
-// identifier rule
-IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;
-
 // the literals of different types
 INT_LITER         : INT_SIGN? DIGIT+ ;
 fragment DIGIT    : [0-9] ;
@@ -41,12 +46,6 @@ BOOL_LITER        : 'true' | 'false' ;
 CHAR_LITER        : '\'' CHARACTER '\'' ;
 STR_LITER         : '"' CHARACTER* '"' ;
 
-// definition of characters
-CHARACTER : ~['"\\]
-          | '\\' ESCAPED_CHAR
-          ;
-fragment ESCAPED_CHAR : '0' | 'b' | 't' | 'n' | 'f' | 'r' | '"'| '\'' | '\\' ;
-
 // pairs
 FST        : 'fst' ;
 SND        : 'snd' ;
@@ -54,19 +53,11 @@ PAIR_LITER : 'null' ;
 PAIR       : 'pair' ;
 NEWPAIR    : 'newpair' ;
 
-// comments
-SHARP   : '#' ;
-EOL     : '\n' ;
-COMMENT : SHARP ~('\n')* EOL -> skip;
-
-// skip space, tab, and newline
-WS : [ \t\r\n]+ -> skip ;
-
 // keywords
 BEGIN   : 'begin' ;
 END     : 'end' ;
 IS      : 'is' ;
-SKP    : 'skip' ;
+SKP     : 'skip' ;
 ASSIGN  : '=' ;
 READ    : 'read' ;
 FREE    : 'free' ;
@@ -109,3 +100,12 @@ fragment EQUAL         : '==' ;
 fragment UNEQUAL       : '!=' ;
 fragment AND           : '&&' ;
 fragment OR            : '||' ;
+
+// identifier rule
+IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;
+
+// definition of characters
+CHARACTER : ~['"\\]
+          | '\\' ESCAPED_CHAR
+          ;
+fragment ESCAPED_CHAR : '0' | 'b' | 't' | 'n' | 'f' | 'r' | '"'| '\'' | '\\' ;
