@@ -12,7 +12,8 @@ test-job:
   stage: test
   script:
     - echo "Testing scanner/parser on all WACC file in test/..."
-    - for file in src/test/*.wacc; do ./grun antlr.Full program -tree < $file > /dev/null; done
+    - make 
+    - for file in src/test/*.wacc; do ./grun antlr.Full program -tree < file ; done
 
 test-job2:
   stage: test
