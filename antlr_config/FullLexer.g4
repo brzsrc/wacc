@@ -3,6 +3,14 @@ lexer grammar FullLexer;
 /* Main body of Array, Pair and Comment unimplemented
  * might put them in parser later (not sure) */
 
+// skip space, tab, and newline
+WS : [ \t\r\n]+ -> skip ;
+
+// comments
+SHARP   : '#' ;
+EOL     : '\n' ;
+COMMENT : SHARP ~('\n')* EOL -> skip;
+
 // type
 BASE_TYPE: 'int'
          | 'bool'
@@ -12,15 +20,15 @@ BASE_TYPE: 'int'
 
 // unary and binary operators
 UNOP  : NOT
-      | MINUS 
+      // | MINUS 
       | LEN 
       | ORD 
       | CHR ;
 BINOP : MUL 
       | DIV 
       | MOD 
-      | PLUS 
-      | MINUS 
+      // | PLUS 
+      // | MINUS 
       | GREATER 
       | GREATER_EQUAL 
       | LESS 
@@ -30,8 +38,6 @@ BINOP : MUL
       | AND 
       | OR ;
 
-// identifier rule
-IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;
 
 // the literals of different types
 INT_LITER         : INT_SIGN? DIGIT+ ;
@@ -42,7 +48,7 @@ CHAR_LITER        : '\'' CHARACTER '\'' ;
 STR_LITER         : '"' CHARACTER* '"' ;
 
 // definition of characters
-CHARACTER : ~['"\\]
+fragment CHARACTER : ~['"\\]
           | '\\' ESCAPED_CHAR
           ;
 fragment ESCAPED_CHAR : '0' | 'b' | 't' | 'n' | 'f' | 'r' | '"'| '\'' | '\\' ;
@@ -53,14 +59,6 @@ SND        : 'snd' ;
 PAIR_LITER : 'null' ;
 PAIR       : 'pair' ;
 NEWPAIR    : 'newpair' ;
-
-// comments
-SHARP   : '#' ;
-EOL     : '\n' ;
-COMMENT : SHARP ~('\n')* EOL -> skip;
-
-// skip space, tab, and newline
-WS : [ \t\r\n]+ -> skip ;
 
 // keywords
 BEGIN   : 'begin' ;
@@ -92,8 +90,8 @@ OPEN_SQUARE_BRACKET  : '[' ;
 CLOSE_SQUARE_BRACKET : ']' ;
 
 // operator fragments
-fragment PLUS  : '+' ;
-fragment MINUS : '-' ;
+PLUS  : '+' ;
+MINUS : '-' ;
 fragment NOT   : '!' ;
 fragment LEN   : 'len' ;
 fragment ORD   : 'ord' ;
@@ -109,3 +107,6 @@ fragment EQUAL         : '==' ;
 fragment UNEQUAL       : '!=' ;
 fragment AND           : '&&' ;
 fragment OR            : '||' ;
+
+// identifier rule
+IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;
