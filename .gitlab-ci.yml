@@ -13,7 +13,7 @@ test-job:
   script:
     - echo "Testing scanner/parser on all WACC file in test/..."
     - make 
-    - for file in src/test/*.wacc; do ./grun antlr.Full program -tree < file ; done
+    - for file in src/test/*.wacc; do ./grun antlr.Full program -tree < $file ; done
 
 test-job2:
   stage: test
