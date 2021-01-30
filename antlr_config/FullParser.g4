@@ -34,21 +34,17 @@ assign_rhs : expr
            | CALL IDENT  OPEN_PARENTHESES arg_list? CLOSE_PARENTHESES
            ;
 
-// argument list for functions 
 arg_list  : expr (COMMA expr)*;
 pair_elem : FST expr
           | SND expr
           ;
 
 type : BASE_TYPE  
-     | array_type
+     | type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
      | pair_type 
      ;
 
-array_type     : array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET 
-               | BASE_TYPE OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
-               | pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
-               ;
+array_type     : type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET ;
 pair_type      : PAIR OPEN_PARENTHESES pair_elem_type  COMMA pair_elem_type  CLOSE_PARENTHESES ;
 pair_elem_type : BASE_TYPE  
                | array_type  
@@ -63,10 +59,7 @@ expr : INT_LITER
      | IDENT 
      | array_elem 
      | UNOP expr 
-     | MINUS expr
      | expr BINOP expr  
-     | expr MINUS expr
-     | expr PLUS expr
      | OPEN_PARENTHESES expr CLOSE_PARENTHESES
      ;
 
