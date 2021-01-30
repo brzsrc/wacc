@@ -9,7 +9,7 @@ func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat 
 param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
-stat : SKIP
+stat : SKP
      | type IDENT ASSIGN assign_rhs   
      | assign_lhs ASSIGN assign_rhs  
      | READ assign_lhs  

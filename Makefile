@@ -9,7 +9,7 @@ OUTPUT_DIR	:= bin
 
 ANTLR	:= antlrBuild
 FIND	:= find
-RM	:= rm -rf
+RM	    := rm -rf
 MKDIR	:= mkdir -p
 JAVA	:= java
 JAVAC	:= javac

@@ -63,7 +63,7 @@ COMMENT : SHARP ~(EOL)* EOL;
 BEGIN   : 'begin' ;
 END     : 'end' ;
 IS      : 'is' ;
-SKIP    : 'skip' ;
+SKP    : 'skip' ;
 ASSIGN  : '=' ;
 READ    : 'read' ;
 FREE    : 'free' ;
