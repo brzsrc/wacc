@@ -38,7 +38,6 @@ BINOP : MUL
       | AND 
       | OR ;
 
-
 // the literals of different types
 INT_LITER         : INT_SIGN? DIGIT+ ;
 fragment DIGIT    : [0-9] ;
@@ -46,12 +45,6 @@ fragment INT_SIGN : MINUS | PLUS ;
 BOOL_LITER        : 'true' | 'false' ;
 CHAR_LITER        : '\'' CHARACTER '\'' ;
 STR_LITER         : '"' CHARACTER* '"' ;
-
-// definition of characters
-fragment CHARACTER : ~['"\\]
-          | '\\' ESCAPED_CHAR
-          ;
-fragment ESCAPED_CHAR : '0' | 'b' | 't' | 'n' | 'f' | 'r' | '"'| '\'' | '\\' ;
 
 // pairs
 FST        : 'fst' ;
@@ -64,7 +57,7 @@ NEWPAIR    : 'newpair' ;
 BEGIN   : 'begin' ;
 END     : 'end' ;
 IS      : 'is' ;
-SKP    : 'skip' ;
+SKP     : 'skip' ;
 ASSIGN  : '=' ;
 READ    : 'read' ;
 FREE    : 'free' ;
@@ -110,3 +103,9 @@ fragment OR            : '||' ;
 
 // identifier rule
 IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;
+
+// definition of characters
+fragment CHARACTER : ~['"\\]
+          | '\\' ESCAPED_CHAR
+          ;
+fragment ESCAPED_CHAR : '0' | 'b' | 't' | 'n' | 'f' | 'r' | '"'| '\'' | '\\' ;
