@@ -1,7 +1,7 @@
 variables:
-  VALID_EXAMPLES: "./src/test/examples/valid",
-  INVALID_SEMANTIC_ERR: "./src/test/examples/invalid/semanticErr",
-  VALID_EXAMPLES_LOG: "./log/parse_valid_error.log",
+  VALID_EXAMPLES: "./src/test/examples/valid"
+  INVALID_SEMANTIC_ERR: "./src/test/examples/invalid/semanticErr"
+  VALID_EXAMPLES_LOG: "./log/parse_valid_error.log"
   INVALID_SEMANTIC_ERR_LOG: "./log/parse_invalid_semantic_error.log"
 
 stages:
