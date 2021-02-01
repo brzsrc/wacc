@@ -18,26 +18,6 @@ BASE_TYPE: 'int'
          | 'string'
          ;
 
-// unary and binary operators
-UNOP  : NOT
-      // | MINUS 
-      | LEN 
-      | ORD 
-      | CHR ;
-BINOP : MUL 
-      | DIV 
-      | MOD 
-      // | PLUS 
-      // | MINUS 
-      | GREATER 
-      | GREATER_EQUAL 
-      | LESS 
-      | LESS_EQUAL 
-      | EQUAL 
-      | UNEQUAL 
-      | AND 
-      | OR ;
-
 // the literals of different types
 INT_LITER         : INT_SIGN? DIGIT+ ;
 fragment DIGIT    : [0-9] ;
@@ -85,21 +65,21 @@ CLOSE_SQUARE_BRACKET : ']' ;
 // operator fragments
 PLUS  : '+' ;
 MINUS : '-' ;
-fragment NOT   : '!' ;
-fragment LEN   : 'len' ;
-fragment ORD   : 'ord' ;
-fragment CHR   : 'chr' ;
-fragment MUL   : '*' ;
-fragment DIV   : '/' ;
-fragment MOD   : '%' ;
-fragment GREATER       : '>' ;
-fragment GREATER_EQUAL : '>=' ;
-fragment LESS          : '<' ;
-fragment LESS_EQUAL    : '<=' ;
-fragment EQUAL         : '==' ;
-fragment UNEQUAL       : '!=' ;
-fragment AND           : '&&' ;
-fragment OR            : '||' ;
+NOT   : '!' ;
+LEN   : 'len' ;
+ORD   : 'ord' ;
+CHR   : 'chr' ;
+MUL   : '*' ;
+DIV   : '/' ;
+MOD   : '%' ;
+GREATER       : '>' ;
+GREATER_EQUAL : '>=' ;
+LESS          : '<' ;
+LESS_EQUAL    : '<=' ;
+EQUAL         : '==' ;
+UNEQUAL       : '!=' ;
+AND           : '&&' ;
+OR            : '||' ;
 
 // identifier rule
 IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;
