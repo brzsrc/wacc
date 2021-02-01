@@ -39,7 +39,7 @@ BINOP : MUL
       | OR ;
 
 // the literals of different types
-INT_LITER         : INT_SIGN? DIGIT+ ;
+INT_LITER         : DIGIT+ ;
 fragment DIGIT    : [0-9] ;
 fragment INT_SIGN : MINUS | PLUS ;
 BOOL_LITER        : 'true' | 'false' ;

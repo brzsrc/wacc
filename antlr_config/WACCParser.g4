@@ -55,7 +55,11 @@ pair_elem_type : BASE_TYPE
                | PAIR 
                ;
 
-expr : INT_LITER   #IntExpr
+expr : expr PLUS expr   #PlusExpr
+     | expr BINOP expr  #BinopExpr
+     | expr MINUS expr  #MinusExpr
+     | INT_LITER   #IntExpr
+     | (PLUS | MINUS) INT_LITER #SignedIntExpr
      | BOOL_LITER  #BoolExpr
      | CHAR_LITER  #CharExpr
      | STR_LITER   #StrExpr
@@ -64,9 +68,6 @@ expr : INT_LITER   #IntExpr
      | array_elem  #ArrayExpr
      | UNOP expr   #UnopExpr
      | MINUS expr  #NegExpr
-     | expr BINOP expr  #BinopExpr
-     | expr MINUS expr  #MinusExpr
-     | expr PLUS expr   #PlusExpr
      | OPEN_PARENTHESES expr CLOSE_PARENTHESES #ParenExpr
      ;
 

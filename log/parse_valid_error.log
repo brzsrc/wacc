@@ -151,7 +151,6 @@
 ./src/test/examples/valid/expressions/multExpr.wacc
 ./src/test/examples/valid/expressions/longExpr3.wacc
 ./src/test/examples/valid/expressions/plusNoWhitespaceExpr.wacc
-line 9:11 extraneous input '+2' expecting 'end'
 ./src/test/examples/valid/expressions/plusMinusExpr.wacc
 ./src/test/examples/valid/expressions/negDividendMod.wacc
 ./src/test/examples/valid/expressions/longExpr.wacc
@@ -173,7 +172,6 @@ line 9:11 extraneous input '+2' expecting 'end'
 ./src/test/examples/valid/expressions/minusMinusExpr.wacc
 ./src/test/examples/valid/expressions/boolCalc.wacc
 ./src/test/examples/valid/expressions/minusNoWhitespaceExpr.wacc
-line 9:11 extraneous input '-2' expecting 'end'
 ./src/test/examples/valid/sequence/stringAssignment.wacc
 ./src/test/examples/valid/sequence/charAssignment.wacc
 ./src/test/examples/valid/sequence/intLeadingZeros.wacc
