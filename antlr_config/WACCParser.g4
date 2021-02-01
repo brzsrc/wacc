@@ -10,8 +10,6 @@ param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
 stat : SKP
-     | type IDENT ASSIGN assign_rhs   
-     | assign_lhs ASSIGN assign_rhs  
      | READ assign_lhs  
      | FREE expr  
      | RETURN expr  
@@ -20,7 +18,9 @@ stat : SKP
      | PRINTLN expr  
      | IF expr THEN stat ELSE stat FI | WHILE expr DO stat DONE
      | BEGIN stat END
-     | stat SEMICOLON stat 
+     | stat SEMICOLON stat
+     | type IDENT ASSIGN assign_rhs
+     | assign_lhs ASSIGN assign_rhs
      ;
 
 assign_lhs : IDENT 

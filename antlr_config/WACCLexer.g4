@@ -61,7 +61,7 @@ SKP     : 'skip' ;
 ASSIGN  : '=' ;
 READ    : 'read' ;
 FREE    : 'free' ;
-RETURN  : 'retrun' ;
+RETURN  : 'return' ;
 EXIT    : 'exit' ;
 PRINT   : 'print' ;
 PRINTLN : 'println' ;
