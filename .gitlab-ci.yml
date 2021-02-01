@@ -8,14 +8,13 @@ build-job:
     - echo "Building the WACC compiler..."
     - make
 
-test-job:
+test-lexer-parser:
   stage: test
   script:
     - echo "Testing scanner/parser on all WACC file in test/..."
-    - make 
-    - for file in src/test/*.wacc; do ./grun antlr.Full program -tree < $file ; done
+    - ./grun antlr.WACC program -tree $(find ./src/test/examples -name "*.wacc") 2> ./log/parser_error.log
 
-test-job2:
+test-semantics:
   stage: test
   script:
     - echo "Testing <function 2> of the WACC compiler..."

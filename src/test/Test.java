@@ -8,15 +8,13 @@ import antlr.*;
 public class Test{
   public static void main(String[] args) throws Exception {
     CharStream input = CharStreams.fromStream(System.in);
-    FullLexer lexer = new FullLexer(input);
+    WACCLexer lexer = new WACCLexer(input);
     CommonTokenStream tokens  = new CommonTokenStream(lexer);
-    FullParser parser = new FullParser(tokens);
+    WACCParser parser = new WACCParser(tokens);
     ParseTree tree = parser.program();
 
-//    System.out.println(tree.toStringTree(parser));
-
-    FullParserVisitor visitor = new VisitorExample();
-
-    visitor.visit(tree);
+    // System.out.println(tree.toStringTree(parser));
+    // WACCParserVisitor visitor = new VisitorExample();
+    // visitor.visit(tree);
   }
 }

@@ -30,12 +30,12 @@ public class Compiler {
             // Input stream of the file
             CharStream input = CharStreams.fromStream(fis);
             // Pass the input stream of the file to WACC lexer
-            FullLexer lexer = new FullLexer(input);
+            WACCLexer lexer = new WACCLexer(input);
             // Obtain the internal tokens from the lexer
             CommonTokenStream tokens  = new CommonTokenStream(lexer);
             // Parse the tokens into a syntax tree
-            FullParser parser = new FullParser(tokens);
-            // Start parsing using the `program` rule defined in antlr_config/FullParser.g4
+            WACCParser parser = new WACCParser(tokens);
+            // Start parsing using the `program` rule defined in antlr_config/WACCParser.g4
             ParseTree tree = parser.program();
 
             // If the `--parse_only` flag is specified, then we do not run semantic analysis
