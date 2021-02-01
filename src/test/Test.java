@@ -11,8 +11,12 @@ public class Test{
     FullLexer lexer = new FullLexer(input);
     CommonTokenStream tokens  = new CommonTokenStream(lexer);
     FullParser parser = new FullParser(tokens);
-    ParseTree tree = parser.expr();
+    ParseTree tree = parser.program();
 
-    System.out.println(tree.toStringTree(parser));
+//    System.out.println(tree.toStringTree(parser));
+
+    FullParserVisitor visitor = new VisitorExample();
+
+    visitor.visit(tree);
   }
 }

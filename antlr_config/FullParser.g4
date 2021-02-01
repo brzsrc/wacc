@@ -55,19 +55,19 @@ pair_elem_type : BASE_TYPE
                | PAIR 
                ;
 
-expr : INT_LITER 
-     | BOOL_LITER 
-     | CHAR_LITER 
-     | STR_LITER 
-     | PAIR_LITER 
-     | IDENT 
-     | array_elem 
-     | UNOP expr 
-     | MINUS expr
-     | expr BINOP expr  
-     | expr MINUS expr
-     | expr PLUS expr
-     | OPEN_PARENTHESES expr CLOSE_PARENTHESES
+expr : INT_LITER   #IntExpr
+     | BOOL_LITER  #BoolExpr
+     | CHAR_LITER  #CharExpr
+     | STR_LITER   #StrExpr
+     | PAIR_LITER  #PairExpr
+     | IDENT       #IdentExpr
+     | array_elem  #ArrayExpr
+     | UNOP expr   #UnopExpr
+     | MINUS expr  #NegExpr
+     | expr BINOP expr  #BinopExpr
+     | expr MINUS expr  #MinusExpr
+     | expr PLUS expr   #PlusExpr
+     | OPEN_PARENTHESES expr CLOSE_PARENTHESES #ParenExpr
      ;
 
 array_elem  : IDENT (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
