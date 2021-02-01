@@ -56,6 +56,7 @@ pair_elem_type : BASE_TYPE
                ;
 
 expr : INT_LITER 
+     | PLUS INT_LITER
      | BOOL_LITER 
      | CHAR_LITER 
      | STR_LITER 

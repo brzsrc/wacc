@@ -19,9 +19,6 @@ BASE_TYPE: 'int'
          ;
 
 // the literals of different types
-INT_LITER         : INT_SIGN? DIGIT+ ;
-fragment DIGIT    : [0-9] ;
-fragment INT_SIGN : MINUS | PLUS ;
 BOOL_LITER        : 'true' | 'false' ;
 CHAR_LITER        : '\'' CHARACTER '\'' ;
 STR_LITER         : '"' CHARACTER* '"' ;
@@ -80,6 +77,10 @@ EQUAL         : '==' ;
 UNEQUAL       : '!=' ;
 AND           : '&&' ;
 OR            : '||' ;
+
+INT_LITER         : DIGIT+ ;
+fragment DIGIT    : [0-9] ;
+// fragment INT_SIGN : MINUS | PLUS ;
 
 // identifier rule
 IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;
