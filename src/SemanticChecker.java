@@ -2,6 +2,7 @@ import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import utils.ExprTypes;
 import utils.TypeSystem;
+import utils.SymbolTable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +10,28 @@ import java.util.Map;
 import static utils.Utils.check;
 
 public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
+
+  /* the current sysmbol table holded by the current node */
+  private SymbolTable curSymTable = null;
+
+  @Override
+  public TypeSystem visitProgram(WACCParser.ProgramContext ctx) {
+    /* when visiting a new node, let the curent symbol table 
+       become the new node's enclosing symTabel */
+    SymbolTable newSymTable = new SymbolTable(curSymTable);
+    /* sign the new node's symTable to the current symTable */
+    curSymTable = newSymTable;
+    for(WACCParser.FuncContext funcCtx: ctx.func()) {
+      visitFunc(funcCtx);
+    }
+    visitStat(ctx.stat());
+    return null;
+  }
+
+  @Override 
+  public TypeSystem visitStat(WACCParser.StatContext ctx) { 
+    return null;
+  }
 
   @Override
   public TypeSystem visitIntExpr(WACCParser.IntExprContext ctx) {
