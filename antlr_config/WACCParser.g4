@@ -4,17 +4,22 @@ options {
   tokenVocab=WACCLexer;
 }
 
-program     : BEGIN func* stat END EOF;
-func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat* end_stat END;
+program     : BEGIN func* (stat | stat_with_end) END EOF;
+func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat_with_end END;
 param_list  : param (COMMA param )* ;
 param       : type IDENT;
+
+stat_with_end: (stat SEMICOLON)? end_stat
+             | (stat SEMICOLON)? WHILE expr DO stat_with_end DONE
+             | (stat SEMICOLON)? BEGIN stat_with_end END
+             | (stat SEMICOLON)? IF expr THEN stat_with_end ELSE stat_with_end FI              
+             ;
 
 stat : SKP
      | type IDENT ASSIGN assign_rhs
      | assign_lhs ASSIGN assign_rhs
      | READ assign_lhs
      | FREE expr
-     | RETURN expr
      | end_stat
      | PRINTLN expr
      | IF expr THEN stat ELSE stat FI 
@@ -24,7 +29,7 @@ stat : SKP
      ;
 
 end_stat: EXIT expr
-        | PRINT expr
+        | RETURN expr
         ;
 
 assign_lhs : IDENT
