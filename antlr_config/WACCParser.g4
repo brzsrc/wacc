@@ -10,27 +10,27 @@ param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
 stat : SKP
-     | READ assign_lhs  
-     | FREE expr  
-     | RETURN expr  
-     | EXIT expr  
-     | PRINT expr  
-     | PRINTLN expr  
+     | type IDENT ASSIGN assign_rhs
+     | assign_lhs ASSIGN assign_rhs
+     | READ assign_lhs
+     | FREE expr
+     | RETURN expr
+     | EXIT expr
+     | PRINT expr
+     | PRINTLN expr
      | IF expr THEN stat ELSE stat FI | WHILE expr DO stat DONE
      | BEGIN stat END
      | stat SEMICOLON stat
-     | type IDENT ASSIGN assign_rhs
-     | assign_lhs ASSIGN assign_rhs
      ;
 
-assign_lhs : IDENT 
-           | array_elem  
-           | pair_elem 
+assign_lhs : IDENT
+           | array_elem
+           | pair_elem
            ;
 
-assign_rhs : expr 
-           | array_liter 
-           | NEWPAIR OPEN_PARENTHESES expr  COMMA expr  CLOSE_PARENTHESES | pair_elem 
+assign_rhs : expr
+           | array_liter
+           | NEWPAIR OPEN_PARENTHESES expr  COMMA expr  CLOSE_PARENTHESES | pair_elem
            | CALL IDENT  OPEN_PARENTHESES arg_list? CLOSE_PARENTHESES
            ;
 
@@ -55,20 +55,21 @@ pair_elem_type : BASE_TYPE
                | PAIR 
                ;
 
-expr : expr PLUS expr   #PlusExpr
-     | expr BINOP expr  #BinopExpr
-     | expr MINUS expr  #MinusExpr
-     | INT_LITER   #IntExpr
-     | (PLUS | MINUS) INT_LITER #SignedIntExpr
-     | BOOL_LITER  #BoolExpr
-     | CHAR_LITER  #CharExpr
-     | STR_LITER   #StrExpr
-     | PAIR_LITER  #PairExpr
-     | IDENT       #IdentExpr
-     | array_elem  #ArrayExpr
-     | UNOP expr   #UnopExpr
-     | MINUS expr  #NegExpr
-     | OPEN_PARENTHESES expr CLOSE_PARENTHESES #ParenExpr
+expr : INT_LITER 
+     | PLUS INT_LITER
+     | BOOL_LITER 
+     | CHAR_LITER 
+     | STR_LITER 
+     | PAIR_LITER 
+     | IDENT 
+     | array_elem 
+     | uop=( '-' | '!' | 'len' | 'ord' | 'chr' ) expr
+     | expr bop=( '*' | '/' | '%' ) expr
+     | expr bop=( '+' | '-' ) expr
+     | expr bop=( '>' | '>=' | '<' | '<=' ) expr
+     | expr bop=( '==' | '!=' ) expr
+     | expr bop=( '&&' | '||' ) expr
+     | OPEN_PARENTHESES expr CLOSE_PARENTHESES
      ;
 
 array_elem  : IDENT (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
