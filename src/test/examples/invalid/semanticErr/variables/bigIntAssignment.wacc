@@ -1,7 +1,8 @@
 # int assignment overlow
 
 # Output:
-# #syntax_error#
+# #syntax_error# (used to be, in given wacc_example)
+# #semantic_error#
 
 # Exit:
 # 100

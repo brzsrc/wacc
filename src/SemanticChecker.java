@@ -1,17 +1,14 @@
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
+import utils.ExprTypes;
+import utils.TypeSystem;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
-  final VisitorExample Visitor = new VisitorExample();
+import static utils.Utils.check;
 
-  private void check(TypeSystem type, Class target) {
-    if (type.getClass() != target) {
-      throw new IllegalArgumentException("Semantic check: type failed to match");
-    }
-  }
+public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
 
   @Override
   public TypeSystem visitIntExpr(WACCParser.IntExprContext ctx) {
@@ -35,7 +32,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
 
   @Override
   public TypeSystem visitUnopExpr(WACCParser.UnopExprContext ctx) {
-    String unop = ctx.UNOP().getText();
+    String unop = ctx.uop.getText();
     TypeSystem type = visitChildren(ctx.expr());
     switch (unop) {
       case "not":

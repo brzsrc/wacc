@@ -4,6 +4,8 @@
 ./src/test/examples/valid/array/arrayLength.wacc
 ./src/test/examples/valid/array/arrayEmpty.wacc
 ./src/test/examples/valid/array/array.wacc
+line 26:12 missing '=' at 'FQEf'
+line 26:17 extraneous input 'qe' expecting 'fi'
 ./src/test/examples/valid/array/arrayLookup.wacc
 ./src/test/examples/valid/array/modifyString.wacc
 ./src/test/examples/valid/array/printRef.wacc
