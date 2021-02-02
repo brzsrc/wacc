@@ -18,7 +18,8 @@ stat : SKP
      | EXIT expr
      | PRINT expr
      | PRINTLN expr
-     | IF expr THEN stat ELSE stat FI | WHILE expr DO stat DONE
+     | IF expr THEN stat ELSE stat FI 
+     | WHILE expr DO stat DONE
      | BEGIN stat END
      | stat SEMICOLON stat
      ;
@@ -55,21 +56,21 @@ pair_elem_type : BASE_TYPE
                | PAIR 
                ;
 
-expr : INT_LITER 
-     | PLUS INT_LITER
-     | BOOL_LITER 
-     | CHAR_LITER 
-     | STR_LITER 
-     | PAIR_LITER 
-     | IDENT 
-     | array_elem 
-     | uop=( '-' | '!' | 'len' | 'ord' | 'chr' ) expr
-     | expr bop=( '*' | '/' | '%' ) expr
-     | expr bop=( '+' | '-' ) expr
-     | expr bop=( '>' | '>=' | '<' | '<=' ) expr
-     | expr bop=( '==' | '!=' ) expr
-     | expr bop=( '&&' | '||' ) expr
-     | OPEN_PARENTHESES expr CLOSE_PARENTHESES
+expr : INT_LITER      #IntExpr
+     | PLUS INT_LITER #IntExpr
+     | BOOL_LITER     #BoolExpr
+     | CHAR_LITER     #CharExpr
+     | STR_LITER      #StrExpr
+     | PAIR_LITER     #PairExpr
+     | IDENT          #IdExpr
+     | array_elem     #ArrayExpr
+     | uop=( '-' | '!' | 'len' | 'ord' | 'chr' ) expr #UnopExpr
+     | expr bop=( '*' | '/' | '%' ) expr              #MulDivExpr
+     | expr bop=( '+' | '-' ) expr                    #PlusMinExpr
+     | expr bop=( '>' | '>=' | '<' | '<=' ) expr      #CmpExpr
+     | expr bop=( '==' | '!=' ) expr                  #EqExpr
+     | expr bop=( '&&' | '||' ) expr                  #AndOrExpr
+     | OPEN_PARENTHESES expr CLOSE_PARENTHESES        #ParenExpr
      ;
 
 array_elem  : IDENT (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;

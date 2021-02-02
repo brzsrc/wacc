@@ -7,14 +7,14 @@ import antlr.WACCParser;
  * */
 public class ExprTypes {
   public static class IntegerType implements TypeSystem {
-    int val;
+    public int val;
     public IntegerType(Integer val) {
       this.val = val;
     }
   }
 
   public static class BoolType implements TypeSystem {
-    boolean bVal;
+    public boolean bVal;
     public BoolType(boolean bVal) {
       this.bVal = bVal;
     }
