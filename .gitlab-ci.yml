@@ -58,6 +58,7 @@ test-syntax-syntax-err:
   stage: test
   script: 
     - echo "testing parser rejects syntax error "
+    - make 
     - ./parserTestSynErr
 
 test-semantics:

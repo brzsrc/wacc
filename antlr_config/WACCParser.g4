@@ -12,7 +12,8 @@ param       : type IDENT;
 stat_with_end: (stat SEMICOLON)? end_stat
              | (stat SEMICOLON)? WHILE expr DO stat_with_end DONE
              | (stat SEMICOLON)? BEGIN stat_with_end END
-             | (stat SEMICOLON)? IF expr THEN stat_with_end ELSE stat_with_end FI              
+             | (stat SEMICOLON)? IF expr THEN stat_with_end ELSE stat_with_end FI  
+             | stat_with_end SEMICOLON (stat | stat_with_end)            
              ;
 
 stat : SKP
@@ -20,9 +21,11 @@ stat : SKP
      | assign_lhs ASSIGN assign_rhs
      | READ assign_lhs
      | FREE expr
-     | end_stat
+     | PRINT expr
      | PRINTLN expr
      | IF expr THEN stat ELSE stat FI 
+     | IF expr THEN stat_with_end ELSE stat FI 
+     | IF expr THEN stat ELSE stat_with_end FI 
      | WHILE expr DO stat DONE
      | BEGIN stat END
      | stat SEMICOLON stat
