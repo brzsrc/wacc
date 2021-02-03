@@ -16,31 +16,50 @@ build-job:
     - echo "Building the WACC compiler..."
     - make
 
-test-lexer-parser:
+# # old test for parser
+# test-lexer-parser:
+#   stage: test
+#   script:
+#     - echo "Testing scanner/parser on all WACC file in test/..."
+#     - ./grun antlr.WACC program -tree $(find $VALID_EXAMPLES -name "*.wacc") 2> $VALID_EXAMPLES_LOG
+#     - |
+#       if grep "line [0-9]*:[0-9]*" $VALID_EXAMPLES_LOG > /dev/null; then
+#         exit 1
+#       fi
+#     - ./grun antlr.WACC program -tree $(find $INVALID_SEMANTIC_ERR -name "*.wacc") 2> $INVALID_SEMANTIC_ERR_LOG
+#     - |
+#       if grep "line [0-9]*:[0-9]*" $INVALID_SEMANTIC_ERR_LOG > /dev/null; then
+#         exit 1
+#       fi
+#     - |
+#       for file in $(find $INVALID_SYNTAX_ERR -name "*.wacc") 
+#       do 
+#         ./grun antlr.WACC program -tree $file 2> $INVALID_SYNTAX_ERR_LOG
+#         if ! grep "line [0-9]*:[0-9]*" $INVALID_SYNTAX_ERR_LOG > /dev/null; then
+#           echo $file 
+#           exit 1
+#         fi
+#       done
+#   # Need to add a clause to check if the invalid syntax errors are the same as the ones from the reference compiler
+
+test-syntax-valid: 
   stage: test
-  script:
-    - echo "Testing scanner/parser on all WACC file in test/..."
-    - ./grun antlr.WACC program -tree $(find $VALID_EXAMPLES -name "*.wacc") 2> $VALID_EXAMPLES_LOG
-    - |
-      if grep "line [0-9]:[0-9]" $VALID_EXAMPLES_LOG > /dev/null; then
-        exit 1
-      fi
-    - ./grun antlr.WACC program -tree $(find $INVALID_SEMANTIC_ERR -name "*.wacc") 2> $INVALID_SEMANTIC_ERR_LOG
-    - |
-      if grep "line [0-9]:[0-9]" $INVALID_SEMANTIC_ERR_LOG > /dev/null; then
-        exit 1
-      fi
-    - |
-      for file in $(find $INVALID_SYNTAX_ERR -name "*.wacc") 
-      do 
-        ./grun antlr.WACC program -tree $file 2> $INVALID_SYNTAX_ERR_LOG
-        if ! grep "line [0-9]*:[0-9]*" $INVALID_SYNTAX_ERR_LOG > /dev/null; then
-          cat $INVALID_SYNTAX_ERR_LOG
-          echo $file 
-          exit 1
-        fi
-      done
-    # Need to add a clause to check if the invalid syntax errors are the same as the ones from the reference compiler
+  script: 
+    - echo "testing parser accepts correct examples "
+    - ./parserTestValid
+
+test-syntax-semantic-err: 
+  stage: test
+  script: 
+    - echo "testing parser accepts semantic error "
+    - ./parserTestSemanticErr
+
+test-syntax-syntax-err: 
+  stage: test
+  script: 
+    - echo "testing parser rejects syntax error "
+    - make 
+    - ./parserTestSynErr
 
 test-semantics:
   stage: test

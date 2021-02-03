@@ -1,6 +1,7 @@
 # function body not terminated with return or exit statement
 # Output:
-# #syntax_error#
+# #syntax_error# (used to be)
+# #semantic error#
 
 # Exit:
 # 100
