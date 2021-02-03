@@ -10,7 +10,6 @@ param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
 stat_with_end: (stat SEMICOLON)? end_stat
-             | (stat SEMICOLON)? WHILE expr DO stat_with_end DONE
              | (stat SEMICOLON)? BEGIN stat_with_end END
              | (stat SEMICOLON)? IF expr THEN stat_with_end ELSE stat_with_end FI  
              | stat_with_end SEMICOLON (stat | stat_with_end)            
