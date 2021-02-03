@@ -1,10 +1,9 @@
 package utils;
 
 import java.util.HashMap;
-
 import antlr.WACCParser;
 
-public class SymbolTable implements SymbolTableInterface {
+public class SymbolTable {
     private HashMap<String, TypeSystem> dictionary;
     private SymbolTable encSymTable;
 
@@ -13,17 +12,14 @@ public class SymbolTable implements SymbolTableInterface {
         this.dictionary = new HashMap<>();
     }
 
-    @Override
     public void add(String name, TypeSystem type) {
         dictionary.put(name, type);
     }
 
-    @Override
     public TypeSystem lookUp(String name) {
         return dictionary.get(name);
     }
 
-    @Override
     public TypeSystem lookUpAll(String name) {
         SymbolTable table = this;
         TypeSystem obj = null;
