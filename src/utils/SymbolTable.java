@@ -4,7 +4,7 @@ import java.util.HashMap;
 import antlr.WACCParser;
 
 public class SymbolTable {
-    private HashMap<String, TypeSystem> dictionary;
+    private HashMap<String, WACCType> dictionary;
     private SymbolTable encSymTable;
 
     public SymbolTable(SymbolTable encSymTable) {
@@ -12,17 +12,17 @@ public class SymbolTable {
         this.dictionary = new HashMap<>();
     }
 
-    public void add(String name, TypeSystem type) {
+    public void add(String name, WACCType type) {
         dictionary.put(name, type);
     }
 
-    public TypeSystem lookUp(String name) {
+    public WACCType lookUp(String name) {
         return dictionary.get(name);
     }
 
-    public TypeSystem lookUpAll(String name) {
+    public WACCType lookUpAll(String name) {
         SymbolTable table = this;
-        TypeSystem obj = null;
+        WACCType obj = null;
         while(obj == null && table != null) {
             obj = table.dictionary.get(name);
             table = table.encSymTable;

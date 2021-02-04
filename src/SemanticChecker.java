@@ -1,42 +1,43 @@
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import utils.ExprTypes;
-import utils.TypeSystem.*;
 import utils.SymbolTable;
+import utils.Type.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static utils.Utils.check;
 
-public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
+public class SemanticChecker extends WACCParserBaseVisitor<WACCType> {
 
   /* the current sysmbol table holded by the current node */
-  private SymbolTable curSymTable = null;
+  private SymbolTable symbolTable = null;
 
   @Override
-  public TypeSystem visitProgram(WACCParser.ProgramContext ctx) {
+  public WACCType visitProgram(WACCParser.ProgramContext ctx) {
     /* when visiting a new node, let the curent symbol table 
-       become the new node's enclosing symTabel */
-    SymbolTable newSymTable = new SymbolTable(curSymTable);
-    /* sign the new node's symTable to the current symTable */
-    curSymTable = newSymTable;
-    for(WACCParser.FuncContext funcCtx: ctx.func()) {
+       become the new node's enclosing symTable */
+    this.symbolTable = new SymbolTable(null);
+
+    for (WACCParser.FuncContext funcCtx : ctx.func()) {
       visitFunc(funcCtx);
     }
+
     visitStat(ctx.stat());
+    
     return null;
   }
 
   @Override 
-  public TypeSystem visitStat(WACCParser.StatContext ctx) { 
+  public WACCType visitStat(WACCParser.StatContext ctx) { 
     return null;
   }
 
   /**
    * visitors for expr */
   @Override
-  public TypeSystem visitIntExpr(WACCParser.IntExprContext ctx) {
+  public WACCType visitIntExpr(WACCParser.IntExprContext ctx) {
     int val = 0;
     try {
       val = Integer.parseInt(ctx.INT_LITER().getText());
@@ -47,7 +48,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
   }
 
   @Override
-  public TypeSystem visitBoolExpr(WACCParser.BoolExprContext ctx) {
+  public WACCType visitBoolExpr(WACCParser.BoolExprContext ctx) {
     boolean bVal;
     String text = ctx.BOOL_LITER().getText();
     assert (text.equals("true") || text.equals("false"));
@@ -56,35 +57,35 @@ public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
   }
 
   @Override
-  public TypeSystem visitCharExpr(WACCParser.CharExprContext ctx) {
+  public WACCType visitCharExpr(WACCParser.CharExprContext ctx) {
     return new CharType(ctx.CHAR_LITER().getText()[0]);
   }
 
   @Override
-  public TypeSystem visitStrExpr(WACCParser.StrExprContext ctx) {
+  public WACCType visitStrExpr(WACCParser.StrExprContext ctx) {
     return new StringType(ctx.STR_LITER().getText());
   }
 
   @Override
-  public TypeSystem visitPairExpr(WACCParser.PairExprContext ctx) {
-    // todo: unimplemented
+  public WACCType visitPairExpr(WACCParser.PairExprContext ctx) {
+    ctx.
   }
 
   @Override
-  public TypeSystem visitIdExpr(WACCParser.IdExprContext ctx) {
+  public WACCType visitIdExpr(WACCParser.IdExprContext ctx) {
     // treat id as String, avoid creating a new class
     return new StringType(ctx.STR_LITER().getText());
   }
 
   @Override
-  public TypeSystem visitArrayExpr(WACCParser.ArrayExprContext ctx) {
+  public WACCType visitArrayExpr(WACCParser.ArrayExprContext ctx) {
     return visitArray_elem(ctx.array_elem());
   }
 
   @Override
-  public TypeSystem visitUnopExpr(WACCParser.UnopExprContext ctx) {
+  public WACCType visitUnopExpr(WACCParser.UnopExprContext ctx) {
     String unop = ctx.uop.getText();
-    TypeSystem type = visitChildren(ctx);
+    WACCType type = visitChildren(ctx);
     switch (unop) {
       case "-":
         check(type, IntegerType.class);
@@ -106,20 +107,20 @@ public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
   }
 
   @Override
-  public TypeSystem visitMulDivExpr(WACCParser.MulDivExprContext ctx) {
+  public WACCType visitMulDivExpr(WACCParser.MulDivExprContext ctx) {
 
   }
 
 
   @Override
-  public TypeSystem visitParenExpr(WACCParser.ParenExprContext ctx) {
+  public WACCType visitParenExpr(WACCParser.ParenExprContext ctx) {
     return visitChildren(ctx);
   }
 
   /**
    * visitors for array_elem */
   @Override
-  public TypeSystem visitArray_elem(WACCParser.Array_elemContext ctx) {
+  public WACCType visitArray_elem(WACCParser.Array_elemContext ctx) {
     return super.visitArray_elem(ctx);
   }
   /**
