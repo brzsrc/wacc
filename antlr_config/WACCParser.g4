@@ -9,19 +9,19 @@ func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat 
 param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
-stat : SKP
-     | type IDENT ASSIGN assign_rhs
-     | assign_lhs ASSIGN assign_rhs
-     | READ assign_lhs
-     | FREE expr
-     | RETURN expr
-     | EXIT expr
-     | PRINT expr
-     | PRINTLN expr
-     | IF expr THEN stat ELSE stat FI 
-     | WHILE expr DO stat DONE
-     | BEGIN stat END
-     | stat SEMICOLON stat
+stat : SKP                               #SkipStat
+     | type IDENT ASSIGN assign_rhs      #DelcarAssignStat
+     | assign_lhs ASSIGN assign_rhs      #AssignStat
+     | READ assign_lhs                   #ReadStat
+     | FREE expr                         #FreeStat
+     | RETURN expr                       #ReturnStat
+     | EXIT expr                         #ExitStat
+     | PRINT expr                        #PrintStat
+     | PRINTLN expr                      #PrintlnStat
+     | IF expr THEN stat ELSE stat FI    #IfStat
+     | WHILE expr DO stat DONE           #WhileStat
+     | BEGIN stat END                    #ScopeStat
+     | stat SEMICOLON stat               #SeqStat
      ;
 
 assign_lhs : IDENT
@@ -41,17 +41,24 @@ pair_elem : FST expr
           | SND expr
           ;
 
-type : BASE_TYPE  
+type : base_type
      | array_type
      | pair_type 
      ;
 
+// put base type here, maybe easier to implement expr? (not sure)
+base_type : INT
+          | BOOL
+          | CHAR
+          | STRING
+          ;
+
 array_type     : array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET 
-               | BASE_TYPE OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
+               | base_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
                | pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
                ;
 pair_type      : PAIR OPEN_PARENTHESES pair_elem_type  COMMA pair_elem_type  CLOSE_PARENTHESES ;
-pair_elem_type : BASE_TYPE  
+pair_elem_type : base_type
                | array_type  
                | PAIR 
                ;

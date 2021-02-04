@@ -12,11 +12,11 @@ EOL     : '\n' ;
 COMMENT : SHARP ~('\n')* EOL -> skip;
 
 // type
-BASE_TYPE: 'int'
-         | 'bool'
-         | 'char' 
-         | 'string'
-         ;
+INT    : 'int' ;
+BOOL   : 'bool' ;
+CHAR   : 'char' ;
+STRING : 'string' ;
+
 
 // the literals of different types
 BOOL_LITER        : 'true' | 'false' ;
