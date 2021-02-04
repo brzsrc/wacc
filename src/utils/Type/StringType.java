@@ -1,26 +1,16 @@
 package utils.Type;
 
-public class StringType implements Type<String> {
-  private String string;
-  private int length;
+public class StringType implements Type {
 
-  public StringType(String string) {
-    this.string = string;
-    this.length = string.length();
+  @Override
+  public String getTypeName() {
+    return "String";
   }
 
   @Override
-  public String getValue() {
-    return this.string;
+  public boolean equalToType(Type other) {
+    return this.getClass().equals(other.getClass());
   }
 
-  @Override
-  public void setValue(String value) {
-    this.string = value;
-    this.length = value.length();
-  }
-
-  public int getLength() {
-    return this.length;
-  }
+  
 }

@@ -1,26 +1,15 @@
 package utils.Type;
 
-public class CharType implements WACCType<Character> {
-  private char c;
-  private int ascii;
+public class CharType implements Type {
 
-  public CharType(char c) {
-      this.c = c;
-      this.ascii = c;
+  @Override
+  public boolean equalToType(Type other) {
+    return this.getClass().equals(other.getClass());
   }
 
   @Override
-  public Character getValue() {
-    return this.c;
+  public String getTypeName() {
+    return "Character";
   }
-
-  @Override
-  public void setValue(Character value) {
-    this.c = value;
-    this.ascii = value;
-  }
-
-  public int getAsciiValue() {
-    return this.ascii;
-  }
+  
 }

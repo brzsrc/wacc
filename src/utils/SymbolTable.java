@@ -1,10 +1,10 @@
 package utils;
 
 import java.util.HashMap;
-import antlr.WACCParser;
+import utils.Type.Type;
 
 public class SymbolTable {
-    private HashMap<String, WACCType> dictionary;
+    private HashMap<String, Type> dictionary;
     private SymbolTable encSymTable;
 
     public SymbolTable(SymbolTable encSymTable) {
@@ -12,17 +12,17 @@ public class SymbolTable {
         this.dictionary = new HashMap<>();
     }
 
-    public void add(String name, WACCType type) {
+    public void add(String name, Type type) {
         dictionary.put(name, type);
     }
 
-    public WACCType lookUp(String name) {
+    public Type lookUp(String name) {
         return dictionary.get(name);
     }
 
-    public WACCType lookUpAll(String name) {
+    public Type lookUpAll(String name) {
         SymbolTable table = this;
-        WACCType obj = null;
+        Type obj = null;
         while(obj == null && table != null) {
             obj = table.dictionary.get(name);
             table = table.encSymTable;

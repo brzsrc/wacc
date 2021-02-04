@@ -1,36 +1,34 @@
 package utils.Type;
 
 import java.util.List;
-import utils.Type.WACCType;
+import utils.Type.Type;
 
-public class ArrayType<T extends WACCType<T>> implements WACCType<List<T>> {
-    private int length;
-    private List<T> content;
+public class ArrayType<T extends Type> implements Type {
 
-    public ArrayType(List<T> content) {
-        this.content = content;
-        this.length = content.size();
+    T arrayType;
+
+    public ArrayType(T arrayType) {
+        this.arrayType = arrayType;
     }
 
     @Override
-    public List<T> getValue() {
-        return this.content;
-    }
-
-    public T getValue(int index) {
-        return this.content.get(index);
-    }
-
-    @Override
-    public void setValue(List<T> value) {
-        this.content = value;
-    }
-
-    public void setValue(int index, T value) {
-        if (index >= length) {
-            /* Error handling */
-            return;
+    public boolean equalToType(Type other) {
+        if (!this.getClass().equals(other.getClass())) {
+            return false;
         }
-        this.content.set(index, value);
+        // TODO: need better code here
+        ArrayType otherArray = (ArrayType) other;
+        return this.arrayType.getClass().equals(otherArray.getArrayType().getClass());
     }
+
+    public T getArrayType() {
+        return arrayType;
+    }
+
+    @Override
+    public String getTypeName() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
 }

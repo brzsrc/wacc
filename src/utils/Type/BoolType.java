@@ -1,19 +1,15 @@
 package utils.Type;
 
-public class BoolType implements WACCType<Boolean> {
-    private boolean value;
+public class BoolType implements Type {
 
-    public BoolType(boolean value) {
-        this.value = value;
+    @Override
+    public boolean equalToType(Type other) {
+        return this.getClass().equals(other.getClass());
     }
 
     @Override
-    public Boolean getValue() {
-        return this.value;
+    public String getTypeName() {
+        return "Boolean";
     }
-
-    @Override
-    public void setValue(Boolean value) {
-        this.value = value;
-    }
+    
 }
