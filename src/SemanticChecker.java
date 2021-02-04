@@ -1,7 +1,7 @@
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import utils.ExprTypes;
-import utils.TypeSystem;
+import utils.TypeSystem.*;
 import utils.SymbolTable;
 
 import java.util.HashMap;
@@ -33,6 +33,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
     return null;
   }
 
+  /**
+   * visitors for expr */
   @Override
   public TypeSystem visitIntExpr(WACCParser.IntExprContext ctx) {
     int val = 0;
@@ -41,7 +43,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
     } catch ( NumberFormatException e) {
       System.err.println("bad format of integer " + ctx.INT_LITER().getText());
     }
-    return new ExprTypes.IntegerType(val);
+    return new IntegerType(val);
   }
 
   @Override
@@ -50,28 +52,76 @@ public class SemanticChecker extends WACCParserBaseVisitor<TypeSystem> {
     String text = ctx.BOOL_LITER().getText();
     assert (text.equals("true") || text.equals("false"));
     bVal = text.equals("true");
-    return new ExprTypes.BoolType(bVal);
+    return new BoolType(bVal);
+  }
+
+  @Override
+  public TypeSystem visitCharExpr(WACCParser.CharExprContext ctx) {
+    return new CharType(ctx.CHAR_LITER().getText()[0]);
+  }
+
+  @Override
+  public TypeSystem visitStrExpr(WACCParser.StrExprContext ctx) {
+    return new StringType(ctx.STR_LITER().getText());
+  }
+
+  @Override
+  public TypeSystem visitPairExpr(WACCParser.PairExprContext ctx) {
+    // todo: unimplemented
+  }
+
+  @Override
+  public TypeSystem visitIdExpr(WACCParser.IdExprContext ctx) {
+    // treat id as String, avoid creating a new class
+    return new StringType(ctx.STR_LITER().getText());
+  }
+
+  @Override
+  public TypeSystem visitArrayExpr(WACCParser.ArrayExprContext ctx) {
+    return visitArray_elem(ctx.array_elem());
   }
 
   @Override
   public TypeSystem visitUnopExpr(WACCParser.UnopExprContext ctx) {
     String unop = ctx.uop.getText();
-    TypeSystem type = visitChildren(ctx.expr());
+    TypeSystem type = visitChildren(ctx);
     switch (unop) {
-      case "not":
-        check(type, ExprTypes.BoolType.class);
-        return new ExprTypes.BoolType(((ExprTypes.BoolType) type).bVal);
+      case "-":
+        check(type, IntegerType.class);
+      case "!":
+        check(type, BoolType.class);
+        return new BoolType(((BoolType) type).bVal);
       case "len":
-        check(type, ExprTypes.ArrayType.class);
-        return new ExprTypes.ArrayType();
+        check(type, ArrayType.class);
+        return new ArrayType();
       case "ord":
-        check(type, ExprTypes.CharType.class);
-        return new ExprTypes.CharType();
+        check(type, CharType.class);
+        return FuncType.ord(((CharType) type));
       case "chr":
-        check(type, ExprTypes.IntegerType.class);
-        return new ExprTypes.IntegerType(((ExprTypes.IntegerType) type).val);
+        check(type, IntegerType.class);
+        return FuncType.chr(((IntegerType) type));
     }
     System.err.println("fail to match unop" + unop + " in semantic check, error in parser or lexer");
     return null;
   }
+
+  @Override
+  public TypeSystem visitMulDivExpr(WACCParser.MulDivExprContext ctx) {
+
+  }
+
+
+  @Override
+  public TypeSystem visitParenExpr(WACCParser.ParenExprContext ctx) {
+    return visitChildren(ctx);
+  }
+
+  /**
+   * visitors for array_elem */
+  @Override
+  public TypeSystem visitArray_elem(WACCParser.Array_elemContext ctx) {
+    return super.visitArray_elem(ctx);
+  }
+  /**
+   * visitors for array_liter */
 }

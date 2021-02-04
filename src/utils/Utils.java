@@ -1,5 +1,7 @@
 package utils;
 
+import utils.TypeSystem.*;
+
 public class Utils {
 
   public static void check(TypeSystem type, Class target) {

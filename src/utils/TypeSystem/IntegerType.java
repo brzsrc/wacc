@@ -7,10 +7,8 @@ public class IntegerType implements TypeSystem {
       this.val = val;
     }
 
-    @Override
-    public boolean check(utils.TypeSystem.TypeSystem value) {
-        // TODO Auto-generated method stub
-        return false;
+    public static IntegerType defaultInstance() {
+      return new IntegerType(0);
     }
     
 }

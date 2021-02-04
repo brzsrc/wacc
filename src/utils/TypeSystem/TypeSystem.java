@@ -3,5 +3,5 @@ package utils.TypeSystem;
 import antlr.WACCParser;
 
 public interface TypeSystem {
-    public boolean check(TypeSystem value);
+//    boolean check(TypeSystem value);
 }

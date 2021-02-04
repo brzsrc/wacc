@@ -1,11 +1,14 @@
 package utils.TypeSystem;
 
 public class CharType implements TypeSystem {
+  public char c;
 
-    @Override
-    public boolean check(TypeSystem value) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-    
+  public CharType(char c) {
+    this.c = c;
+  }
+
+  public static CharType defaultInstance() {
+    return new CharType('\0');
+  }
+
 }

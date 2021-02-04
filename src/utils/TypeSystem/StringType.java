@@ -1,11 +1,14 @@
 package utils.TypeSystem;
 
 public class StringType implements TypeSystem {
+  public String s;
 
-    @Override
-    public boolean check(TypeSystem value) {
-        // TODO Auto-generated method stub
-        return false;
-    }
+  public StringType(String s) {
+    this.s = s;
+  }
+
+  public static StringType defaultInstance() {
+    return new StringType("");
+  }
     
 }
