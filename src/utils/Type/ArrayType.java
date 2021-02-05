@@ -5,6 +5,7 @@ import utils.Type.Type;
 
 public class ArrayType<T extends Type> implements Type {
 
+    private String id; // array a[] has id 'a'
     T arrayType;
 
     public ArrayType(T arrayType) {
@@ -23,6 +24,10 @@ public class ArrayType<T extends Type> implements Type {
 
     public T getArrayType() {
         return arrayType;
+    }
+
+    public String getId() {
+        return id;
     }
 
     @Override

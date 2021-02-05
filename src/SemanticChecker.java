@@ -1,88 +1,141 @@
-import antlr.WACCParser;
-import antlr.WACCParser.AndOrExprContext;
-import antlr.WACCParser.Arg_listContext;
-import antlr.WACCParser.Array_literContext;
-import antlr.WACCParser.Array_typeContext;
-import antlr.WACCParser.Assign_lhsContext;
-import antlr.WACCParser.Assign_rhsContext;
-import antlr.WACCParser.BoolExprContext;
-import antlr.WACCParser.CharExprContext;
-import antlr.WACCParser.CmpExprContext;
-import antlr.WACCParser.End_statContext;
-import antlr.WACCParser.EqExprContext;
-import antlr.WACCParser.FuncContext;
-import antlr.WACCParser.IdExprContext;
-import antlr.WACCParser.IntExprContext;
-import antlr.WACCParser.MulDivExprContext;
-import antlr.WACCParser.Pair_elemContext;
-import antlr.WACCParser.Pair_elem_typeContext;
-import antlr.WACCParser.Pair_typeContext;
-import antlr.WACCParser.ParamContext;
-import antlr.WACCParser.Param_listContext;
-import antlr.WACCParser.PlusMinExprContext;
-import antlr.WACCParser.Stat_with_endContext;
-import antlr.WACCParser.StrExprContext;
-import antlr.WACCParser.TypeContext;
-import antlr.WACCParser.UnopExprContext;
+import antlr.WACCParser.*;
 import antlr.WACCParserBaseVisitor;
-import utils.SymbolTable;
+import java.util.ArrayList;
+import java.util.List;
+
+import node.StatNode;
+import node.stat.SeqNode;
+import utils.IR.SymbolTable;
 import utils.Type.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.RuleNode;
-import org.antlr.v4.runtime.tree.TerminalNode;
+import static utils.Utils.check;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Type> {
 
-  /* the current sysmbol table holded by the current node */
-  private SymbolTable symbolTable = null;
+  private static SymbolTable symbolTable = new SymbolTable();
 
   @Override
-  public Type visitProgram(WACCParser.ProgramContext ctx) {
-    /*
-     * when visiting a new node, let the curent symbol table become the new node's
-     * enclosing symTable
-     */
-    this.symbolTable = new SymbolTable(null);
+  public Type visitProgram(ProgramContext ctx) {
 
-    for (WACCParser.FuncContext funcCtx : ctx.func()) {
-      visitFunc(funcCtx);
+    visitChildren(ctx);
+
+    // program is topmost node, return nothing in semantic check
+    return null;
+  }
+
+  @Override
+  public Type visitFunc(FuncContext ctx) {
+    symbolTable.createNewScope();
+    Type returnType = visitType(ctx.type());
+    List<Type> param_list = new ArrayList();
+    for (ParamContext param : ctx.param_list().param()) {
+      Type param_type = visitType(param.type());
+      param_list.add(param_type);
+      symbolTable.add(param.IDENT().getText(), param_type);
+    }
+    //  intend to only visit stat list to examine every statement in function definition is correct,
+    //  call visit child, and on visit param or type child, result is discarded
+    symbolTable.add(ctx.IDENT().getText(), new FuncType(returnType, param_list));
+
+    // todo: introduce another IR: Control Flow Graph, implementation similar to symbol table,
+    //   let visitStat modify that graph, in order to check return/exit statement, and generate IR in one run through parser tree
+    //   i.e: all visitStat functions needs further implementation
+    visitChildren(ctx);
+    symbolTable.backtraceScope();
+
+    // no need to return, as function type does not need to match with any other type
+    return null;
+  }
+
+  @Override
+  public Type visitSeqStat(SeqStatContext ctx) {
+    // todo: CFG
+    SeqNode node = new SeqNode();
+
+    for (StatContext s : ctx.stat()) {
+
+      node.add((StatNode) visit(s));
     }
 
-    visitStat(ctx.stat());
+    return null;
+//    return node;
+  }
 
+  @Override
+  public Type visitReadStat(ReadStatContext ctx) {
+    Type targetType = visitAssign_lhs(ctx.assign_lhs());
+    if (!targetType.equalToType(new IntegerType())
+    && !targetType.equalToType(new CharType())) {
+      throw new IllegalArgumentException("cannot read in type " + targetType.getTypeName());
+    }
+    // todo: CFG
     return null;
   }
 
   @Override
-  public Type visitStat(WACCParser.StatContext ctx) {
+  public Type visitPrintlnStat(PrintlnStatContext ctx) {
+    // print statement does not need to check semantic, can print any expr
+    // todo: CFG
     return null;
   }
 
   @Override
-  public Type visitPairExpr(WACCParser.PairExprContext ctx) {
+  public Type visitAssignStat(AssignStatContext ctx) {
+    // todo: CFG
+
+    return super.visitAssignStat(ctx);
+  }
+
+  @Override
+  public Type visitPrintStat(PrintStatContext ctx) {
+    // same as println
+    // todo: CFG
     return null;
   }
 
   @Override
-  public Type visitArrayExpr(WACCParser.ArrayExprContext ctx) {
-    return visitArray_elem(ctx.array_elem());
+  public Type visitIfStat(IfStatContext ctx) {
+    //check the condition expr is bool or bool type
+    return null;
+//    return new IfNode((ExprNode) visit(ctx.expr()),
+//        (StatNode) visit(ctx.stat(0)), (StatNode) visit(ctx.stat(1)));
   }
 
   @Override
-  public Type visitParenExpr(WACCParser.ParenExprContext ctx) {
-    return visitChildren(ctx);
+  public Type visitFreeStat(FreeStatContext ctx) {
+    return super.visitFreeStat(ctx);
   }
 
-  /**
-   * visitors for array_elem
-   */
   @Override
-  public Type visitArray_elem(WACCParser.Array_elemContext ctx) {
+  public Type visitSkipStat(SkipStatContext ctx) {
+    return super.visitSkipStat(ctx);
+  }
+
+  @Override
+  public Type visitWhileStat(WhileStatContext ctx) {
+    //check the condition expr is bool or bool type
+    return null;
+//    return new WhileNode((ExprNode) visit(ctx.expr()), (StatNode) visit(ctx.stat()));
+  }
+
+  @Override
+  public Type visitScopeStat(ScopeStatContext ctx) {
+    return null;
+//    return new ScopeNode((StatNode) visit(ctx.stat()));
+  }
+
+  @Override
+  public Type visitDelcarAssignStat(DelcarAssignStatContext ctx) {
+    return super.visitDelcarAssignStat(ctx);
+  }
+
+  @Override
+  public Type visitParenExpr(ParenExprContext ctx) {
+    return super.visitParenExpr(ctx);
+  }
+
+  @Override
+  public Type visitArray_elem(Array_elemContext ctx) {
     return super.visitArray_elem(ctx);
   }
 
@@ -129,6 +182,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Type> {
   }
 
   @Override
+  public Type visitPairExpr(PairExprContext ctx) {
+    return super.visitPairExpr(ctx);
+  }
+
+  @Override
   public Type visitCharExpr(CharExprContext ctx) {
     // TODO Auto-generated method stub
     return super.visitCharExpr(ctx);
@@ -141,21 +199,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Type> {
   }
 
   @Override
-  public Type visitEnd_stat(End_statContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitEnd_stat(ctx);
-  }
-
-  @Override
   public Type visitEqExpr(EqExprContext ctx) {
     // TODO Auto-generated method stub
     return super.visitEqExpr(ctx);
-  }
-
-  @Override
-  public Type visitFunc(FuncContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitFunc(ctx);
   }
 
   @Override
@@ -190,20 +236,29 @@ public class SemanticChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitPair_type(Pair_typeContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitPair_type(ctx);
+    return new PairType<>(
+            visitPair_elem_type(ctx.pair_elem_type(0)),
+            visitPair_elem_type(ctx.pair_elem_type(1)));
   }
 
   @Override
   public Type visitParam(ParamContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitParam(ctx);
+    return visitType(ctx.type());
+  }
+
+  @Override
+  public Type visitReturnStat(ReturnStatContext ctx) {
+    return super.visitReturnStat(ctx);
+  }
+
+  @Override
+  public Type visitExitStat(ExitStatContext ctx) {
+    return super.visitExitStat(ctx);
   }
 
   @Override
   public Type visitParam_list(Param_listContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitParam_list(ctx);
+    throw new IllegalAccessException("visitParam_list should never be accessed, see implementation of visitFunction")
   }
 
   @Override
@@ -213,9 +268,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Type> {
   }
 
   @Override
-  public Type visitStat_with_end(Stat_with_endContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitStat_with_end(ctx);
+  public Type visitArrayExpr(ArrayExprContext ctx) {
+    return super.visitArrayExpr(ctx);
   }
 
   @Override
@@ -231,51 +285,44 @@ public class SemanticChecker extends WACCParserBaseVisitor<Type> {
   }
 
   @Override
+  public Type visitBase_type(Base_typeContext ctx) {
+    switch (ctx.getRuleIndex()) {
+      case 10:
+        return new IntegerType();
+      case 11:
+        return new BoolType();
+      case 12:
+        return new CharType();
+      case 13:
+        return new StringType();
+      default:
+        throw new IllegalArgumentException("invalid rule index in visitBase_type: " + ctx.getRuleIndex());
+    }
+  }
+
+  @Override
   public Type visitUnopExpr(UnopExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitUnopExpr(ctx);
-  }
+    String unop = ctx.uop.getText();
+    Type type = visitChildren(ctx);
+    switch (unop) {
+      case "-":
+      case "chr":
+        check(type, IntegerType.class);
+        return new IntegerType();
+      case "!":
+        check(type, BoolType.class);
+        return new BoolType();
+      case "len":
+        check(type, ArrayType.class);
+        ArrayType array = ((ArrayType) type);
+        return symbolTable.lookUpAll(array.getId());
+      case "ord":
+        check(type, CharType.class);
+        return new CharType();
+      default:
+        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + unop);
+    }
 
-  @Override
-  protected Type aggregateResult(Type aggregate, Type nextResult) {
-    // TODO Auto-generated method stub
-    return super.aggregateResult(aggregate, nextResult);
-  }
-
-  @Override
-  protected Type defaultResult() {
-    // TODO Auto-generated method stub
-    return super.defaultResult();
-  }
-
-  @Override
-  protected boolean shouldVisitNextChild(RuleNode node, Type currentResult) {
-    // TODO Auto-generated method stub
-    return super.shouldVisitNextChild(node, currentResult);
-  }
-
-  @Override
-  public Type visit(ParseTree tree) {
-    // TODO Auto-generated method stub
-    return super.visit(tree);
-  }
-
-  @Override
-  public Type visitChildren(RuleNode arg0) {
-    // TODO Auto-generated method stub
-    return super.visitChildren(arg0);
-  }
-
-  @Override
-  public Type visitErrorNode(ErrorNode node) {
-    // TODO Auto-generated method stub
-    return super.visitErrorNode(node);
-  }
-
-  @Override
-  public Type visitTerminal(TerminalNode node) {
-    // TODO Auto-generated method stub
-    return super.visitTerminal(node);
   }
   
 }

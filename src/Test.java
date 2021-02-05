@@ -17,7 +17,7 @@ public class Test {
     // Parse the tokens into a syntax tree
     WACCParser parser = new WACCParser(tokens);
     // Start parsing using the `program` rule defined in antlr_config/WACCParser.g4
-    ParseTree tree = parser.expr();
+    ParseTree tree = parser.program();
 
     WACCParserVisitor visitor = new SemanticChecker();
     visitor.visit(tree);
