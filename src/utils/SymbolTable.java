@@ -1,29 +1,27 @@
 package utils;
 
 import java.util.HashMap;
-import java.util.List;
 import Node.Node;
-
-import Type.Type;
+import Node.Expr.ExprNode;
 
 public class SymbolTable {
 
-    private HashMap<String, Node> dictionary;
+    private HashMap<String, ExprNode> dictionary;
     private SymbolTable parentSymbolTable;
 
     public SymbolTable() {
-        this.dictionary = new HashMap<String, Node>();
+        this.dictionary = new HashMap<String, ExprNode>();
         this.parentSymbolTable = null;
     }
 
-    public void add(String name, Node node) {
+    public void add(String name, ExprNode node) {
         if (dictionary.containsKey(name)) {
             throw new IllegalArgumentException("redefinition of ident: " + name + " is not allowed");
         }
         this.dictionary.put(name, node);
     }
 
-    public Node lookup(String name) {
+    public ExprNode lookup(String name) {
         return dictionary.get(name);
     }
 

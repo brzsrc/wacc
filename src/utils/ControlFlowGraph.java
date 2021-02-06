@@ -1,7 +1,7 @@
 package utils;
 
-import utils.IR.CFG.FuncNode;
-import Node.Expr.StatNode;
+import Node.Stat.FuncNode;
+import Node.Stat.StatNode;
 
 import java.util.ArrayList;
 import java.util.List;
