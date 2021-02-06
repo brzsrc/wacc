@@ -5,8 +5,8 @@ import java.util.List;
 
 import node.StatNode;
 import node.stat.SeqNode;
-import utils.IR.SymbolTable;
-import utils.Type.*;
+import utils.SymbolTable;
+import Type.*;
 
 import static utils.Utils.check;
 
@@ -258,7 +258,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitParam_list(Param_listContext ctx) {
-    throw new IllegalAccessException("visitParam_list should never be accessed, see implementation of visitFunction")
+    throw new IllegalAccessException("visitParam_list should never be accessed, see implementation of visitFunction");
   }
 
   @Override
