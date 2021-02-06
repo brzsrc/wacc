@@ -6,7 +6,6 @@ public class IdentNode extends ExprNode {
 
     @Override
     public boolean check() {
-        // TODO Auto-generated method stub
         return false;
     }
 

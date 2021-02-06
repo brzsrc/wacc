@@ -21,6 +21,16 @@ public class BinopNode extends ExprNode {
         return false;
     }
 
+    @Override
+    public void setValue(String value) {
+        throw new UnsupportedOperationException("Binop does not support setting its value. Please pass ExprNode as the input!");
+    }
+
+    @Override
+    public String getValue() {
+        throw new UnsupportedOperationException("Binop does not support return of its value yet. Please specify an index!");
+    }
+
     public ExprNode getExpr1() {
         return expr1;
     }

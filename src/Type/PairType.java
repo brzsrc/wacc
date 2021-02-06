@@ -27,14 +27,13 @@ public class PairType implements Type {
     }
 
     @Override
-    public String toString() {
-        return "Pair<" + fstType.toString() + ", " + sndType.toString() + ">";
-    }
-
-    @Override
     public boolean equalToType(Type other) {
-        if (!(this.getClass().equals(other.getClass()))) {
+        if (!(other instanceof PairType)) {
             return false;
+        }
+
+        if (other == null) {
+            return true;
         }
 
         PairType otherPair = (PairType) other;

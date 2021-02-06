@@ -6,6 +6,7 @@ import java.util.List;
 import Node.Node;
 import Node.Stat.*;
 import Node.Expr.*;
+import utils.ErrorHandler;
 import utils.SymbolTable;
 import Type.*;
 
@@ -14,6 +15,7 @@ import static utils.Utils.check;
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   private static SymbolTable symbolTable = new SymbolTable();
+  private static ErrorHandler errorHandler = new ErrorHandler();
 
   @Override
   public Node visitProgram(ProgramContext ctx) {
@@ -26,22 +28,22 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitFunc(FuncContext ctx) {
-    // Type returnType = visitType(ctx.type());
-    // List<Type> param_list = new ArrayList();
-    // for (ParamContext param : ctx.param_list().param()) {
-    //   Type param_type = visitType(param.type());
-    //   param_list.add(param_type);
-    //   symbolTable.add(param.IDENT().getText(), param_type);
-    // }
-    // //  intend to only visit stat list to examine every statement in function definition is correct,
-    // //  call visit child, and on visit param or type child, result is discarded
-    // symbolTable.add(ctx.IDENT().getText(), new FuncType(returnType, param_list));
+    Type returnType = visitType(ctx.type());
+    List<Type> param_list = new ArrayList();
+    for (ParamContext param : ctx.param_list().param()) {
+      Type param_type = visitType(param.type());
+      param_list.add(param_type);
+      symbolTable.add(param.IDENT().getText(), param_type);
+    }
+    //  intend to only visit stat list to examine every statement in function definition is correct,
+    //  call visit child, and on visit param or type child, result is discarded
+    symbolTable.add(ctx.IDENT().getText(), new FuncType(returnType, param_list));
 
-    // // todo: introduce another IR: Control Flow Graph, implementation similar to symbol table,
-    // //   let visitStat modify that graph, in order to check return/exit statement, and generate IR in one run through parser tree
-    // //   i.e: all visitStat functions needs further implementation
-    // visitChildren(ctx);
-    // symbolTable.backtraceScope();
+    // todo: introduce another IR: Control Flow Graph, implementation similar to symbol table,
+    //   let visitStat modify that graph, in order to check return/exit statement, and generate IR in one run through parser tree
+    //   i.e: all visitStat functions needs further implementation
+    visitChildren(ctx);
+    symbolTable.backtraceScope();
 
     // no need to return, as function type does not need to match with any other type
     return null;

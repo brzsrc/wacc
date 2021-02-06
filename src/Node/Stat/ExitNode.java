@@ -7,4 +7,12 @@ public class ExitNode implements StatNode {
     return true;
   }
 
+  public boolean isSeq() {
+    return true;
+  }
+
+  public boolean isReturn() {
+    return false;
+  }
+
 }

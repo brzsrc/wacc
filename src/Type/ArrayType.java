@@ -2,7 +2,7 @@ package Type;
 
 public class ArrayType implements Type {
 
-    Type type;
+    private Type type;
 
     public ArrayType(Type type) {
         this.type = type;
@@ -10,20 +10,15 @@ public class ArrayType implements Type {
 
     @Override
     public boolean equalToType(Type other) {
-        if (!this.getClass().equals(other.getClass())) {
+        if (!(other instanceof ArrayType)) {
             return false;
         }
 
-        return this.type.getClass().equals(((ArrayType) other).getArrayType().getClass());
+        return type.equalToType(((ArrayType) other).getArrayType());
     }
 
     public Type getArrayType() {
         return type;
-    }
-
-    @Override
-    public String toString() {
-        return "Array<" + type.toString() + ">";
     }
     
 }

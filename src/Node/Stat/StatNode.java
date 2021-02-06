@@ -12,10 +12,11 @@ public interface StatNode {
   default boolean isSeq() {
     return false;
   }
-
+  
+  // does the statement(s) include return or exit statement 
   default boolean hasEnd() { return false; }
 
-  //main function could not have return, maybe useful for checking this
+  // does the statement(s) has return statement
   default boolean isReturn() { return false; }
 
 }
