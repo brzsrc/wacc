@@ -5,12 +5,14 @@ import type.BasicTypeEnum;
 import type.Type;
 import utils.SymbolTable;
 
-enum Unop {
-    NOT, MINUS, LEN, ORD, CHR
-}
+
 
 public class UnopNode extends ExprNode {
 
+    public enum Unop {
+        NOT, MINUS, LEN, ORD, CHR
+    }
+    
     ExprNode expr;
     Unop operator;
 

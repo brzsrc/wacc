@@ -5,12 +5,14 @@ import type.BasicTypeEnum;
 import type.Type;
 import utils.SymbolTable;
 
-enum Binops {
-    PLUS, MINUS, MUL, DIV, MOD, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, EQUAL, UNEQUAL, AND, OR
-}
+
 
 public class BinopNode extends ExprNode {
 
+    public enum Binops {
+        PLUS, MINUS, MUL, DIV, MOD, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, EQUAL, UNEQUAL, AND, OR
+    }
+    
     private ExprNode expr1;
     private ExprNode expr2;
     private Binops operator;
