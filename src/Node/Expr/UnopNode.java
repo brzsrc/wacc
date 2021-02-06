@@ -4,12 +4,12 @@ enum Unop {
     NOT, MINUX, LEN, ORD, CHR
 }
 
-public class UnopNode<T> extends ExprNode<T> {
+public class UnopNode extends ExprNode {
 
-    ExprNode<T> expr;
+    ExprNode expr;
     Unop operator;
 
-    public UnopNode(ExprNode<T> expr, Unop operator) {
+    public UnopNode(ExprNode expr, Unop operator) {
         this.expr = expr;
         this.operator = operator;
     }

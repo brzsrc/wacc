@@ -1,7 +1,6 @@
-package utils.IR.CFG.stat;
+package Node.Stat;
 
-import Node.Stat.ExprNode;
-import Node.StatNode;
+import Node.Expr.ExprNode;
 
 public class WhileNode implements StatNode {
 

@@ -1,11 +1,11 @@
 package Node.Expr;
 
+import Node.Node;
 import Type.Type;
 
-public abstract class ExprNode<T> {
+public abstract class ExprNode implements Node {
     protected Type type;
-    protected String rawLiterals;
-    protected T value;
+    protected String value;
 
     public Type getType() {
         return this.type;
@@ -16,11 +16,11 @@ public abstract class ExprNode<T> {
         this.type = type;
     }
 
-    public T getValue() {
+    public String getValue() {
         return this.value;
     }
 
-    public void setValue(T value) {
+    public void setValue(String value) {
         this.value = value;
     }
 

@@ -1,8 +1,8 @@
 package Node.Expr;
 
-public class IntegerNode extends ExprNode<Integer> {
+public class IntegerNode extends ExprNode {
 
-  public IntegerNode(Integer value) {
+  public IntegerNode(String value) {
     this.value = value;
   }
 

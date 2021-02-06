@@ -1,8 +1,8 @@
 package Node.Expr;
 
-public class BoolNode extends ExprNode<Boolean> {
+public class BoolNode extends ExprNode {
     
-    public BoolNode(boolean value) {
+    public BoolNode(String value) {
         this.value = value;
     }
 

@@ -1,6 +1,4 @@
-package utils.IR.CFG.stat;
-
-import Node.StatNode;
+package Node.Stat;
 
 import java.util.ArrayList;
 import java.util.List;

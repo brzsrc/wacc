@@ -1,6 +1,4 @@
-package utils.IR.CFG.stat;
-
-import Node.StatNode;
+package Node.Stat;
 
 public class ReadNode implements StatNode {
   

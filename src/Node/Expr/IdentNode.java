@@ -1,6 +1,6 @@
 package Node.Expr;
 
-public class IdentNode<T> extends ExprNode<T> {
+public class IdentNode extends ExprNode {
 
     private String ident;
 

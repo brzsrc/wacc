@@ -1,10 +1,6 @@
-package utils.IR.CFG.stat;
-
-import Node.StatNode;
+package Node.Stat;
 
 public class ReturnNode implements StatNode {
-
-  private
 
   @Override
   public boolean isReturn() {

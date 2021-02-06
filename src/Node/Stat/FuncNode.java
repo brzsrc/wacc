@@ -17,4 +17,8 @@ public class FuncNode {
         this.functionBody = functionBody;
         this.parameters = new ArrayList<>(Arrays.asList(params));
     }
+
+    public List<StatNode> getBody() {
+        return this.functionBody;
+    }
 }

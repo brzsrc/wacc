@@ -1,13 +1,13 @@
 package Node.Expr;
 
-public class CharNode extends ExprNode<Character> {
+public class CharNode extends ExprNode {
 
-  public CharNode(char c) {
+  public CharNode(String c) {
       this.value = c;
   }
 
   public int getAsciiValue() {
-    return this.value;
+    return value.charAt(0);
   }
 
   @Override

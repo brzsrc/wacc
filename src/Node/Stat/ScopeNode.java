@@ -1,6 +1,4 @@
-package utils.IR.CFG.stat;
-
-import Node.StatNode;
+package Node.Stat;
 
 import java.util.List;
 
@@ -14,6 +12,7 @@ public class ScopeNode implements StatNode {
 
   @Override
   public boolean hasEnd() {
-    return body.hasEnd();
+    // return body.hasEnd();
+    return false;
   }
 }

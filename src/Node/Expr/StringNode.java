@@ -1,6 +1,6 @@
 package Node.Expr;
 
-public class StringNode extends ExprNode<String> {
+public class StringNode extends ExprNode {
 
   private int length;
 
