@@ -24,7 +24,7 @@ public class SymbolTable {
         this.dictionary.put(name, expr);
     }
 
-    public HashMap<String, > getDictionary() {
+    public HashMap<String, ExprNode> getDictionary() {
         return dictionary;
     }
 
