@@ -5,24 +5,21 @@ import utils.SymbolTable;
 
 public class IdentNode extends ExprNode {
 
-    private String ident;
+    public IdentNode(String value) {
+        super(value);
+    }
 
     @Override
     public Type getType(SymbolTable symbolTable) {
-        return symbolTable.lookupAll(ident);
-    }
-
-    @Override
-    public boolean check() {
-        return false;
+        return symbolTable.lookupAll(value).type;
     }
 
     public String getIdent() {
-        return ident;
+        return value;
     }
 
     public void setIdent(String ident) {
-        this.ident = ident;
+        this.value = ident;
     }
     
 }

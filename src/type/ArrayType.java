@@ -2,10 +2,10 @@ package type;
 
 public class ArrayType implements Type {
 
-    private Type type;
+    private Type contentType;
 
-    public ArrayType(Type type) {
-        this.type = type;
+    public ArrayType(Type contentType) {
+        this.contentType = contentType;
     }
 
     @Override
@@ -14,11 +14,11 @@ public class ArrayType implements Type {
             return false;
         }
 
-        return type.equalToType(((ArrayType) other).getArrayType());
+        return contentType.equalToType(((ArrayType) other).getContentType());
     }
 
-    public Type getArrayType() {
-        return type;
+    public Type getContentType() {
+        return contentType;
     }
-    
+
 }

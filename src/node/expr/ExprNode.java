@@ -11,6 +11,10 @@ public abstract class ExprNode implements Node {
     //       since even if you allow any expr can return a value, this still require knowing what is the data type
     protected String value;
 
+    public ExprNode(String value) {
+        this.value = value;
+    }
+
     public Type getType(SymbolTable symbolTable) {
         return this.type;
     }
@@ -28,5 +32,9 @@ public abstract class ExprNode implements Node {
         this.value = value;
     }
 
-    public abstract boolean check();
+    // todo: check is explicitely implemented in semantic checker
+    //       exprNode should be as simple as possible, otherwise backend may misuse field
+    public boolean check() {
+        return false;
+    }
 }

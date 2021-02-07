@@ -1,17 +1,16 @@
 package node.expr;
 
+import type.BasicType;
+import type.BasicTypeEnum;
+
 public class StringNode extends ExprNode {
 
   private int length;
 
   public StringNode(String string) {
-    this.value = string;
+    super(string);
     this.length = string.length();
-  }
-
-  @Override
-  public boolean check() {
-      return false;
+    this.type = new BasicType(BasicTypeEnum.STRING);
   }
 
   public int getLength() {
