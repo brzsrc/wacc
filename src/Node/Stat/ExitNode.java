@@ -2,18 +2,18 @@ package Node.Stat;
 
 import Node.Expr.ExprNode;
 
-public class ExitNode implements StatNode {
+public class ExitNode extends StatNode {
 
-  private ExprNode exitExpr;
+  private final ExprNode value;
 
-  public ExitNode(ExprNode exitExpr) {
-    this.exitExpr = exitExpr;
+  public ExitNode(ExprNode value) {
+    this.value = value;
+    setAll();
   }
 
-
   @Override
-  public boolean hasEnd() {
-    return true;
+  public void setLeaveAtEnd() {
+    leaveAtEnd = true;
   }
 
 }

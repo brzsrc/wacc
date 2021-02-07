@@ -2,21 +2,35 @@ package Node.Stat;
 
 import Node.Node;
 
-import java.util.List;
+public abstract class StatNode implements Node {
 
-/**
- * describe a single statement */
-public interface StatNode {
-  
-  /**
-   * does the statement(s) end with return or exit statement
-   * usage: function should end with statement hasEnd() but NO OTHER STATEMENT AFTER
-   *        main scope no restriction */
-  default boolean hasEnd() { return false; }
+  protected boolean leaveAtEnd;
+  protected boolean hasReturn;
 
-  /** does the statement(s) include return statement
-   * usage: function no restriction
-   *       main scope should not allow return instruction */
-  default boolean hasReturn() { return false; }
 
+  /* Check current StatNode(statement) is SeqNode(sequential composition) or not */
+  public boolean isSeq() {
+    return false;
+  }
+
+  /* Setters */
+  public void setLeaveAtEnd() { this.leaveAtEnd = false; }
+
+  public void setHasReturn() { this.hasReturn = false; }
+
+  /* All StatNode should call setAll at their constructors */
+  protected void setAll() {
+    setLeaveAtEnd();
+    setHasReturn();
+  }
+
+
+  /* Getters */
+  public boolean isLeaveAtEnd() {
+    return leaveAtEnd;
+  }
+
+  public boolean isHasReturn() {
+    return hasReturn;
+  }
 }

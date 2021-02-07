@@ -1,16 +1,15 @@
 import antlr.WACCParser.*;
 import antlr.WACCParserBaseVisitor;
+
 import java.util.ArrayList;
 import java.util.List;
-
+import Node.FuncNode;
 import Node.Node;
+import Node.ProgramNode;
+import Node.Expr.ExprNode;
 import Node.Stat.*;
-import Node.Expr.*;
 import utils.ErrorHandler;
 import utils.SymbolTable;
-import Type.*;
-
-import static utils.Utils.check;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
@@ -20,15 +19,34 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitProgram(ProgramContext ctx) {
+    List<FuncNode> functions = new ArrayList<>();
 
-    // visitChildren(ctx);
+    for (FuncContext f : ctx.func()) {
+      FuncNode node = (FuncNode) visitFunc(f);
+      if (!node.getFunctionBody().isLeaveAtEnd()) {
+        //throw syntax exception
+      }
+      functions.add(node);
+    }
 
-    // program is topmost node, return nothing in semantic check
-    return null;
+    StatNode body = (StatNode) visit(ctx.stat());
+    if (body.isHasReturn()) {
+      //throw semantic exception
+    }
+
+    return new ProgramNode(functions, body);
   }
 
   @Override
   public Node visitFunc(FuncContext ctx) {
+
+    /** Compilation error in this method body, so commented out
+     *  Cause Reason: 1.FuncType not existed
+     *                2.Return type of visit() method is Node not Type
+     *  Please fix it later **/
+
+    /*
+
     Type returnType = visitType(ctx.type());
     List<Type> param_list = new ArrayList();
     for (ParamContext param : ctx.param_list().param()) {
@@ -47,21 +65,34 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     symbolTable.backtraceScope();
 
     // no need to return, as function type does not need to match with any other type
+
+    */
     return null;
   }
 
+  /******************************** StatNode Visitors *************************************/
+
   @Override
   public Node visitSeqStat(SeqStatContext ctx) {
-    // todo: CFG
-    SeqNode node = new SeqNode();
+    return new SeqNode((StatNode) visit(ctx.stat(0)), (StatNode) visit(ctx.stat(1)));
+  }
 
-    for (StatContext s : ctx.stat()) {
+  @Override
+  public Node visitIfStat(IfStatContext ctx) {
+    //check the condition expr is bool or bool type
+    return new IfNode((ExprNode) visit(ctx.expr()),
+        (StatNode) visit(ctx.stat(0)), (StatNode) visit(ctx.stat(1)));
+  }
 
-      node.add((StatNode) visit(s));
-    }
+  @Override
+  public Node visitWhileStat(WhileStatContext ctx) {
+    //check the condition expr is bool or bool type
+    return new WhileNode((ExprNode) visit(ctx.expr()), (StatNode) visit(ctx.stat()));
+  }
 
-    return null;
-//    return node;
+  @Override
+  public Node visitScopeStat(ScopeStatContext ctx) {
+    return new ScopeNode((StatNode) visit(ctx.stat()));
   }
 
   @Override
@@ -97,14 +128,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   @Override
-  public Node visitIfStat(IfStatContext ctx) {
-    //check the condition expr is bool or bool type
-    return null;
-//    return new IfNode((ExprNode) visit(ctx.expr()),
-//        (StatNode) visit(ctx.stat(0)), (StatNode) visit(ctx.stat(1)));
-  }
-
-  @Override
   public Node visitFreeStat(FreeStatContext ctx) {
     return super.visitFreeStat(ctx);
   }
@@ -115,22 +138,21 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   @Override
-  public Node visitWhileStat(WhileStatContext ctx) {
-    //check the condition expr is bool or bool type
-    return null;
-//    return new WhileNode((ExprNode) visit(ctx.expr()), (StatNode) visit(ctx.stat()));
-  }
-
-  @Override
-  public Node visitScopeStat(ScopeStatContext ctx) {
-    return null;
-//    return new ScopeNode((StatNode) visit(ctx.stat()));
-  }
-
-  @Override
   public Node visitDelcarAssignStat(DelcarAssignStatContext ctx) {
     return super.visitDelcarAssignStat(ctx);
   }
+
+  @Override
+  public Node visitReturnStat(ReturnStatContext ctx) {
+    return super.visitReturnStat(ctx);
+  }
+
+  @Override
+  public Node visitExitStat(ExitStatContext ctx) {
+    return super.visitExitStat(ctx);
+  }
+
+  /************************ ExprNode(and all other nodes) Visitors *****************************/
 
   @Override
   public Node visitParenExpr(ParenExprContext ctx) {
@@ -248,16 +270,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitParam(ParamContext ctx) {
     return visitType(ctx.type());
-  }
-
-  @Override
-  public Node visitReturnStat(ReturnStatContext ctx) {
-    return super.visitReturnStat(ctx);
-  }
-
-  @Override
-  public Node visitExitStat(ExitStatContext ctx) {
-    return super.visitExitStat(ctx);
   }
 
   @Override

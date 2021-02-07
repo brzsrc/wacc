@@ -2,7 +2,7 @@ package Node.Stat;
 
 import Node.Expr.ExprNode;
 
-public class AssignmentNode implements StatNode {
+public class AssignmentNode extends StatNode {
     private ExprNode lhs, rhs;
 
     public AssignmentNode(ExprNode lhs, ExprNode rhs) {

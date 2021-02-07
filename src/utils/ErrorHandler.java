@@ -1,7 +1,6 @@
 package utils;
 
 import Node.Expr.IdentNode;
-import Node.Stat.FuncNode;
 import Type.Type;
 import antlr.WACCParser;
 
@@ -13,7 +12,7 @@ public class ErrorHandler {
     public static final int INTEGER_MIN_VALUE = -(int) Math.pow(2,31);
 
     public void typeMismatch(WACCParser parser, Type expected, Type actual) {
-        String msg = "Expected type " + expected.toString() + " for variable x, but the actual type is " + actual.toString;
+        String msg = "Expected type " + expected.toString() + " for variable x, but the actual type is " + actual.toString();
         errorHandler(parser, SEMANTIC_ERROR_CODE, msg);
     }
 

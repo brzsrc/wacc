@@ -2,22 +2,23 @@ package Node.Stat;
 
 import Node.Expr.ExprNode;
 
-public class ReturnNode implements StatNode {
+public class ReturnNode extends StatNode {
 
-  private ExprNode returnExpr;
+  private final ExprNode value;
 
-  public ReturnNode(ExprNode returnExpr) {
-    this.returnExpr = returnExpr;
+  public ReturnNode(ExprNode value) {
+    this.value = value;
+    setAll();
   }
 
   @Override
-  public boolean hasReturn() {
-    return true;
+  public void setHasReturn() {
+    hasReturn = true;
   }
 
   @Override
-  public boolean hasEnd() {
-    return true;
+  public void setLeaveAtEnd() {
+    leaveAtEnd = true;
   }
 
 }

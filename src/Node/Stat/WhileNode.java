@@ -1,26 +1,21 @@
 package Node.Stat;
 
 import Node.Expr.ExprNode;
-import utils.SymbolTable;
 
-public class WhileNode implements StatNode {
+public class WhileNode extends StatNode {
 
   private final ExprNode cond;
-  private final ScopeNode body;
-  private SymbolTable bodySymbolTable;
+  private final StatNode body;
 
-  public WhileNode(ExprNode cond, ScopeNode body, SymbolTable bodySymbolTable) {
+  public WhileNode(ExprNode cond, StatNode body) {
     this.cond = cond;
     this.body = body;
-    this.bodySymbolTable = bodySymbolTable;
-  }
-
-  public SymbolTable getSymbolTable() {
-    return this.bodySymbolTable;
+    setAll();
   }
 
   @Override
-  public boolean hasReturn() {
-    return body.hasReturn();
+  public void setHasReturn() {
+    assert body != null;
+    hasReturn = body.isHasReturn();
   }
 }

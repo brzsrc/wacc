@@ -1,25 +1,23 @@
-package Node.Stat;
+package Node;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import Node.Stat.StatNode;
 import java.util.List;
 
 import Type.Type;
-import utils.SymbolTable;
 
 // this node is not one statement but one function definition, no need to implement statNode
-public class FuncNode {
+public class FuncNode implements Node {
     private Type returnType;
     private List<Type> parameters;
-    private ScopeNode functionBody;
+    private StatNode functionBody;
 
-    public FuncNode(Type returnType, ScopeNode functionBody, List<Type> params) {
+    public FuncNode(Type returnType, StatNode functionBody, List<Type> params) {
         this.returnType = returnType;
         this.functionBody = functionBody;
         this.parameters = params;
     }
 
-    public List<StatNode> getBody() {
-        return this.functionBody.getAllStat();
+    public StatNode getFunctionBody() {
+        return functionBody;
     }
 }
