@@ -3,7 +3,7 @@ package Node.Expr;
 public class CharNode extends ExprNode {
 
   public CharNode(String c) {
-      this.value = c;
+    this.value = c;
   }
 
   public int getAsciiValue() {
@@ -12,6 +12,6 @@ public class CharNode extends ExprNode {
 
   @Override
   public boolean check() {
-      return false;
+    return false;
   }
 }

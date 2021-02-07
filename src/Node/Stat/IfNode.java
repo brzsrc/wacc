@@ -18,4 +18,9 @@ public class IfNode implements StatNode {
   public boolean hasEnd() {
     return ifBody.hasEnd() && elseBody.hasEnd();
   }
+
+  @Override
+  public boolean hasReturn() {
+    return ifBody.hasReturn() || elseBody.hasReturn();
+  }
 }

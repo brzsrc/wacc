@@ -7,9 +7,9 @@ import java.util.List;
 public class ProgramNode implements Node {
 
   private final List<FuncNode> functions;
-  private final List<StatNode> body;
+  private final ScopeNode body;
 
-  public ProgramNode(List<FuncNode> functions, List<StatNode> body) {
+  public ProgramNode(List<FuncNode> functions, ScopeNode body) {
     this.functions = functions;
     this.body = body;
   }

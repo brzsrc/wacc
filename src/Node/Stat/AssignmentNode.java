@@ -5,16 +5,9 @@ import Node.Expr.ExprNode;
 public class AssignmentNode implements StatNode {
     private ExprNode lhs, rhs;
 
-    // an assignment can be added as one node in a sequence
-    @Override
-    public boolean isSeq() {
-        return true;
+    public AssignmentNode(ExprNode lhs, ExprNode rhs) {
+        this.lhs = lhs;
+        this.rhs = rhs;
     }
-
-    @Override
-    public boolean hasEnd() { return false; }
-
-    @Override
-    public boolean isReturn() { return false; }
 
 }

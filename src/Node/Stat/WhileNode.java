@@ -9,12 +9,18 @@ public class WhileNode implements StatNode {
   private final ScopeNode body;
   private SymbolTable bodySymbolTable;
 
-  public WhileNode(ExprNode cond, ScopeNode body) {
+  public WhileNode(ExprNode cond, ScopeNode body, SymbolTable bodySymbolTable) {
     this.cond = cond;
     this.body = body;
+    this.bodySymbolTable = bodySymbolTable;
   }
 
   public SymbolTable getSymbolTable() {
     return this.bodySymbolTable;
+  }
+
+  @Override
+  public boolean hasReturn() {
+    return body.hasReturn();
   }
 }

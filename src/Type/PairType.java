@@ -32,13 +32,28 @@ public class PairType implements Type {
             return false;
         }
 
-        if (other == null) {
+        PairType otherPair = (PairType) other;
+
+        return subTypeCompact(fstType, otherPair.fstType)
+                && subTypeCompact(sndType, otherPair.sndType)
+                ;
+    }
+
+    private boolean subTypeCompact(Type type1, Type type2) {
+        if (type1 == null) {
+            // type1 is null indicate current type is Pair, a branch of Pair(Pair, _)
+            // this happens when calling fst x = ...
+            // allow any type, since this cause a cast.
             return true;
+        } else if (type1 instanceof PairType) {
+            // no matter what type lhs was assigned, since type can be casted,
+            // the sub type only need to satisfy it is also a pair
+            return type2 instanceof PairType;
         }
 
-        PairType otherPair = (PairType) other;
-        return this.fstType.equalToType(otherPair.getFstType())
-                && this.sndType.equalToType(otherPair.getSndType());
+        // base/array type check
+        return type1.equalToType(type2);
+
     }
     
 }

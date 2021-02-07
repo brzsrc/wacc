@@ -15,6 +15,7 @@ import static utils.Utils.check;
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   private static SymbolTable symbolTable = new SymbolTable();
+  private SymbolTable currentSymbolTable = symbolTable;
   private static ErrorHandler errorHandler = new ErrorHandler();
 
   @Override
