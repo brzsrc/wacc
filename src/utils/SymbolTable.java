@@ -2,12 +2,13 @@ package utils;
 
 import java.util.HashMap;
 import type.Type;
+import node.expr.ExprNode;
 
 public class SymbolTable {
 
     // symbol table only record declaired type, so should map type instead of node?
     // node is determinded at run time, i.e x can be assigned 1 + 2 later, symbol table should't change on that
-    private HashMap<String, Type> dictionary;
+    private HashMap<String, ExprNode> dictionary;
     private SymbolTable parentSymbolTable;
 
     public SymbolTable() {
@@ -15,23 +16,23 @@ public class SymbolTable {
         this.parentSymbolTable = null;
     }
 
-    public void add(String name, Type type) {
+    public void add(String name, ExprNode expr) {
         if (dictionary.containsKey(name)) {
             // todo: change to using ErrorHandler
             throw new IllegalArgumentException("redefinition of ident: " + name + " is not allowed");
         }
-        this.dictionary.put(name, type);
+        this.dictionary.put(name, expr);
     }
 
-    public HashMap<String, Type> getDictionary() {
+    public HashMap<String, > getDictionary() {
         return dictionary;
     }
 
-    public Type lookup(String name) {
+    public ExprNode lookup(String name) {
         return dictionary.get(name);
     }
 
-    public Type lookupAll(String name) {
+    public ExprNode lookupAll(String name) {
         SymbolTable table = this;
         Type obj = null;
         while(obj == null && table != null) {
