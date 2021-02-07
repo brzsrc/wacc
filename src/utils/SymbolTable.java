@@ -1,9 +1,7 @@
 package utils;
 
 import java.util.HashMap;
-import Node.Node;
-import Node.Expr.ExprNode;
-import Type.Type;
+import type.Type;
 
 public class SymbolTable {
 

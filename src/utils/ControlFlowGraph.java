@@ -1,7 +1,7 @@
 package utils;
 
-import Node.FuncNode;
-import Node.Stat.ScopeNode;
+import node.FuncNode;
+import node.stat.ScopeNode;
 
 import java.util.HashMap;
 import java.util.Map;

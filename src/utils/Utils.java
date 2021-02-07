@@ -1,6 +1,6 @@
 package utils;
 
-import Type.Type;
+import type.Type;
 
 public class Utils {
 

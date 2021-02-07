@@ -3,11 +3,11 @@ import antlr.WACCParserBaseVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
-import Node.FuncNode;
-import Node.Node;
-import Node.ProgramNode;
-import Node.Expr.ExprNode;
-import Node.Stat.*;
+import node.FuncNode;
+import node.Node;
+import node.ProgramNode;
+import node.expr.ExprNode;
+import node.stat.*;
 import utils.ErrorHandler;
 import utils.SymbolTable;
 

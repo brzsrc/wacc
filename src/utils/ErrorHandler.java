@@ -1,7 +1,7 @@
 package utils;
 
-import Node.Expr.IdentNode;
-import Type.Type;
+import node.expr.IdentNode;
+import type.Type;
 import antlr.WACCParser;
 
 public class ErrorHandler {
