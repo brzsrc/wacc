@@ -39,8 +39,7 @@ public class PairType implements Type {
         PairType otherPair = (PairType) other;
 
         return subTypeCompact(fstType, otherPair.fstType)
-                && subTypeCompact(sndType, otherPair.sndType)
-                ;
+                && subTypeCompact(sndType, otherPair.sndType);
     }
 
     private boolean subTypeCompact(Type type1, Type type2) {

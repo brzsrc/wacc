@@ -13,6 +13,12 @@ public class PairNode extends ExprNode {
         this.type = new PairType(fst.type, snd.type);
     }
 
+    public PairNode() {
+        this.fst = null;
+        this.snd = null;
+        this.type = new PairType();
+    }
+
     public ExprNode getFst() {
         return fst;
     }
