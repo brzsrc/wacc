@@ -8,7 +8,6 @@ public class StringNode extends ExprNode {
   private int length;
 
   public StringNode(String string) {
-    super(string);
     this.length = string.length();
     this.type = new BasicType(BasicTypeEnum.STRING);
   }

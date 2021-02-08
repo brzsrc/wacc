@@ -16,7 +16,6 @@ public class BinopNode extends ExprNode {
     private Binops operator;
 
     public BinopNode(ExprNode expr1, ExprNode expr2, Binops operator) {
-        super("");
         this.expr1 = expr1;
         this.expr2 = expr2;
         this.operator = operator;
@@ -33,16 +32,6 @@ public class BinopNode extends ExprNode {
             default:
                 return new BasicType(BasicTypeEnum.BOOLEAN);
         }
-    }
-
-    @Override
-    public void setValue(String value) {
-        throw new UnsupportedOperationException("Binop does not support setting its value. Please pass ExprNode as the input!");
-    }
-
-    @Override
-    public String getValue() {
-        throw new UnsupportedOperationException("Binop does not support return of its value yet. Please specify an index!");
     }
 
     public ExprNode getExpr1() {

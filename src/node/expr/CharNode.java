@@ -8,7 +8,6 @@ public class CharNode extends ExprNode {
   private char val;
 
   public CharNode(char c) {
-    super(String.valueOf(c));
     this.val = c;
     this.type = new BasicType(BasicTypeEnum.CHAR);
   }

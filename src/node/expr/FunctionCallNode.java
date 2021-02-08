@@ -12,24 +12,14 @@ public class FunctionCallNode extends ExprNode {
   private List<ExprNode> params;
   private SymbolTable funcSymbolTable;
 
-  public FunctionCallNode(FuncNode function, List<ExprNode> params, ) {
-    super("");
+  public FunctionCallNode(FuncNode function, List<ExprNode> params, SymbolTable currScope) {
     this.function = function;
     this.params = params;
+    this.funcSymbolTable = new SymbolTable(currScope);
   }
 
   @Override
   public Type getType(SymbolTable symbolTable) {
     return function.getReturnType();
-  }
-
-  @Override
-  public void setValue(String value) {
-    throw new UnsupportedOperationException("ArrayNode does not support setting value by using raw string literals. Please pass ExprNode as the input!");
-  }
-
-  @Override
-  public String getValue() {
-    throw new UnsupportedOperationException("ArrayNode does not support getting value in the form of string. Please specify an index!");
   }
 }
