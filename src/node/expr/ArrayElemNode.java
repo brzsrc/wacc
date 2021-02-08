@@ -9,7 +9,6 @@ public class ArrayElemNode extends ExprNode {
   private ExprNode index;
 
   public ArrayElemNode(String value, ArrayNode array, ExprNode index) {
-    super(value);
     this.array = array;
     this.index = index;
   }

@@ -8,24 +8,25 @@ import node.FuncNode;
 import node.Node;
 import node.ProgramNode;
 import node.expr.ExprNode;
+import node.expr.IdentNode;
 import node.stat.*;
 import type.Type;
 import utils.ErrorHandler;
 import utils.SymbolTable;
+import type.BasicType;
+import type.BasicTypeEnum;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
-
-  /** 
-   * Implement the scope by storing a stack of SymbolTables, 
-   *  when the current scope exits, it will be popped off from the stack
-   *  when a new scope is created, it will be added to the stack
-   */
-  private Stack<SymbolTable> scopes = new Stack<>();
 
   /**
    * The errorHandler which will print useful semantic/syntatic error message
    */
   private static ErrorHandler errorHandler = new ErrorHandler();
+  private SymbolTable currSymbolTable;
+
+  public SemanticChecker() {
+    currSymbolTable = null;
+  }
 
   @Override
   public Node visitProgram(ProgramContext ctx) {
@@ -44,10 +45,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       functions.add(funcNode);
     }
 
-    /* Main function has its own scope */
-    scopes.push(new SymbolTable());
+    currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode body = (StatNode) visit(ctx.stat());
-    scopes.pop();
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     return new ProgramNode(functions, body);
   }
@@ -55,25 +55,16 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitFunc(FuncContext ctx) {
     Type returnType = visitType(ctx.type());
-    List<Type> param_list = new ArrayList();
+    List<IdentNode> param_list = new ArrayList<>();
     for (ParamContext param : ctx.param_list().param()) {
       Type param_type = visitType(param.type());
-      param_list.add(param_type);
-      symbolTable.add(param.IDENT().getText(), param_type);
+      IdentNode paramNode = new IdentNode(param_type, param.IDENT().getText());
+      param_list.add(paramNode);
     }
-    //  intend to only visit stat list to examine every statement in function definition is correct,
-    //  call visit child, and on visit param or type child, result is discarded
-    symbolTable.add(ctx.IDENT().getText(), new FuncType(returnType, param_list));
 
-    // todo: introduce another IR: Control Flow Graph, implementation similar to symbol table,
-    //   let visitStat modify that graph, in order to check return/exit statement, and generate IR in one run through parser tree
-    //   i.e: all visitStat functions needs further implementation
-    visitChildren(ctx);
-    symbolTable.backtraceScope();
+    StatNode functionBody = (StatNode) visitChildren(ctx);
 
-    // no need to return, as function type does not need to match with any other type
-
-    return null;
+    return new FuncNode(returnType, functionBody, param_list);
   }
 
   /******************************** StatNode Visitors *************************************/
@@ -86,19 +77,18 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitIfStat(IfStatContext ctx) {
-
     //check the condition expr is bool or bool type at first
-
-    scopes.push(scopes.peek().createScope());
+    currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode ifBody = (StatNode) visit(ctx.stat(0));
-    scopes.pop();
-
-    scopes.push(scopes.peek().createScope());
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+    
+    currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode elseBody = (StatNode) visit(ctx.stat(1));
-    scopes.pop();
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     StatNode node = new IfNode((ExprNode) visit(ctx.expr()), ifBody, elseBody);
-    node.setScope(scopes.peek());
+
+    node.setScope(currSymbolTable);
 
     return node;
   }
@@ -108,12 +98,12 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     //check the condition expr is bool or bool type at first
 
-    scopes.push(scopes.peek().createScope());
+    currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode body = (StatNode) visit(ctx.stat());
-    scopes.pop();
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     StatNode node = new WhileNode((ExprNode) visit(ctx.expr()), body);
-    node.setScope(scopes.peek());
+    node.setScope(currSymbolTable);
 
     return node;
   }
@@ -121,9 +111,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitScopeStat(ScopeStatContext ctx) {
 
-    scopes.push(scopes.peek().createScope());
+    currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode body = (StatNode) visit(ctx.stat());
-    scopes.pop();
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     /* ScopeNode actually does not need to use the scope field, so we do not set its scope field */
     return new ScopeNode(body);
@@ -131,53 +121,45 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitReadStat(ReadStatContext ctx) {
+    ReadNode node = new ReadNode((ExprNode) visitAssign_lhs(ctx.assign_lhs()));
+    Type inputType = node.getInputExpr().getType(currSymbolTable);
+    if (inputType.equalToType(new BasicType(BasicTypeEnum.STRING)) 
+        && inputType.equalToType(new BasicType(BasicTypeEnum.INTEGER)) 
+        && inputType.equalToType(new BasicType(BasicTypeEnum.CHAR))) {
+      List<Type> allowedTypes = new ArrayList<>();
+      allowedTypes.add(new BasicType(BasicTypeEnum.STRING));
+      allowedTypes.add(new BasicType(BasicTypeEnum.INTEGER));
+      allowedTypes.add(new BasicType(BasicTypeEnum.CHAR));
+      errorHandler.typeMismatch(ctx, allowedTypes, inputType);
+    }
 
-    //check the type of the assign_lhs at first (not sure)
-    StatNode node = new ReadNode((ExprNode) visit(ctx.assign_lhs()));
-    node.setScope(scopes.peek());
+    node.setScope(currSymbolTable);
 
-    // Type targetType = visitAssign_lhs(ctx.assign_lhs());
-    // if (!targetType.equalToType(new IntegerType())
-    // && !targetType.equalToType(new CharType())) {
-    //   throw new IllegalArgumentException("cannot read in type " + targetType.getTypeName());
-    // }
-    // todo: CFG
     return node;
   }
 
   @Override
   public Node visitPrintlnStat(PrintlnStatContext ctx) {
-
-    //check the type of the expr at first (not sure)
     StatNode node = new PrintlnNode((ExprNode) visit(ctx.expr()));
-    node.setScope(scopes.peek());
+    node.setScope(currSymbolTable);
 
-    // print statement does not need to check semantic, can print any expr
-    // todo: CFG
     return node;
   }
 
   @Override
   public Node visitAssignStat(AssignStatContext ctx) {
-
     //check the type of the lhs, rhs and update the symbol table at first (not sure)
     StatNode node = new AssignNode((ExprNode) visit(ctx.assign_lhs()), (ExprNode) visit(ctx.assign_rhs()));
-    node.setScope(scopes.peek());
-
-    // todo: CFG
+    node.setScope(currSymbolTable);
 
     return node;
   }
 
   @Override
   public Node visitPrintStat(PrintStatContext ctx) {
-
-    //check the type of the expr at first (not sure)
     StatNode node = new PrintNode((ExprNode) visit(ctx.expr()));
-    node.setScope(scopes.peek());
+    node.setScope(currSymbolTable);
 
-    // same as println
-    // todo: CFG
     return node;
   }
 
@@ -186,7 +168,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     //check the type of the expr at first (not sure)
     StatNode node = new FreeNode((ExprNode) visit(ctx.expr()));
-    node.setScope(scopes.peek());
+    node.setScope(currSymbolTable);
 
     return node;
   }
@@ -208,7 +190,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     //add new entry into the symbol table at first (not sure)
     StatNode node = new DeclareNode(null, null, (ExprNode) visit(ctx.assign_rhs()));
-    node.setScope(scopes.peek());
+    node.setScope(currSymbolTable);
 
     return node;
   }
@@ -218,7 +200,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     //check the type of the expr at first (not sure)
     StatNode node = new ReturnNode((ExprNode) visit(ctx.expr()));
-    node.setScope(scopes.peek());
+    node.setScope(currSymbolTable);
 
     return node;
   }
@@ -228,7 +210,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     //check the type of the expr at first (not sure)
     StatNode node = new ExitNode((ExprNode) visit(ctx.expr()));
-    node.setScope(scopes.peek());
+    node.setScope(currSymbolTable);
 
     return super.visitExitStat(ctx);
   }
@@ -271,7 +253,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitAssign_lhs(Assign_lhsContext ctx) {
-    // TODO Auto-generated method stub
     return super.visitAssign_lhs(ctx);
   }
 

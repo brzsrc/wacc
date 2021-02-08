@@ -11,9 +11,9 @@ public class SymbolTable {
     private HashMap<String, ExprNode> dictionary;
     private SymbolTable parentSymbolTable;
 
-    public SymbolTable() {
+    public SymbolTable(SymbolTable parentSymbolTable) {
         this.dictionary = new HashMap<>();
-        this.parentSymbolTable = null;
+        this.parentSymbolTable = parentSymbolTable;
     }
 
     public void add(String name, ExprNode expr) {
@@ -42,11 +42,8 @@ public class SymbolTable {
         return obj;
     }
 
-    // create a symbol table for this scope, set up parent field of the returned symbol table
-    public SymbolTable createScope() {
-        SymbolTable result = new SymbolTable();
-        result.parentSymbolTable = this;
-        return result;
+    public SymbolTable getParentSymbolTable() {
+        return parentSymbolTable;
     }
 
 }

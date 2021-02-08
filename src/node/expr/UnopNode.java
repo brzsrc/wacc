@@ -15,7 +15,6 @@ public class UnopNode extends ExprNode {
     Unop operator;
 
     public UnopNode(ExprNode expr, Unop operator) {
-        super("");
         this.expr = expr;
         this.operator = operator;
     }
@@ -35,15 +34,4 @@ public class UnopNode extends ExprNode {
                 throw new IllegalArgumentException("operator field in Unop class not setup properly, with emun value: " + operator);
         }
     }
-
-    @Override
-    public void setValue(String value) {
-        throw new UnsupportedOperationException("Binop does not support setting its value. Please pass ExprNode as the input!");
-    }
-
-    @Override
-    public String getValue() {
-        throw new UnsupportedOperationException("Binop does not support return of its value yet. Please specify an index!");
-    }
-
 }
