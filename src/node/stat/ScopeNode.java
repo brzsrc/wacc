@@ -1,6 +1,5 @@
 package node.stat;
 
-
 public class ScopeNode extends StatNode {
 
   private final StatNode body;
@@ -13,12 +12,12 @@ public class ScopeNode extends StatNode {
   @Override
   public void setLeaveAtEnd() {
     assert body != null;
-    leaveAtEnd = body.isLeaveAtEnd();
+    leaveAtEnd = body.leaveAtEnd();
   }
 
   @Override
   public void setHasReturn() {
     assert body != null;
-    hasReturn = body.isHasReturn();
+    hasReturn = body.hasReturn();
   }
 }

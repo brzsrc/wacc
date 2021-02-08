@@ -4,6 +4,7 @@ import node.stat.StatNode;
 import java.util.List;
 
 import type.Type;
+import utils.SymbolTable;
 
 // this node is not one statement but one function definition, no need to implement statNode
 public class FuncNode implements Node {

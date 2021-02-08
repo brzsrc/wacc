@@ -16,6 +16,6 @@ public class WhileNode extends StatNode {
   @Override
   public void setHasReturn() {
     assert body != null;
-    hasReturn = body.isHasReturn();
+    hasReturn = body.hasReturn();
   }
 }

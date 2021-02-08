@@ -29,13 +29,13 @@ public class SeqNode extends StatNode {
   @Override
   public void setLeaveAtEnd() {
     assert stats.size() > 0;
-    leaveAtEnd = stats.get(stats.size()-1).isLeaveAtEnd();
+    leaveAtEnd = stats.get(stats.size()-1).leaveAtEnd();
   }
 
   @Override
   public void setHasReturn() {
     for (StatNode node : stats) {
-      if (node.isHasReturn()) {
+      if (node.hasReturn()) {
         hasReturn = true;
         return;
       }

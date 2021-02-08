@@ -9,24 +9,39 @@ import node.Node;
 import node.ProgramNode;
 import node.expr.ExprNode;
 import node.stat.*;
+import type.Type;
 import utils.ErrorHandler;
 import utils.SymbolTable;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
+  /** 
+   * Implement the scope by storing a stack of SymbolTables, 
+   *  when the current scope exits, it will be popped off from the stack
+   *  when a new scope is created, it will be added to the stack
+   */
   private Stack<SymbolTable> scopes = new Stack<>();
+
+  /**
+   * The errorHandler which will print useful semantic/syntatic error message
+   */
   private static ErrorHandler errorHandler = new ErrorHandler();
 
   @Override
   public Node visitProgram(ProgramContext ctx) {
+    /* a list of functions declared at the beginning of the program */
     List<FuncNode> functions = new ArrayList<>();
 
     for (FuncContext f : ctx.func()) {
-      FuncNode node = (FuncNode) visitFunc(f);
-      if (!node.getFunctionBody().isLeaveAtEnd()) {
-        //throw syntax exception
+      FuncNode funcNode = (FuncNode) visitFunc(f);
+      String funcName = f.IDENT().getText();
+
+      /* if the function declaration is not terminated with a return/exit statement, then throw the semantic error */
+      if (!funcNode.getFunctionBody().leaveAtEnd()) {
+        errorHandler.invalidFunctionReturnExit(f, funcName);
       }
-      functions.add(node);
+
+      functions.add(funcNode);
     }
 
     /* Main function has its own scope */
@@ -34,28 +49,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     StatNode body = (StatNode) visit(ctx.stat());
     scopes.pop();
 
-    if (body.isHasReturn()) {
-      //throw semantic exception
-    }
-
     return new ProgramNode(functions, body);
   }
 
   @Override
   public Node visitFunc(FuncContext ctx) {
-
-    /** Compilation error in this method body, so commented out
-     *  Cause Reason: 1.FuncType not existed
-     *                2.Return type of visit() method is Node not Type
-     *  Please fix it later **/
-
-    /* Each function has its own scopes */
-    scopes.push(new SymbolTable());
-    StatNode body = (StatNode) visit(ctx.stat());
-    scopes.pop();
-
-    /*
-
     Type returnType = visitType(ctx.type());
     List<Type> param_list = new ArrayList();
     for (ParamContext param : ctx.param_list().param()) {
@@ -75,7 +73,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     // no need to return, as function type does not need to match with any other type
 
-    */
     return null;
   }
 
@@ -381,50 +378,56 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitType(TypeContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitType(ctx);
+    return 
   }
 
   @Override
   public Node visitBase_type(Base_typeContext ctx) {
-    // switch (ctx.getRuleIndex()) {
-    //   case 10:
-    //     return new IntegerType();
-    //   case 11:
-    //     return new BoolType();
-    //   case 12:
-    //     return new CharType();
-    //   case 13:
-    //     return new StringType();
-    //   default:
-    //     throw new IllegalArgumentException("invalid rule index in visitBase_type: " + ctx.getRuleIndex());
-    // }
+    switch (ctx.getRuleIndex()) {
+      case 10:
+        return new IntegerNode();
+      case 11:
+        return new BoolType();
+      case 12:
+        return new CharType();
+      case 13:
+        return new StringType();
+      default:
+        throw new IllegalArgumentException("invalid rule index in visitBase_type: " + ctx.getRuleIndex());
+    }
     return null;
   }
 
   @Override
   public Node visitUnopExpr(UnopExprContext ctx) {
-    // String unop = ctx.uop.getText();
-    // Type type = visitChildren(ctx);
-    // switch (unop) {
-    //   case "-":
-    //   case "chr":
-    //     check(type, IntegerType.class);
-    //     return new IntegerType();
-    //   case "!":
-    //     check(type, BoolType.class);
-    //     return new BoolType();
-    //   case "len":
-    //     check(type, ArrayType.class);
-    //     ArrayType array = ((ArrayType) type);
-    //     // return symbolTable.lookUpAll(array.getId());
-    //   case "ord":
-    //     check(type, CharType.class);
-    //     return new CharType();
-    //   default:
-    //     throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + unop);
-    // }
-    return null;
+    String unop = ctx.uop.getText();
+    ExprNode childExpr = (ExprNode) visitChildren(ctx);
+    Unop operator;
+    switch (unop) {
+      case "-":
+        operator = Unop.MINUS;
+        check(childExpr.getType(), IntegerType.class);
+        break;
+      case "chr":
+        operator = Unop.CHR;
+        check(childExpr.getType(), IntegerType.class);
+        break;
+      case "!":
+        operator = Unop.NOT;
+        check(childExpr.getType(), BoolType.class);
+        break;
+      case "len":
+        operator = Unop.LEN;
+        check(childExpr.getType(), ArrayType.class);
+        break;
+      case "ord":
+        operator = Unop.ORD;
+        check(childExpr.getType(), CharType.class);
+        break;
+      default:
+        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + unop);
+    }
+    return new UnopNode(childExpr, operator)
   }
   
 }

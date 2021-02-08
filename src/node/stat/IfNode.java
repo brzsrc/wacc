@@ -18,12 +18,12 @@ public class IfNode extends StatNode {
   @Override
   public void setLeaveAtEnd() {
     assert ifBody != null && elseBody != null;
-    leaveAtEnd = ifBody.isLeaveAtEnd() && elseBody.isLeaveAtEnd();
+    leaveAtEnd = ifBody.leaveAtEnd() && elseBody.leaveAtEnd();
   }
 
   @Override
   public void setHasReturn() {
     assert ifBody != null && elseBody != null;
-    hasReturn = ifBody.isHasReturn() || elseBody.isHasReturn();
+    hasReturn = ifBody.hasReturn() || elseBody.hasReturn();
   }
 }

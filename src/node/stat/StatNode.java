@@ -10,16 +10,21 @@ public abstract class StatNode implements Node {
   /* Statement scope, SeqNode and ScopeNode actually do not need */
   private SymbolTable scope;
 
-
-  /* Check current StatNode(statement) is SeqNode(sequential composition) or not */
+  /*
+   * Check current StatNode(statement) is SeqNode(sequential composition) or not
+   */
   public boolean isSeq() {
     return false;
   }
 
   /* Setters */
-  public void setLeaveAtEnd() { this.leaveAtEnd = false; }
+  public void setLeaveAtEnd() {
+    this.leaveAtEnd = false;
+  }
 
-  public void setHasReturn() { this.hasReturn = false; }
+  public void setHasReturn() {
+    this.hasReturn = false;
+  }
 
   /* All StatNode should call setAll at their constructors */
   protected void setAll() {
@@ -32,11 +37,11 @@ public abstract class StatNode implements Node {
   }
 
   /* Getters */
-  public boolean isLeaveAtEnd() {
+  public boolean leaveAtEnd() {
     return leaveAtEnd;
   }
 
-  public boolean isHasReturn() {
+  public boolean hasReturn() {
     return hasReturn;
   }
 }

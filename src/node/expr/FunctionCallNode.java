@@ -10,8 +10,9 @@ public class FunctionCallNode extends ExprNode {
 
   private FuncNode function;
   private List<ExprNode> params;
+  private SymbolTable funcSymbolTable;
 
-  public FunctionCallNode(FuncNode function, List<ExprNode> params) {
+  public FunctionCallNode(FuncNode function, List<ExprNode> params, ) {
     super("");
     this.function = function;
     this.params = params;
