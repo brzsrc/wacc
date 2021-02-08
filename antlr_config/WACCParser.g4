@@ -10,7 +10,7 @@ param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
 stat : SKP                               #SkipStat
-     | type IDENT ASSIGN assign_rhs      #DelcarAssignStat
+     | type IDENT ASSIGN assign_rhs      #DeclareStat
      | assign_lhs ASSIGN assign_rhs      #AssignStat
      | READ assign_lhs                   #ReadStat
      | FREE expr                         #FreeStat

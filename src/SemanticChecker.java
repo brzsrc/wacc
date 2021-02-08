@@ -3,6 +3,7 @@ import antlr.WACCParserBaseVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import node.FuncNode;
 import node.Node;
 import node.ProgramNode;
@@ -13,8 +14,7 @@ import utils.SymbolTable;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
-  private static SymbolTable symbolTable = new SymbolTable();
-  private SymbolTable currentSymbolTable = symbolTable;
+  private Stack<SymbolTable> scopes = new Stack<>();
   private static ErrorHandler errorHandler = new ErrorHandler();
 
   @Override
@@ -29,7 +29,10 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       functions.add(node);
     }
 
+    scopes.push(scopes.peek().createScope());
     StatNode body = (StatNode) visit(ctx.stat());
+    scopes.pop();
+
     if (body.isHasReturn()) {
       //throw semantic exception
     }
@@ -44,6 +47,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
      *  Cause Reason: 1.FuncType not existed
      *                2.Return type of visit() method is Node not Type
      *  Please fix it later **/
+
+    /* Each function has its own scopes */
+    scopes.push(new SymbolTable());
+    StatNode body = (StatNode) visit(ctx.stat());
+    scopes.pop();
 
     /*
 
@@ -74,81 +82,156 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitSeqStat(SeqStatContext ctx) {
+    /* SeqNode actually does not need to use the scope field, so we do not set its scope field */
     return new SeqNode((StatNode) visit(ctx.stat(0)), (StatNode) visit(ctx.stat(1)));
   }
 
   @Override
   public Node visitIfStat(IfStatContext ctx) {
-    //check the condition expr is bool or bool type
-    return new IfNode((ExprNode) visit(ctx.expr()),
-        (StatNode) visit(ctx.stat(0)), (StatNode) visit(ctx.stat(1)));
+
+    //check the condition expr is bool or bool type at first
+
+    scopes.push(scopes.peek().createScope());
+    StatNode ifBody = (StatNode) visit(ctx.stat(0));
+    scopes.pop();
+
+    scopes.push(scopes.peek().createScope());
+    StatNode elseBody = (StatNode) visit(ctx.stat(1));
+    scopes.pop();
+
+    StatNode node = new IfNode((ExprNode) visit(ctx.expr()), ifBody, elseBody);
+    node.setScope(scopes.peek());
+
+    return node;
   }
 
   @Override
   public Node visitWhileStat(WhileStatContext ctx) {
-    //check the condition expr is bool or bool type
-    return new WhileNode((ExprNode) visit(ctx.expr()), (StatNode) visit(ctx.stat()));
+
+    //check the condition expr is bool or bool type at first
+
+    scopes.push(scopes.peek().createScope());
+    StatNode body = (StatNode) visit(ctx.stat());
+    scopes.pop();
+
+    StatNode node = new WhileNode((ExprNode) visit(ctx.expr()), body);
+    node.setScope(scopes.peek());
+
+    return node;
   }
 
   @Override
   public Node visitScopeStat(ScopeStatContext ctx) {
-    return new ScopeNode((StatNode) visit(ctx.stat()));
+
+    scopes.push(scopes.peek().createScope());
+    StatNode body = (StatNode) visit(ctx.stat());
+    scopes.pop();
+
+    /* ScopeNode actually does not need to use the scope field, so we do not set its scope field */
+    return new ScopeNode(body);
   }
 
   @Override
   public Node visitReadStat(ReadStatContext ctx) {
+
+    //check the type of the assign_lhs at first (not sure)
+    StatNode node = new ReadNode((ExprNode) visit(ctx.assign_lhs()));
+    node.setScope(scopes.peek());
+
     // Type targetType = visitAssign_lhs(ctx.assign_lhs());
     // if (!targetType.equalToType(new IntegerType())
     // && !targetType.equalToType(new CharType())) {
     //   throw new IllegalArgumentException("cannot read in type " + targetType.getTypeName());
     // }
     // todo: CFG
-    return null;
+    return node;
   }
 
   @Override
   public Node visitPrintlnStat(PrintlnStatContext ctx) {
+
+    //check the type of the expr at first (not sure)
+    StatNode node = new PrintlnNode((ExprNode) visit(ctx.expr()));
+    node.setScope(scopes.peek());
+
     // print statement does not need to check semantic, can print any expr
     // todo: CFG
-    return null;
+    return node;
   }
 
   @Override
   public Node visitAssignStat(AssignStatContext ctx) {
+
+    //check the type of the lhs, rhs and update the symbol table at first (not sure)
+    StatNode node = new AssignNode((ExprNode) visit(ctx.assign_lhs()), (ExprNode) visit(ctx.assign_rhs()));
+    node.setScope(scopes.peek());
+
     // todo: CFG
 
-    return super.visitAssignStat(ctx);
+    return node;
   }
 
   @Override
   public Node visitPrintStat(PrintStatContext ctx) {
+
+    //check the type of the expr at first (not sure)
+    StatNode node = new PrintNode((ExprNode) visit(ctx.expr()));
+    node.setScope(scopes.peek());
+
     // same as println
     // todo: CFG
-    return null;
+    return node;
   }
 
   @Override
   public Node visitFreeStat(FreeStatContext ctx) {
-    return super.visitFreeStat(ctx);
+
+    //check the type of the expr at first (not sure)
+    StatNode node = new FreeNode((ExprNode) visit(ctx.expr()));
+    node.setScope(scopes.peek());
+
+    return node;
   }
 
   @Override
   public Node visitSkipStat(SkipStatContext ctx) {
-    return super.visitSkipStat(ctx);
+    /* Skip actually does not need to use scope, so we do not set its scope field */
+    return new SkipNode();
   }
 
   @Override
-  public Node visitDelcarAssignStat(DelcarAssignStatContext ctx) {
-    return super.visitDelcarAssignStat(ctx);
+  public Node visitDeclareStat(DeclareStatContext ctx) {
+
+    /** There are some problems with the identifier and type
+     *  We may need to move the IDEN rule from lexer to parser
+     *  cause now ctx.IDEN() is a terminal not a context,
+     *  And we may need a WrapperTypeNode class to handle contain a Type field
+     *  cause the visitType() method would return a Node **/
+
+    //add new entry into the symbol table at first (not sure)
+    StatNode node = new DeclareNode(null, null, (ExprNode) visit(ctx.assign_rhs()));
+    node.setScope(scopes.peek());
+
+    return node;
   }
 
   @Override
   public Node visitReturnStat(ReturnStatContext ctx) {
-    return super.visitReturnStat(ctx);
+
+    //check the type of the expr at first (not sure)
+    StatNode node = new ReturnNode((ExprNode) visit(ctx.expr()));
+    node.setScope(scopes.peek());
+
+    return node;
   }
 
   @Override
   public Node visitExitStat(ExitStatContext ctx) {
+
+    //check the type of the expr at first (not sure)
+    StatNode node = new ExitNode((ExprNode) visit(ctx.expr()));
+    node.setScope(scopes.peek());
+
     return super.visitExitStat(ctx);
   }
 
