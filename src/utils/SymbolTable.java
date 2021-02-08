@@ -34,7 +34,7 @@ public class SymbolTable {
 
     public ExprNode lookupAll(String name) {
         SymbolTable table = this;
-        Type obj = null;
+        ExprNode obj = null;
         while(obj == null && table != null) {
             obj = table.dictionary.get(name);
             table = table.parentSymbolTable;
