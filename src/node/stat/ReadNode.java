@@ -9,5 +9,8 @@ public class ReadNode extends StatNode {
     this.readTarget = readTarget;
   }
 
+  public ExprNode getInputExpr() {
+    return readTarget;
+  }
 
 }

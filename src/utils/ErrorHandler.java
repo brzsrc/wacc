@@ -1,5 +1,7 @@
 package utils;
 
+import java.util.List;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import node.expr.IdentNode;
@@ -13,6 +15,13 @@ public class ErrorHandler {
     public static final int INTEGER_MIN_VALUE = -(int) Math.pow(2,31);
 
     public void typeMismatch(ParserRuleContext ctx, Type expected, Type actual) {
+        String msg = "Expected type " + expected.toString() + " for variable x, but the actual type is " + actual.toString();
+        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+    }
+
+    public void typeMismatch(ParserRuleContext ctx, List<Type> expected, Type actual) {
+        StringBuilder allowedTypes = new StringBuilder();
+        allowedTypes.append(str) = 
         String msg = "Expected type " + expected.toString() + " for variable x, but the actual type is " + actual.toString();
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }

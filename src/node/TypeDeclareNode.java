@@ -2,7 +2,7 @@ package node;
 
 import type.Type;
 
-public class TypeDeclareNode {
+public class TypeDeclareNode implements Node {
     private Type declaredType;
 
     public TypeDeclareNode(Type declaredType) {

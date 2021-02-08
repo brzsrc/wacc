@@ -11,20 +11,9 @@ public class ArrayNode extends ExprNode {
     private List<ExprNode> content;
 
     public ArrayNode(Type contentType, List<ExprNode> content, int length) {
-        super("");
         this.content = content;
         this.length = length;
         this.type = new ArrayType(contentType);
-    }
-
-    @Override
-    public void setValue(String value) {
-        throw new UnsupportedOperationException("ArrayNode does not support setting value by using raw string literals. Please pass ExprNode as the input!");
-    }
-
-    @Override
-    public String getValue() {
-        throw new UnsupportedOperationException("ArrayNode does not support getting value in the form of string. Please specify an index!");
     }
 
     public int getLength() {

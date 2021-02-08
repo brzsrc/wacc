@@ -1,5 +1,6 @@
 package node;
 
+import node.expr.IdentNode;
 import node.stat.StatNode;
 import java.util.List;
 
@@ -9,10 +10,10 @@ import utils.SymbolTable;
 // this node is not one statement but one function definition, no need to implement statNode
 public class FuncNode implements Node {
     private Type returnType;
-    private List<Type> parameters;
+    private List<IdentNode> parameters;
     private StatNode functionBody;
 
-    public FuncNode(Type returnType, StatNode functionBody, List<Type> params) {
+    public FuncNode(Type returnType, StatNode functionBody, List<IdentNode> params) {
         this.returnType = returnType;
         this.functionBody = functionBody;
         this.parameters = params;
@@ -24,5 +25,9 @@ public class FuncNode implements Node {
 
     public Type getReturnType() {
         return returnType;
+    }
+
+    public List<IdentNode> getParamList() {
+        return parameters;
     }
 }
