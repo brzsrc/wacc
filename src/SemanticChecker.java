@@ -29,7 +29,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       functions.add(node);
     }
 
-    scopes.push(scopes.peek().createScope());
+    /* Main function has its own scope */
+    scopes.push(new SymbolTable());
     StatNode body = (StatNode) visit(ctx.stat());
     scopes.pop();
 
