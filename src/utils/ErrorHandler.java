@@ -34,7 +34,7 @@ public class ErrorHandler {
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void symbolRedeclared(ParserRuleContext ctx, FuncParamNode ident) {
+    public void symbolRedeclared(ParserRuleContext ctx, String ident) {
         String msg = "Symbol x has already been declared in the current scope of the program";
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
@@ -47,5 +47,10 @@ public class ErrorHandler {
     private void errorHandler(ParserRuleContext ctx, int code, String msg) {
         System.out.println("Line6:7 " + msg);
         System.exit(code);
+    }
+
+    public void arrayDepthError(ParserRuleContext ctx, String arrayIdent, int arrayMaxDepth, int indexDepth) {
+        String msg = "Array " + arrayIdent + " has maximum " + arrayMaxDepth + "dimention, but been called " + indexDepth;
+        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 }
