@@ -15,6 +15,16 @@ import node.TypeDeclareNode;
 import node.expr.*;
 import node.expr.ExprNode;
 import node.expr.IdentNode;
+import org.antlr.v4.runtime.ParserRuleContext;
+import node.expr.BinopNode;
+import node.expr.BoolNode;
+import node.expr.CharNode;
+import node.expr.IntegerNode;
+import node.expr.PairNode;
+import node.expr.StringNode;
+import node.expr.UnopNode;
+import node.expr.BinopNode.Binops;
+import node.expr.UnopNode.Unop;
 import node.stat.*;
 import type.ArrayType;
 import type.BasicType;
@@ -22,8 +32,6 @@ import type.BasicTypeEnum;
 import type.Type;
 import utils.ErrorHandler;
 import utils.SymbolTable;
-import type.BasicType;
-import type.BasicTypeEnum;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
@@ -261,9 +269,27 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitAndOrExpr(AndOrExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitAndOrExpr(ctx);
-  }
+    String bop = ctx.bop.getText();
+    Binops binop;
+    if(bop.equals("&&")) {
+      binop = Binops.AND;
+    } else if(bop.equals("||")) {
+      binop = Binops.OR;
+    } else {
+      throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+    }
+    ExprNode expr1 = (ExprNode)visit(ctx.expr(0));
+    ExprNode expr2 = (ExprNode)visit(ctx.expr(1));
+    SymbolTable sTable = scopes.peek();
+    BasicType boolType = new BasicType(BasicTypeEnum.BOOLEAN);
+
+    if(!expr1.getType(sTable).equalToType(boolType)) {
+      errorHandler.typeMismatch(ctx.expr(0), expr1.getType(sTable), boolType);
+    } else if(expr2.getType(sTable).equalToType(boolType)) {
+      errorHandler.typeMismatch(ctx.expr(1), expr1.getType(sTable), boolType);
+    }
+    return new BinopNode(expr1, expr2, binop);
+  } 
 
   @Override
   public Node visitArg_list(Arg_listContext ctx) {
@@ -311,49 +337,137 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitBoolExpr(BoolExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitBoolExpr(ctx);
+    String bool = ctx.BOOL_LITER().getText();
+    boolean boolVal = bool.equals("true");
+    return new BoolNode(boolVal);
   }
 
   @Override
   public Node visitPairExpr(PairExprContext ctx) {
-    return super.visitPairExpr(ctx);
+    return new PairNode(null, null);
   }
 
   @Override
   public Node visitCharExpr(CharExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitCharExpr(ctx);
+    return new CharNode(ctx.CHAR_LITER().getText().charAt(0));
   }
 
   @Override
   public Node visitCmpExpr(CmpExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitCmpExpr(ctx);
+    String bop = ctx.bop.getText();
+    Binops binop;
+    switch(bop) {
+      case ">":
+        binop = Binops.GREATER;
+        break;
+      case ">=":
+        binop = Binops.GREATER_EQUAL;
+        break;
+      case "<":
+        binop = Binops.LESS;
+        break;
+      case "<=":
+        binop = Binops.LESS_EQUAL;
+        break;
+      default:
+        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+    }
+
+    ExprNode expr1 = (ExprNode)visit(ctx.expr(0));
+    ExprNode expr2 = (ExprNode)visit(ctx.expr(1));
+    SymbolTable sTable = scopes.peek();
+    Type expr1Type = expr1.getType(sTable);
+    Type expr2Type = expr2.getType(sTable);
+    BasicType intType = new BasicType(BasicTypeEnum.INTEGER);
+    BasicType chrType = new BasicType(BasicTypeEnum.CHAR);
+    BasicType strType = new BasicType(BasicTypeEnum.STRING);
+    
+    if(!expr1Type.equalToType(intType) || !expr1Type.equalToType(chrType) 
+        || !expr1Type.equalToType(strType)) {
+      errorHandler.typeMismatch(ctx.expr(0), expr1Type, );
+    } else if() {
+
+    }
+
+    return new BinopNode(expr1, expr2, binop);
   }
 
   @Override
   public Node visitEqExpr(EqExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitEqExpr(ctx);
+    String bop = ctx.bop.getText();
+    Binops binop;
+    switch(bop) {
+      case "=":
+        binop = Binops.EQUAL;
+        break;
+      case "!=":
+        binop = Binops.UNEQUAL;
+        break;
+      default:
+        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+    }
+    ExprNode expr1 = (ExprNode)visit(ctx.expr(0));
+    ExprNode expr2 = (ExprNode)visit(ctx.expr(1));
+    SymbolTable sTable = scopes.peek();
+    Type expr1Type = expr1.getType(sTable);
+    Type expr2Type = expr2.getType(sTable);
+    BasicType intType = new BasicType(BasicTypeEnum.INTEGER);
+    BasicType chrType = new BasicType(BasicTypeEnum.CHAR);
+    BasicType strType = new BasicType(BasicTypeEnum.STRING);
+    BasicType boolType = new BasicType(BasicTypeEnum.BOOLEAN);
+    
+    if(!expr1Type.equalToType(intType) || !expr1Type.equalToType(chrType) 
+        || !expr1Type.equalToType(strType)) {
+      errorHandler.typeMismatch(ctx.expr(0), expr1Type, );
+    } else if() {
+
+    }
+
+    return new BinopNode(expr1, expr2, binop);
   }
 
   @Override
   public Node visitIdExpr(IdExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitIdExpr(ctx);
+    return new IdentNode(ctx.IDENT().getText());
   }
 
   @Override
   public Node visitIntExpr(IntExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitIntExpr(ctx);
+    int integer = Integer.parseInt(ctx.INT_LITER().getText());
+    return new IntegerNode(integer);
   }
 
   @Override
   public Node visitMulDivExpr(MulDivExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitMulDivExpr(ctx);
+    String bop = ctx.bop.getText();
+    Binops binop;
+    switch(bop) {
+      case "*":
+        binop = Binops.MUL;
+        break;
+      case "/":
+        binop = Binops.DIV;
+        break;
+      case "%":
+        binop = Binops.MOD;
+        break;
+      default:
+        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+    }
+    ExprNode expr1 = (ExprNode)visit(ctx.expr(0));
+    ExprNode expr2 = (ExprNode)visit(ctx.expr(1));
+    SymbolTable sTable = scopes.peek();
+    Type expr1Type = expr1.getType(sTable);
+    Type expr2Type = expr2.getType(sTable);
+    BasicType intType = new BasicType(BasicTypeEnum.INTEGER);
+    
+    if(!expr1Type.equalToType(intType)) {
+      errorHandler.typeMismatch(ctx.expr(0), expr1Type, intType);
+    } else if(!expr2Type.equalToType(intType)) {
+      errorHandler.typeMismatch(ctx.expr(1), expr2Type, intType);
+    }
+
+    return new BinopNode(expr1, expr2, binop);
   }
 
   @Override
@@ -390,19 +504,42 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitPlusMinExpr(PlusMinExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitPlusMinExpr(ctx);
+    String bop = ctx.bop.getText();
+    Binops binop;
+    switch(bop) {
+      case "+":
+        binop = Binops.MUL;
+        break;
+      case "-":
+        binop = Binops.DIV;
+        break;
+      default:
+        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+    }
+    ExprNode expr1 = (ExprNode)visit(ctx.expr(0));
+    ExprNode expr2 = (ExprNode)visit(ctx.expr(1));
+    SymbolTable sTable = scopes.peek();
+    Type expr1Type = expr1.getType(sTable);
+    Type expr2Type = expr2.getType(sTable);
+    BasicType intType = new BasicType(BasicTypeEnum.INTEGER);
+    
+    if(!expr1Type.equalToType(intType)) {
+      errorHandler.typeMismatch(ctx.expr(0), expr1Type, intType);
+    } else if(!expr2Type.equalToType(intType)) {
+      errorHandler.typeMismatch(ctx.expr(1), expr2Type, intType);
+    }
+
+    return new BinopNode(expr1, expr2, binop);
   }
 
   @Override
   public Node visitArrayExpr(ArrayExprContext ctx) {
-    return super.visitArrayExpr(ctx);
+    return ctx.array_elem();
   }
 
   @Override
   public Node visitStrExpr(StrExprContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitStrExpr(ctx);
+    return new StringNode(ctx.STR_LITER().getText());
   }
 
   @Override
@@ -428,34 +565,45 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitUnopExpr(UnopExprContext ctx) {
-    String unop = ctx.uop.getText();
+    String uop = ctx.uop.getText();
     ExprNode childExpr = (ExprNode) visitChildren(ctx);
-    Unop operator;
-    switch (unop) {
+    Unop unop;
+    switch (uop) {
       case "-":
-        operator = Unop.MINUS;
-        check(childExpr.getType(), IntegerType.class);
+        unop = Unop.MINUS;
         break;
       case "chr":
-        operator = Unop.CHR;
-        check(childExpr.getType(), IntegerType.class);
+        unop = Unop.CHR;
         break;
       case "!":
-        operator = Unop.NOT;
-        check(childExpr.getType(), BoolType.class);
+        unop = Unop.NOT;
         break;
       case "len":
-        operator = Unop.LEN;
-        check(childExpr.getType(), ArrayType.class);
+        unop = Unop.LEN;
         break;
       case "ord":
-        operator = Unop.ORD;
-        check(childExpr.getType(), CharType.class);
+        unop = Unop.ORD;
         break;
       default:
-        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + unop);
+        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + uop);
     }
-    return new UnopNode(childExpr, operator)
+  
+    ExprNode expr = (ExprNode)visit(ctx.expr());
+    SymbolTable sTable = scopes.peek();
+    Type exprType = expr.getType(sTable);
+    BasicType intType = new BasicType(BasicTypeEnum.INTEGER);
+    BasicType chrType = new BasicType(BasicTypeEnum.CHAR);
+    BasicType strType = new BasicType(BasicTypeEnum.STRING);
+    BasicType boolType = new BasicType(BasicTypeEnum.BOOLEAN);
+    
+    if(!exprType.equalToType(intType) || !exprType.equalToType(chrType) 
+        || !exprType.equalToType(strType)) {
+      errorHandler.typeMismatch(ctx.expr(), exprType, );
+    } else if() {
+
+    }
+
+    return new UnopNode(expr, unop);
   }
   
 }
