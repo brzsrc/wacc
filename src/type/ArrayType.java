@@ -8,7 +8,11 @@ public class ArrayType implements Type {
         this.contentType = contentType;
     }
 
-    @Override
+    public ArrayType() {
+        this(null);
+	}
+
+	@Override
     public boolean equalToType(Type other) {
         if (!(other instanceof ArrayType)) {
             return false;

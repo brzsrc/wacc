@@ -10,6 +10,10 @@ public class PairType implements Type {
         this.sndType = sndType;
     }
 
+    public PairType() {
+        this(null, null);
+    }
+
     public Type getFstType() {
         return fstType;
     }

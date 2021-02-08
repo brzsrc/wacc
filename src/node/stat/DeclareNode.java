@@ -5,12 +5,10 @@ import type.Type;
 
 public class DeclareNode extends StatNode {
 
-  private final Type type;
-  private final ExprNode identifier;
+  private final String identifier;
   private final ExprNode rhs;
 
-  public DeclareNode(Type type, ExprNode identifier, ExprNode rhs) {
-    this.type = type;
+  public DeclareNode(String identifier, ExprNode rhs) {
     this.identifier = identifier;
     this.rhs = rhs;
   }

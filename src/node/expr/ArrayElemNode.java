@@ -25,7 +25,6 @@ public class ArrayElemNode extends ExprNode {
 
   @Override
   public Type getType(SymbolTable symbolTable) {
-    // todo: support list index
     return ((ArrayType) array.type).getContentType();
   }
 

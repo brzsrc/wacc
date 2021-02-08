@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-import node.expr.IdentNode;
+import node.expr.FuncParamNode;
 import type.Type;
 
 public class ErrorHandler {
@@ -20,9 +20,7 @@ public class ErrorHandler {
     }
 
     public void typeMismatch(ParserRuleContext ctx, List<Type> expected, Type actual) {
-        StringBuilder allowedTypes = new StringBuilder();
-        allowedTypes.append(str) = 
-        String msg = "Expected type " + expected.toString() + " for variable x, but the actual type is " + actual.toString();
+        String msg = "Expected types are " + expected.toString() + " for variable x, but the actual type is " + actual.toString();
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
@@ -31,12 +29,12 @@ public class ErrorHandler {
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void symbolNotFound(ParserRuleContext ctx, IdentNode ident) {
-        String msg = "Symbol x is not found in the current scope of the program";
+    public void symbolNotFound(ParserRuleContext ctx, String ident) {
+        String msg = "Symbol " + ident + " is not found in the current scope of the program";
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void symbolRedeclared(ParserRuleContext ctx, IdentNode ident) {
+    public void symbolRedeclared(ParserRuleContext ctx, FuncParamNode ident) {
         String msg = "Symbol x has already been declared in the current scope of the program";
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
