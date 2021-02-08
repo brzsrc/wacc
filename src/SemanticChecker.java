@@ -1,14 +1,22 @@
+import antlr.WACCParser;
 import antlr.WACCParser.*;
 import antlr.WACCParserBaseVisitor;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
+
+import com.sun.jdi.IntegerType;
 import node.FuncNode;
 import node.Node;
 import node.ProgramNode;
-import node.expr.ExprNode;
+import node.TypeDeclareNode;
+import node.expr.*;
 import node.stat.*;
+import type.ArrayType;
+import type.BasicType;
+import type.BasicTypeEnum;
 import type.Type;
 import utils.ErrorHandler;
 import utils.SymbolTable;
@@ -20,7 +28,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    *  when the current scope exits, it will be popped off from the stack
    *  when a new scope is created, it will be added to the stack
    */
-  private Stack<SymbolTable> scopes = new Stack<>();
+  private SymbolTable scopes = new SymbolTable();
 
   /**
    * The errorHandler which will print useful semantic/syntatic error message
@@ -242,7 +250,30 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitArray_elem(Array_elemContext ctx) {
-    return super.visitArray_elem(ctx);
+
+    ArrayNode array = scopes.lookupAll(ctx.IDENT().getText());
+    // check that index depth is less than the array depth
+    int indexDepth = ctx.expr().size();
+    int arrayMaxDepth = 1;
+    while (array.getElem(0).getType(scopes) instanceof ArrayType) {
+        arrayMaxDepth++;
+    }
+    if (arrayMaxDepth < indexDepth) {
+      errorHandler.invalidArrayIndexError("array index more than depth the array is declared");
+    }
+
+    List<ExprNode> indexList = new ArrayList<>();
+
+    for (ExprContext index_ : ctx.expr()) {
+      ExprNode index = visit(index_);
+      // check every expr can evaluate to integer
+      if (index.getType(scopes).equalToType(new BasicType(BasicTypeEnum.INTEGER))) {
+        errorHandler.typeMismatch(ctx, index.getType(scopes), new BasicType(BasicTypeEnum.INTEGER));
+      }
+
+      indexList.add(index);
+    }
+    return new ArrayElemNode("", array, indexList);
   }
 
   @Override
@@ -259,14 +290,29 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitArray_liter(Array_literContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitArray_liter(ctx);
+    int length = ctx.expr().size();
+    if (length == 0) {
+      // contentType SHOULD not ever be used, if length is 0
+      return new ArrayNode(null, new ArrayList<>(), length);
+    }
+    ExprNode firstExpr = visit(ctx.expr(0));
+    Type firstContentType = firstExpr.getType(scopes);
+    List<ExprNode> list = new ArrayList<>();
+    for (ExprContext context : ctx.expr()) {
+      ExprNode expr = visit(context);
+      if (firstContentType.equalToType(expr.getType(scopes))) {
+        errorHandler.typeMismatch(ctx, firstContentType, expr.getType(scopes));
+      }
+
+      list.add(expr);
+    }
+    return new ArrayNode(firstContentType, list, length);
   }
 
   @Override
   public Node visitArray_type(Array_typeContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitArray_type(ctx);
+    ExprNode type = visitChildren(ctx);
+    return new TypeDeclareNode(new ArrayType(type.getType(scopes)));
   }
 
   @Override
@@ -330,22 +376,23 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitPair_elem(Pair_elemContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitPair_elem(ctx);
+    if (ctx.getRuleIndex()) {
+
+    }
+    return ctx.;
   }
 
   @Override
   public Node visitPair_elem_type(Pair_elem_typeContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitPair_elem_type(ctx);
+    // todo
+    return null;
   }
 
   @Override
   public Node visitPair_type(Pair_typeContext ctx) {
-    // return new PairType<>(
-    //         visitPair_elem_type(ctx.pair_elem_type(0)),
-    //         visitPair_elem_type(ctx.pair_elem_type(1)));
-    return null;
+    ExprNode leftChild = (ExprNode) visitPair_elem_type(ctx.pair_elem_type(0));
+    ExprNode rightChild = (ExprNode) visitPair_elem_type(ctx.pair_elem_type(1));
+    return new PairNode(leftChild, rightChild);
   }
 
   @Override
@@ -378,24 +425,23 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitType(TypeContext ctx) {
-    return 
+    return visitChildren(ctx);
   }
 
   @Override
   public Node visitBase_type(Base_typeContext ctx) {
     switch (ctx.getRuleIndex()) {
       case 10:
-        return new IntegerNode();
+        return new TypeDeclareNode(new BasicType(BasicTypeEnum.INTEGER));
       case 11:
-        return new BoolType();
+        return new TypeDeclareNode(new BasicType(BasicTypeEnum.BOOLEAN));
       case 12:
-        return new CharType();
+        return new TypeDeclareNode(new BasicType(BasicTypeEnum.CHAR));
       case 13:
-        return new StringType();
+        return new TypeDeclareNode(new BasicType(BasicTypeEnum.STRING));
       default:
         throw new IllegalArgumentException("invalid rule index in visitBase_type: " + ctx.getRuleIndex());
     }
-    return null;
   }
 
   @Override

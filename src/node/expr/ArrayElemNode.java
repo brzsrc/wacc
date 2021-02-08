@@ -1,14 +1,17 @@
 package node.expr;
 
+import node.Node;
 import type.ArrayType;
 import type.Type;
 import utils.SymbolTable;
 
+import java.util.List;
+
 public class ArrayElemNode extends ExprNode {
   private ArrayNode array;
-  private ExprNode index;
+  private List<ExprNode> index;
 
-  public ArrayElemNode(String value, ArrayNode array, ExprNode index) {
+  public ArrayElemNode(String value, ArrayNode array, List<ExprNode> index) {
     super(value);
     this.array = array;
     this.index = index;
@@ -16,6 +19,7 @@ public class ArrayElemNode extends ExprNode {
 
   @Override
   public Type getType(SymbolTable symbolTable) {
+    // todo: support list index
     return ((ArrayType) array.type).getContentType();
   }
 
