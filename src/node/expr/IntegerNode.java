@@ -1,13 +1,15 @@
 package node.expr;
 
+import type.BasicType;
+import type.BasicTypeEnum;
+
 public class IntegerNode extends ExprNode {
 
-  public IntegerNode(String value) {
-    this.value = value;
-  }
+  private int val;
 
-  @Override
-  public boolean check() {
-    return false;
+  public IntegerNode(int val) {
+    super("");
+    this.val = val;
+    this.type = new BasicType(BasicTypeEnum.INTEGER);
   }
 }

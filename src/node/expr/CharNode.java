@@ -1,17 +1,20 @@
 package node.expr;
 
+import type.BasicType;
+import type.BasicTypeEnum;
+
 public class CharNode extends ExprNode {
 
-  public CharNode(String c) {
-    this.value = c;
+  private char val;
+
+  public CharNode(char c) {
+    super(String.valueOf(c));
+    this.val = c;
+    this.type = new BasicType(BasicTypeEnum.CHAR);
   }
 
   public int getAsciiValue() {
-    return value.charAt(0);
+    return val;
   }
 
-  @Override
-  public boolean check() {
-    return false;
-  }
 }

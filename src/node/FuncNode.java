@@ -20,4 +20,8 @@ public class FuncNode implements Node {
     public StatNode getFunctionBody() {
         return functionBody;
     }
+
+    public Type getReturnType() {
+        return returnType;
+    }
 }

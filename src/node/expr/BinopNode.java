@@ -1,5 +1,10 @@
 package node.expr;
 
+import type.BasicType;
+import type.BasicTypeEnum;
+import type.Type;
+import utils.SymbolTable;
+
 enum Binops {
     PLUS, MINUS, MUL, DIV, MOD, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, EQUAL, UNEQUAL, AND, OR
 }
@@ -11,14 +16,23 @@ public class BinopNode extends ExprNode {
     private Binops operator;
 
     public BinopNode(ExprNode expr1, ExprNode expr2, Binops operator) {
+        super("");
         this.expr1 = expr1;
         this.expr2 = expr2;
         this.operator = operator;
     }
 
     @Override
-    public boolean check() {
-        return false;
+    public Type getType(SymbolTable symbolTable) {
+        switch (operator) {
+            case PLUS:
+            case MINUS:
+            case DIV:
+            case MUL:
+                return new BasicType(BasicTypeEnum.INTEGER);
+            default:
+                return new BasicType(BasicTypeEnum.BOOLEAN);
+        }
     }
 
     @Override

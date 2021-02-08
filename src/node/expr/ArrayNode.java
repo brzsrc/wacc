@@ -1,5 +1,8 @@
 package node.expr;
 
+import type.ArrayType;
+import type.Type;
+
 import java.util.List;
 
 public class ArrayNode extends ExprNode {
@@ -7,9 +10,11 @@ public class ArrayNode extends ExprNode {
     private int length;
     private List<ExprNode> content;
 
-    @Override
-    public boolean check() {
-        return false;
+    public ArrayNode(Type contentType, List<ExprNode> content, int length) {
+        super("");
+        this.content = content;
+        this.length = length;
+        this.type = new ArrayType(contentType);
     }
 
     @Override
@@ -22,26 +27,24 @@ public class ArrayNode extends ExprNode {
         throw new UnsupportedOperationException("ArrayNode does not support getting value in the form of string. Please specify an index!");
     }
 
-    public void setValue(List<ExprNode> content) {
-        this.content = content;
-        this.length = content.size();
-    }
-
-    public ExprNode getValue(int index) {
-        return this.content.get(index);
-    }
-
-    public void setValue(int index, ExprNode value) {
-        this.content.set(index, value);
-    }
-
     public int getLength() {
         return length;
     }
 
-    public ArrayNode(List<ExprNode> content, int length) {
-        this.content = content;
-        this.length = length;
+    /**
+     * this function is used when a[] appear on the rhs,
+     * lhs array elem assignment is represented by ArrayElemNode */
+    public ExprNode getElem(int index) {
+        return this.content.get(index);
     }
-    
+
+    public void setAllElem(List<ExprNode> content) {
+        this.content = content;
+        this.length = content.size();
+    }
+
+    public void setElem(int index, ExprNode value) {
+        this.content.set(index, value);
+    }
+
 }
