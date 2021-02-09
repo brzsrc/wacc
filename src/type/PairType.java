@@ -43,7 +43,7 @@ public class PairType implements Type {
     }
 
     private boolean subTypeCompact(Type type1, Type type2) {
-        if (type1 == null) {
+        if (type1 == null || type2 == null) {
             // type1 is null indicate current type is Pair, a branch of Pair(Pair, _)
             // this happens when calling fst x = ...
             // allow any type, since this cause a cast.

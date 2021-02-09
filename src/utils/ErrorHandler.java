@@ -15,17 +15,22 @@ public class ErrorHandler {
     public static final int INTEGER_MIN_VALUE = -(int) Math.pow(2,31);
 
     public void typeMismatch(ParserRuleContext ctx, Type expected, Type actual) {
-        String msg = "Expected type " + expected.toString() + " for variable x, but the actual type is " + actual.toString();
+        String msg = "Expected type " + expected.toString() + ", but the actual type is " + actual.toString();
+        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+    }
+
+    public void typeMismatch(ParserRuleContext ctx, String ident, Type expected, Type actual) {
+        String msg = "Expected type " + expected.toString() + " for variable " + ident + ", but the actual type is " + actual.toString();
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
     public void typeMismatch(ParserRuleContext ctx, List<Type> expected, Type actual) {
-        String msg = "Expected types are " + expected.toString() + " for variable x, but the actual type is " + actual.toString();
+        String msg = "Expected types are " + expected.toString() + ", but the actual type is " + actual.toString();
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
     public void invalidFuncArgCount(ParserRuleContext ctx, int expected, int actual) {
-        String msg = "Invalid number of arguments: blahblahblah";
+        String msg = "Invalid number of arguments: Expected " + expected + " argument(s), but actual number is " + actual;
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
@@ -35,7 +40,7 @@ public class ErrorHandler {
     }
 
     public void symbolRedeclared(ParserRuleContext ctx, String ident) {
-        String msg = "Symbol x has already been declared in the current scope of the program";
+        String msg = "Symbol " + ident + " has already been declared in the current scope of the program";
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
@@ -58,7 +63,7 @@ public class ErrorHandler {
             /* internal error */
         }
 
-        System.out.println("Line " + lineNum + ":" + linePos + msg);
+        System.err.println("line " + lineNum + ":" + linePos + " : " + msg);
         System.exit(code);
     }
 }

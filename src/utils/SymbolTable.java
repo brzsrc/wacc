@@ -39,9 +39,7 @@ public class SymbolTable {
             obj = table.dictionary.get(name);
             table = table.parentSymbolTable;
         }
-        if (obj == null) {
-            new ErrorHandler().symbolNotFound(null, name);
-        }
+        
         return obj;
     }
 
