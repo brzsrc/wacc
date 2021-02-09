@@ -10,13 +10,6 @@ public abstract class StatNode implements Node {
   /* Statement scope, SeqNode and ScopeNode actually do not need */
   private SymbolTable scope;
 
-  /*
-   * Check current StatNode(statement) is SeqNode(sequential composition) or not
-   */
-  public boolean isSeq() {
-    return false;
-  }
-
   /* Setters */
   public void setLeaveAtEnd() {
     this.leaveAtEnd = false;

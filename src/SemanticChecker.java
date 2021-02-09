@@ -68,7 +68,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = currSymbolTable.getParentSymbolTable();
     body.setScope(currSymbolTable);
 
-    return new ProgramNode(functions, body);
+    return new ProgramNode(functions, new ScopeNode(body));
   }
 
   @Override
@@ -99,7 +99,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     functionBody.setScope(currSymbolTable);
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
-    return new FuncNode(returnType, functionBody, param_list);
+    return new FuncNode(returnType, new ScopeNode(functionBody), param_list);
   }
 
   /******************************** StatNode Visitors *************************************/
@@ -110,7 +110,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     StatNode before = (StatNode) visit(ctx.stat(0));
     StatNode after = (StatNode) visit(ctx.stat(1));
     
-    return new SeqNode(before, after);
+    return new ScopeNode(before, after);
   }
 
   @Override
@@ -133,7 +133,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     StatNode elseBody = (StatNode) visit(ctx.stat(1));
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
-    StatNode node = new IfNode(condition, ifBody, elseBody);
+    StatNode node = new IfNode(condition, new ScopeNode(ifBody), new ScopeNode(elseBody));
 
     node.setScope(currSymbolTable);
 
@@ -155,7 +155,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     StatNode body = (StatNode) visit(ctx.stat());
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
-    StatNode node = new WhileNode((ExprNode) visit(ctx.expr()), body);
+    StatNode node = new WhileNode((ExprNode) visit(ctx.expr()), new ScopeNode(body));
     node.setScope(currSymbolTable);
 
     return node;
@@ -167,7 +167,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode body = (StatNode) visit(ctx.stat());
     ScopeNode scopeNode = new ScopeNode(body);
-    scopeNode.setScope(currSymbolTable);
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     return scopeNode;
