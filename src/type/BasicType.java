@@ -13,10 +13,15 @@ public class BasicType implements Type {
             return false;
         }
 
-        return basicTypeEnum == ((BasicType) other).getTypeEnum();
+        return basicTypeEnum.equals(((BasicType) other).getTypeEnum());
     }
 
     public BasicTypeEnum getTypeEnum() {
         return basicTypeEnum;
+    }
+
+    @Override
+    public String toString() {
+        return basicTypeEnum.toString();
     }
 }

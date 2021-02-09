@@ -3,6 +3,7 @@ package utils;
 import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import type.Type;
 
@@ -44,12 +45,20 @@ public class ErrorHandler {
     }
 
     private void errorHandler(ParserRuleContext ctx, int code, String msg) {
-        System.out.println("Line6:7 " + msg);
-        System.exit(code);
-    }
+        int lineNum = 0;
+        int linePos = 0;
 
-    public void arrayDepthError(ParserRuleContext ctx, String arrayIdent, int arrayMaxDepth, int indexDepth) {
-        String msg = "Array " + arrayIdent + " has maximum " + arrayMaxDepth + "dimention, but been called " + indexDepth;
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        if (ctx instanceof TerminalNode) {
+            lineNum = ((TerminalNode) ctx).getSymbol().getLine();
+            linePos = ((TerminalNode) ctx).getSymbol().getCharPositionInLine();
+        } else if (ctx instanceof ParserRuleContext) {
+            lineNum = ((ParserRuleContext) ctx).getStart().getLine();
+            linePos = ((ParserRuleContext) ctx).getStart().getCharPositionInLine();
+        } else {
+            /* internal error */
+        }
+
+        System.out.println("Line " + lineNum + ":" + linePos + msg);
+        System.exit(code);
     }
 }

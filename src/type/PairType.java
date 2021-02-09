@@ -56,7 +56,11 @@ public class PairType implements Type {
 
         // base/array type check
         return type1.equalToType(type2);
+    }
 
+    @Override
+    public String toString() {
+        return "Pair<" + fstType + ", " + sndType +">";
     }
     
 }

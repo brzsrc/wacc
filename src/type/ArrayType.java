@@ -25,4 +25,9 @@ public class ArrayType implements Type {
         return contentType;
     }
 
+    @Override
+    public String toString() {
+        return "Array<" + contentType + ">";
+    }
+
 }
