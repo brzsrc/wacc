@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# execute all tests
+./parserTestValid
+./parserTestSynErr
+./parserTestSemanticErr
+./semanticCheckerValid
+./semanticCheckerSynErr
+./semanticCheckerSemanticErr

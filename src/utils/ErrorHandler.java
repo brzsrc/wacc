@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-import node.expr.FuncParamNode;
 import type.Type;
 
 public class ErrorHandler {

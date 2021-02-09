@@ -1,0 +1,14 @@
+#!/bin/sh
+
+VALID_EXAMPLES="./src/test/examples/valid"
+VALID_CHECKER_EXAMPLES_LOG="./log/checker_valid_error.log"
+
+cd ..
+./compile $(find $VALID_EXAMPLES -name "*.wacc")  2> $VALID_CHECKER_EXAMPLES_LOG
+
+if grep "line [0-9]*:[0-9]*" $VALID_CHECKER_EXAMPLES_LOG > /dev/null; then
+  echo "expecting no error but found the following:"
+  cat $VALID_CHECKER_EXAMPLES_LOG
+  echo $file 
+  exit 1
+fi

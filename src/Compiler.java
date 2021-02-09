@@ -11,6 +11,8 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
 import antlr.*;
+import antlr.WACCParser.ProgramContext;
+import node.Node;
 
 public class Compiler {
     public static void main(String[] args) {
@@ -25,6 +27,8 @@ public class Compiler {
 
         // Creating the file instance for the .wacc file
         File file = new File(args[0]);
+
+        System.out.println(file.getName());
         // try-with-resources so that fis can be closed properly even when error occurs
         try (FileInputStream fis = new FileInputStream(file)) {
             // Input stream of the file
@@ -32,15 +36,16 @@ public class Compiler {
             // Pass the input stream of the file to WACC lexer
             WACCLexer lexer = new WACCLexer(input);
             // Obtain the internal tokens from the lexer
-            CommonTokenStream tokens  = new CommonTokenStream(lexer);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
             // Parse the tokens into a syntax tree
             WACCParser parser = new WACCParser(tokens);
             // Start parsing using the `program` rule defined in antlr_config/WACCParser.g4
-            ParseTree tree = parser.program();
+            ProgramContext tree = parser.program();
 
             // If the `--parse_only` flag is specified, then we do not run semantic analysis
             if (!cmd_ops.contains("--parse_only")) {
-                /* semantic check here */
+                SemanticChecker semanticChecker = new SemanticChecker();
+                Node program = semanticChecker.visitProgram(tree);
             }
             
             if (cmd_ops.contains("--print_ast")) {

@@ -3,11 +3,11 @@ package node.expr;
 import type.Type;
 import utils.SymbolTable;
 
-public class FuncParamNode extends ExprNode {
+public class IdentNode extends ExprNode {
 
     private String name;
 
-    public FuncParamNode(Type type, String name) {
+    public IdentNode(Type type, String name) {
         this.type = type;
         this.name = name;
     }

@@ -1,52 +1,121 @@
-src/test/examples/invalid/syntaxErr//array/arrayExpr.wacc
-src/test/examples/invalid/syntaxErr//pairs/badLookup01.wacc
-src/test/examples/invalid/syntaxErr//pairs/badLookup02.wacc
-src/test/examples/invalid/syntaxErr//if/ifNoelse.wacc
-src/test/examples/invalid/syntaxErr//if/ifNofi.wacc
-src/test/examples/invalid/syntaxErr//if/ifNothen.wacc
-src/test/examples/invalid/syntaxErr//if/ifiErr.wacc
-src/test/examples/invalid/syntaxErr//basic/bgnErr.wacc
-src/test/examples/invalid/syntaxErr//basic/badEscape.wacc
-src/test/examples/invalid/syntaxErr//basic/beginNoend.wacc
-src/test/examples/invalid/syntaxErr//basic/noBody.wacc
-src/test/examples/invalid/syntaxErr//basic/badComment.wacc
-src/test/examples/invalid/syntaxErr//basic/badComment2.wacc
-src/test/examples/invalid/syntaxErr//basic/multipleBegins.wacc
-src/test/examples/invalid/syntaxErr//basic/skpErr.wacc
-src/test/examples/invalid/syntaxErr//basic/unescapedChar.wacc
-src/test/examples/invalid/syntaxErr//function/functionJunkAfterReturn.wacc
-src/test/examples/invalid/syntaxErr//function/badlyNamed.wacc
-src/test/examples/invalid/syntaxErr//function/mutualRecursionNoReturn.wacc
-src/test/examples/invalid/syntaxErr//function/functionConditionalNoReturn.wacc
-src/test/examples/invalid/syntaxErr//function/functionLateDefine.wacc
-src/test/examples/invalid/syntaxErr//function/functionMissingPType.wacc
-src/test/examples/invalid/syntaxErr//function/functionReturnInLoop.wacc
-src/test/examples/invalid/syntaxErr//function/functionMissingCall.wacc
-src/test/examples/invalid/syntaxErr//function/functionNoReturn.wacc
-src/test/examples/invalid/syntaxErr//function/functionScopeDef.wacc
-src/test/examples/invalid/syntaxErr//function/noBodyAfterFuncs.wacc
-src/test/examples/invalid/syntaxErr//function/funcExpr2.wacc
-src/test/examples/invalid/syntaxErr//function/funcExpr.wacc
-src/test/examples/invalid/syntaxErr//function/badlyPlaced.wacc
-src/test/examples/invalid/syntaxErr//function/functionMissingParam.wacc
-src/test/examples/invalid/syntaxErr//function/functionMissingType.wacc
-src/test/examples/invalid/syntaxErr//function/thisIsNotC.wacc
-src/test/examples/invalid/syntaxErr//print/printlnCharArry.wacc
-src/test/examples/invalid/syntaxErr//variables/badintAssignments1.wacc
-src/test/examples/invalid/syntaxErr//variables/varNoName.wacc
-src/test/examples/invalid/syntaxErr//variables/badintAssignments.wacc
-src/test/examples/invalid/syntaxErr//variables/bigIntAssignment.wacc
-src/test/examples/invalid/syntaxErr//variables/badintAssignments2.wacc
-src/test/examples/invalid/syntaxErr//expressions/missingOperand2.wacc
-src/test/examples/invalid/syntaxErr//expressions/printlnConcat.wacc
-src/test/examples/invalid/syntaxErr//expressions/missingOperand1.wacc
-src/test/examples/invalid/syntaxErr//sequence/missingSeq.wacc
-src/test/examples/invalid/syntaxErr//sequence/emptySeq.wacc
-src/test/examples/invalid/syntaxErr//sequence/endSeq.wacc
-src/test/examples/invalid/syntaxErr//sequence/extraSeq.wacc
-src/test/examples/invalid/syntaxErr//sequence/doubleSeq.wacc
-src/test/examples/invalid/syntaxErr//while/whileNodo.wacc
-src/test/examples/invalid/syntaxErr//while/whilErr.wacc
-src/test/examples/invalid/syntaxErr//while/dooErr.wacc
-src/test/examples/invalid/syntaxErr//while/donoErr.wacc
-src/test/examples/invalid/syntaxErr//while/whileNodone.wacc
+./src/test/examples/invalid/syntaxErr/array/arrayExpr.wacc
+line 12:22 mismatched input '+' expecting {'end', ';'}
+./src/test/examples/invalid/syntaxErr/pairs/badLookup01.wacc
+line 13:10 extraneous input 'fst' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+./src/test/examples/invalid/syntaxErr/pairs/badLookup02.wacc
+line 13:10 extraneous input 'snd' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+./src/test/examples/invalid/syntaxErr/if/ifNoelse.wacc
+line 15:2 mismatched input 'fi' expecting {'else', ';'}
+./src/test/examples/invalid/syntaxErr/if/ifNofi.wacc
+line 17:0 missing 'fi' at 'end'
+./src/test/examples/invalid/syntaxErr/if/ifNothen.wacc
+line 13:2 mismatched input 'else' expecting {'then', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/if/ifiErr.wacc
+line 12:6 missing '=' at 'true'
+line 13:2 mismatched input 'then' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/basic/bgnErr.wacc
+line 11:0 missing 'begin' at 'bgn'
+line 11:4 mismatched input 'skip' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/basic/badEscape.wacc
+line 12:11 token recognition error at: ''\H'
+line 12:14 token recognition error at: ''\ne'
+line 14:0 missing 'end' at '<EOF>'
+./src/test/examples/invalid/syntaxErr/basic/beginNoend.wacc
+line 12:0 missing 'end' at '<EOF>'
+./src/test/examples/invalid/syntaxErr/basic/noBody.wacc
+line 11:6 mismatched input 'end' expecting {'int', 'bool', 'char', 'string', 'fst', 'snd', 'pair', 'begin', 'skip', 'read', 'free', 'return', 'exit', 'print', 'println', 'if', 'while', IDENT}
+./src/test/examples/invalid/syntaxErr/basic/badComment.wacc
+line 12:6 mismatched input ',' expecting '='
+./src/test/examples/invalid/syntaxErr/basic/badComment2.wacc
+line 12:55 token recognition error at: '?'
+line 12:19 missing '=' at 'I'
+line 12:21 mismatched input 'put' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/basic/multipleBegins.wacc
+line 15:0 mismatched input 'begin' expecting {'end', ';'}
+./src/test/examples/invalid/syntaxErr/basic/skpErr.wacc
+line 11:10 mismatched input 'end' expecting '='
+./src/test/examples/invalid/syntaxErr/basic/unescapedChar.wacc
+line 12:11 token recognition error at: ''"'
+line 12:13 token recognition error at: ''\ne'
+line 14:0 missing 'end' at '<EOF>'
+./src/test/examples/invalid/syntaxErr/function/badlyNamed.wacc
+line 12:6 missing '=' at '('
+line 12:7 mismatched input ')' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+line 12:9 mismatched input 'is' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/function/mutualRecursionNoReturn.wacc
+./src/test/examples/invalid/syntaxErr/function/functionConditionalNoReturn.wacc
+./src/test/examples/invalid/syntaxErr/function/functionLateDefine.wacc
+line 17:7 missing '=' at '('
+line 17:8 mismatched input ')' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+line 17:10 mismatched input 'is' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/function/functionMissingPType.wacc
+line 12:8 extraneous input 'x' expecting {'int', 'bool', 'char', 'string', 'pair', ')'}
+./src/test/examples/invalid/syntaxErr/function/functionReturnInLoop.wacc
+./src/test/examples/invalid/syntaxErr/function/functionMissingCall.wacc
+line 15:11 mismatched input '(' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/function/functionNoReturn.wacc
+./src/test/examples/invalid/syntaxErr/function/functionScopeDef.wacc
+line 13:9 missing '=' at '('
+line 13:10 mismatched input ')' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+line 13:12 mismatched input 'is' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+line 17:4 mismatched input 'int' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/function/noBodyAfterFuncs.wacc
+line 15:0 extraneous input 'end' expecting {'int', 'bool', 'char', 'string', 'fst', 'snd', 'pair', 'begin', 'skip', 'read', 'free', 'return', 'exit', 'print', 'println', 'if', 'while', IDENT}
+./src/test/examples/invalid/syntaxErr/function/funcExpr2.wacc
+line 17:13 mismatched input '(' expecting {'do', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+line 20:2 mismatched input 'done' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/function/funcExpr.wacc
+line 15:11 mismatched input '(' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/function/badlyPlaced.wacc
+line 11:0 missing 'begin' at 'int'
+line 18:0 missing 'end' at '<EOF>'
+./src/test/examples/invalid/syntaxErr/function/functionMissingParam.wacc
+line 12:21 mismatched input ')' expecting {'int', 'bool', 'char', 'string', 'pair'}
+./src/test/examples/invalid/syntaxErr/function/functionMissingType.wacc
+line 12:3 missing '=' at '('
+line 12:4 mismatched input ')' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+line 12:6 mismatched input 'is' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/function/thisIsNotC.wacc
+line 12:12 extraneous input '*' expecting IDENT
+line 13:4 extraneous input '*' expecting {'int', 'bool', 'char', 'string', 'fst', 'snd', 'pair', 'begin', 'skip', 'read', 'free', 'return', 'exit', 'print', 'println', 'if', 'while', IDENT}
+line 13:9 extraneous input '*' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'fst', 'snd', 'null', 'newpair', 'call', '(', '[', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+line 17:6 no viable alternative at input 'int*'
+./src/test/examples/invalid/syntaxErr/print/printlnCharArry.wacc
+line 12:10 extraneous input '[' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+line 12:14 mismatched input ',' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/variables/badintAssignments1.wacc
+line 12:13 extraneous input '0' expecting 'end'
+./src/test/examples/invalid/syntaxErr/variables/varNoName.wacc
+line 13:6 no viable alternative at input 'int='
+./src/test/examples/invalid/syntaxErr/variables/badintAssignments.wacc
+line 12:13 mismatched input '0' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/variables/badintAssignments2.wacc
+line 12:11 extraneous input 'A4' expecting 'end'
+./src/test/examples/invalid/syntaxErr/expressions/missingOperand2.wacc
+line 13:0 mismatched input 'end' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+./src/test/examples/invalid/syntaxErr/expressions/printlnConcat.wacc
+line 12:22 mismatched input '"World!"' expecting INT_LITER
+./src/test/examples/invalid/syntaxErr/expressions/missingOperand1.wacc
+line 12:10 extraneous input '*' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'fst', 'snd', 'null', 'newpair', 'call', '(', '[', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+./src/test/examples/invalid/syntaxErr/sequence/missingSeq.wacc
+line 13:2 extraneous input 'skip' expecting 'end'
+./src/test/examples/invalid/syntaxErr/sequence/emptySeq.wacc
+line 11:6 mismatched input ';' expecting {'int', 'bool', 'char', 'string', 'fst', 'snd', 'pair', 'begin', 'skip', 'read', 'free', 'return', 'exit', 'print', 'println', 'if', 'while', IDENT}
+./src/test/examples/invalid/syntaxErr/sequence/endSeq.wacc
+line 11:14 extraneous input ';' expecting <EOF>
+./src/test/examples/invalid/syntaxErr/sequence/extraSeq.wacc
+line 11:12 mismatched input 'end' expecting {'int', 'bool', 'char', 'string', 'fst', 'snd', 'pair', 'begin', 'skip', 'read', 'free', 'return', 'exit', 'print', 'println', 'if', 'while', IDENT}
+./src/test/examples/invalid/syntaxErr/sequence/doubleSeq.wacc
+line 12:7 extraneous input ';' expecting {'int', 'bool', 'char', 'string', 'fst', 'snd', 'pair', 'begin', 'skip', 'read', 'free', 'return', 'exit', 'print', 'println', 'if', 'while', IDENT}
+./src/test/examples/invalid/syntaxErr/while/whileNodo.wacc
+line 13:4 missing 'do' at 'skip'
+./src/test/examples/invalid/syntaxErr/while/whilErr.wacc
+line 12:7 missing '=' at 'false'
+line 12:13 mismatched input 'do' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/while/dooErr.wacc
+line 12:14 missing 'do' at 'doo'
+line 13:4 mismatched input 'skip' expecting {'do', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+./src/test/examples/invalid/syntaxErr/while/donoErr.wacc
+line 14:2 mismatched input 'dono' expecting {'done', ';'}
+./src/test/examples/invalid/syntaxErr/while/whileNodone.wacc
+line 14:0 missing 'done' at 'end'

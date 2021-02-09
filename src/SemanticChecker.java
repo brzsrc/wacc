@@ -2,36 +2,18 @@ import antlr.WACCParser;
 import antlr.WACCParser.*;
 import antlr.WACCParserBaseVisitor;
 
-import java.io.CharArrayReader;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Stack;
 
-import com.sun.jdi.IntegerType;
 import node.FuncNode;
 import node.Node;
 import node.ProgramNode;
 import node.TypeDeclareNode;
 import node.expr.*;
-import node.expr.ExprNode;
-import org.antlr.v4.runtime.ParserRuleContext;
-import node.expr.BinopNode;
-import node.expr.BoolNode;
-import node.expr.CharNode;
-import node.expr.IntegerNode;
-import node.expr.PairNode;
-import node.expr.StringNode;
-import node.expr.UnopNode;
 import node.expr.BinopNode.Binops;
 import node.expr.UnopNode.Unop;
 import node.stat.*;
-import type.ArrayType;
-import type.BasicType;
-import type.BasicTypeEnum;
-import type.PairType;
-import type.Type;
+import type.*;
 import utils.ErrorHandler;
 import utils.SymbolTable;
 
@@ -77,6 +59,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode body = (StatNode) visit(ctx.stat());
     currSymbolTable = currSymbolTable.getParentSymbolTable();
+    body.setScope(currSymbolTable);
 
     return new ProgramNode(functions, body);
   }
@@ -92,16 +75,19 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* get the return type of the function */
     Type returnType = ((TypeDeclareNode) visitType(ctx.type())).getType();
     /* store the parameters in a list of IdentNode */
-    List<FuncParamNode> param_list = new ArrayList<>();
+    List<IdentNode> param_list = new ArrayList<>();
 
     for (ParamContext param : ctx.param_list().param()) {
       Type param_type = ((TypeDeclareNode) visitType(param.type())).getType();
-      FuncParamNode paramNode = new FuncParamNode(param_type, param.IDENT().getText());
+      IdentNode paramNode = new IdentNode(param_type, param.IDENT().getText());
       param_list.add(paramNode);
     }
 
     /* visit the function body */
-    StatNode functionBody = (StatNode) visit(ctx);
+    currSymbolTable = new SymbolTable(currSymbolTable);
+    StatNode functionBody = (StatNode) visit(ctx.stat());
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+    functionBody.setScope(currSymbolTable);
 
     return new FuncNode(returnType, functionBody, param_list);
   }
@@ -362,14 +348,15 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitAndOrExpr(AndOrExprContext ctx) {
     String bop = ctx.bop.getText();
-    Binops binop;
+    Binops binop = null;
     if(bop.equals("&&")) {
       binop = Binops.AND;
     } else if(bop.equals("||")) {
       binop = Binops.OR;
     } else {
-      throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+      /* throw error */
     }
+
     ExprNode expr1 = (ExprNode)visit(ctx.expr(0));
     ExprNode expr2 = (ExprNode)visit(ctx.expr(1));
 
@@ -422,13 +409,24 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitAssign_lhs(Assign_lhsContext ctx) {
-    // TODO Auto-generated method stub
-    return super.visitAssign_lhs(ctx);
+    Node node = null;
+
+    if (ctx.IDENT() != null) {
+      String varName = ctx.IDENT().getText();
+      node = new IdentNode(currSymbolTable.lookupAll(varName).getType(currSymbolTable), varName);
+    } else if (ctx.array_elem() != null) {
+      node = visitArray_elem(ctx.array_elem());
+    } else if (ctx.pair_elem() != null) {
+      node = visitPair_elem(ctx.pair_elem());
+    } else {
+      /* throw error and exit program */
+    }
+
+    return node;
   }
 
   @Override
   public Node visitAssign_rhs(Assign_rhsContext ctx) {
-    // TODO Auto-generated method stub
     return super.visitAssign_rhs(ctx);
   }
 
@@ -459,7 +457,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitCmpExpr(CmpExprContext ctx) {
     String bop = ctx.bop.getText();
-    Binops binop;
+    Binops binop = null;
     switch(bop) {
       case ">":
         binop = Binops.GREATER;
@@ -474,7 +472,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         binop = Binops.LESS_EQUAL;
         break;
       default:
-        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+        /* throw an error */
     }
 
     ExprNode expr1 = (ExprNode)visit(ctx.expr(0));
@@ -492,21 +490,19 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new BinopNode(expr1, expr2, binop);
   }
 
-  /**
-   * return type: BinopNode */
   @Override
   public Node visitEqExpr(EqExprContext ctx) {
     String bop = ctx.bop.getText();
-    Binops binop;
+    Binops binop = null;
     switch(bop) {
-      case "=":
+      case "==":
         binop = Binops.EQUAL;
         break;
       case "!=":
         binop = Binops.UNEQUAL;
         break;
       default:
-        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+        /* throw an error */
     }
     ExprNode expr1 = (ExprNode) visit(ctx.expr(0));
     ExprNode expr2 = (ExprNode) visit(ctx.expr(1));
@@ -518,8 +514,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new BinopNode(expr1, expr2, binop);
   }
 
-  /**
-   * return type: ExprNode */
   @Override
   public Node visitIdExpr(IdExprContext ctx) {
     return currSymbolTable.lookupAll(ctx.IDENT().getText());
@@ -538,7 +532,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitMulDivExpr(MulDivExprContext ctx) {
     String bop = ctx.bop.getText();
-    Binops binop;
+    Binops binop = null;
     switch(bop) {
       case "*":
         binop = Binops.MUL;
@@ -550,7 +544,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         binop = Binops.MOD;
         break;
       default:
-        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+        /* throw error */
     }
     ExprNode expr1 = (ExprNode) visit(ctx.expr(0));
     ExprNode expr2 = (ExprNode) visit(ctx.expr(1));
@@ -583,29 +577,30 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     throw new IllegalArgumentException("invalid rule index in visit pair elem: " + ctx.getRuleIndex());
   }
 
-  /**
-   * return type: TypeDeclareNode */
   @Override
   public Node visitPair_elem_type(Pair_elem_typeContext ctx) {
-    switch (ctx.getRuleIndex()) {
-      case WACCParser.RULE_base_type:
-        return visitBase_type(ctx.base_type());
-      case WACCParser.RULE_array_type:
-        return visitArray_type(ctx.array_type());
-      case WACCParser.PAIR:
-        return new TypeDeclareNode(new PairType());
-      default:
-        throw new IllegalArgumentException("invalid rule index in visitpair_elem: " + ctx.getRuleIndex());
+    Node node = null;
+
+    if (ctx.base_type() != null) {
+      node = visitBase_type(ctx.base_type());
+    } else if (ctx.array_type() != null) {
+      node = visitArray_type(ctx.array_type());
+    } else if (ctx.PAIR() != null) {
+      node = new TypeDeclareNode(new PairType());
+    } else {
+      /* throw error and exit the program */
     }
+
+    return node;
   }
 
   /**
    * return type: TypeDeclareNode */
   @Override
   public Node visitPair_type(Pair_typeContext ctx) {
-    ExprNode leftChild = (ExprNode) visitPair_elem_type(ctx.pair_elem_type(0));
-    ExprNode rightChild = (ExprNode) visitPair_elem_type(ctx.pair_elem_type(1));
-    Type type = new PairType(leftChild.getType(currSymbolTable), rightChild.getType(currSymbolTable));
+    TypeDeclareNode leftChild = (TypeDeclareNode) visitPair_elem_type(ctx.pair_elem_type(0));
+    TypeDeclareNode rightChild = (TypeDeclareNode) visitPair_elem_type(ctx.pair_elem_type(1));
+    Type type = new PairType(leftChild.getType(), rightChild.getType());
     return new TypeDeclareNode(type);
   }
 
@@ -616,7 +611,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     // add an elem in current cymbol table scope
     // no node corrisponding to param, node should be explicitely traversed in function def visit
     TypeDeclareNode type = (TypeDeclareNode) visitType(ctx.type());
-    return new FuncParamNode(type.getType(), ctx.IDENT().getText());
+    return new IdentNode(type.getType(), ctx.IDENT().getText());
   }
 
   /**
@@ -668,16 +663,18 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * return type: TypeDeclareNode */
   @Override
   public Node visitType(TypeContext ctx) {
-    switch (ctx.getRuleIndex()) {
-      case WACCParser.RULE_base_type:
-        return visitBase_type(ctx.base_type());
-      case WACCParser.RULE_array_type:
-        return visitArray_type(ctx.array_type());
-      case WACCParser.RULE_pair_type:
-        return visitPair_type(ctx.pair_type());
-      default:
-        throw new IllegalArgumentException("invalid rule index in visitType: " + ctx.getRuleIndex());
+    Node node = null;
+    if (ctx.base_type() != null) {
+      node = visitBase_type(ctx.base_type());
+    } else if (ctx.array_type() != null) {
+      node = visitArray_type(ctx.array_type());
+    } else if (ctx.pair_type() != null) {
+      node = visitPair_type(ctx.pair_type());
+    } else {
+      /* should throw an error and exit the program here */
     }
+
+    return node;
   }
 
   /**
@@ -685,18 +682,21 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * */
   @Override
   public Node visitBase_type(Base_typeContext ctx) {
-    switch (ctx.getRuleIndex()) {
-      case WACCParser.INT:
-        return new TypeDeclareNode(INT_BASIC_TYPE);
-      case WACCParser.BOOL:
-        return new TypeDeclareNode(BOOL_BASIC_TYPE);
-      case WACCParser.CHAR:
-        return new TypeDeclareNode(CHAR_BASIC_TYPE);
-      case WACCParser.STRING:
-        return new TypeDeclareNode(STRING_BASIC_TYPE);
-      default:
-        throw new IllegalArgumentException("invalid rule index in visitBase_type: " + ctx.getRuleIndex());
+    TypeDeclareNode node = null;
+
+    if (ctx.INT() != null) {
+      node = new TypeDeclareNode(INT_BASIC_TYPE);
+    } else if (ctx.BOOL() != null) {
+      node = new TypeDeclareNode(BOOL_BASIC_TYPE);
+    } else if (ctx.CHAR() != null) {
+      node = new TypeDeclareNode(CHAR_BASIC_TYPE);
+    } else if (ctx.STRING() != null) {
+      node = new TypeDeclareNode(STRING_BASIC_TYPE);
+    } else {
+      /* should throw an error and exit the program here */
     }
+
+    return node;
   }
 
   /**
