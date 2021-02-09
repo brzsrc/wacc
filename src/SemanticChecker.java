@@ -117,7 +117,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitIfStat(IfStatContext ctx) {
     /* check that the condition of if statement is of type boolean */
     ExprNode condition = (ExprNode) visit(ctx.expr());
-    Type conditionType = condition.getType(currSymbolTable);
+    Type conditionType = condition.getType();
 
     if (!conditionType.equalToType(BOOL_BASIC_TYPE)) {
       errorHandler.typeMismatch(ctx.expr(), BOOL_BASIC_TYPE, conditionType);
@@ -144,7 +144,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitWhileStat(WhileStatContext ctx) {
     /* check that the condition of while statement is of type boolean */
     ExprNode condition = (ExprNode) visit(ctx.expr());
-    Type conditionType = condition.getType(currSymbolTable);
+    Type conditionType = condition.getType();
 
     if (!conditionType.equalToType(BOOL_BASIC_TYPE)) {
       errorHandler.typeMismatch(ctx.expr(), BOOL_BASIC_TYPE, conditionType);
@@ -178,7 +178,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     List<Type> allowedTypes = List.of(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE);
 
     ExprNode exprNode = (ExprNode) visitAssign_lhs(ctx.assign_lhs());
-    Type inputType = exprNode.getType(currSymbolTable);
+    Type inputType = exprNode.getType();
 
     /* check if the variable for the read input is of type string, int, or char */
     if (allowedTypes.stream().noneMatch(inputType::equalToType)) {
@@ -195,9 +195,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitPrintStat(PrintStatContext ctx) {
     ExprNode printContent = (ExprNode) visit(ctx.expr());
-    if (!printContent.getType(currSymbolTable).equalToType(STRING_BASIC_TYPE)) {
-      errorHandler.typeMismatch(ctx.expr(), STRING_BASIC_TYPE, printContent.getType(currSymbolTable));
-    }
+    /* no restriction on type to be printed, all type can be printed */
+
     StatNode node = new PrintNode(printContent);
     node.setScope(currSymbolTable);
 
@@ -207,9 +206,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitPrintlnStat(PrintlnStatContext ctx) {
     ExprNode printContent = (ExprNode) visit(ctx.expr());
-    if (!printContent.getType(currSymbolTable).equalToType(STRING_BASIC_TYPE)) {
-      errorHandler.typeMismatch(ctx.expr(), STRING_BASIC_TYPE, printContent.getType(currSymbolTable));
-    }
+    /* no restriction on type to be printed, all type can be printed */
+
     StatNode node = new PrintlnNode(printContent);
     node.setScope(currSymbolTable);
 
@@ -222,8 +220,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* check if the type of lhs and rhs are equal */
     ExprNode lhs = (ExprNode) visit(ctx.assign_lhs());
     ExprNode rhs = (ExprNode) visit(ctx.assign_rhs());
-    Type lhsType = lhs.getType(currSymbolTable);
-    Type rhsType = rhs.getType(currSymbolTable);
+    Type lhsType = lhs.getType();
+    Type rhsType = rhs.getType();
 
     if (!lhsType.equalToType(rhsType)) {
       errorHandler.typeMismatch(ctx.assign_rhs(), lhsType, rhsType);
@@ -241,7 +239,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     List<Type> allowedType = List.of(ARRAY_TYPE, PAIR_TYPE);
 
     ExprNode ref = (ExprNode) visit(ctx.expr());
-    Type refType = ref.getType(currSymbolTable);
+    Type refType = ref.getType();
     
     /* check if the reference has correct type(array or pair) */
     if (allowedType.stream().noneMatch(refType::equalToType)) {
@@ -265,7 +263,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode expr = (ExprNode) visitAssign_rhs(ctx.assign_rhs());
     String varName = ctx.IDENT().getText();
     Type varType = ((TypeDeclareNode) visitType(ctx.type())).getType();
-    Type exprType = expr.getType(currSymbolTable);
+    Type exprType = expr.getType();
 
     if (!varType.equalToType(exprType)) {
       errorHandler.typeMismatch(ctx.assign_rhs(), varName, varType, exprType);
@@ -287,7 +285,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitExitStat(ExitStatContext ctx) {
     ExprNode exitCode = (ExprNode) visit(ctx.expr());
-    Type exitCodeType = exitCode.getType(currSymbolTable);
+    Type exitCodeType = exitCode.getType();
 
     if (!exitCodeType.equalToType(INT_BASIC_TYPE)) {
       errorHandler.typeMismatch(ctx.expr(), INT_BASIC_TYPE, exitCodeType);
@@ -309,27 +307,27 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   /**
-   * return type: ArrayElemNode */
+   * return type: ArrayElemNode NullAble */
   @Override
   public Node visitArray_elem(Array_elemContext ctx) {
 
     String arrayIdent = ctx.IDENT().getText();
-    ExprNode result = currSymbolTable.lookupAll(arrayIdent);
+    ExprNode array_ = currSymbolTable.lookupAll(arrayIdent);
 
-    if (result == null) {
+    if (array_ == null) {
       errorHandler.symbolNotFound(ctx, arrayIdent);
+      return null;
     }
 
-    ArrayNode array = (ArrayNode) result;
-    
+    ArrayNode array = (ArrayNode) array_;
+
+    /* get depth of type */
     int indexDepth = ctx.expr().size();
-    int arrayMaxDepth = 1;
-    while (array.getElem(0).getType(currSymbolTable) instanceof ArrayType) {
-        arrayMaxDepth++;
-    }
+    int arrayMaxDepth = array.getDepth();
 
     if (arrayMaxDepth < indexDepth) {
       /* throw type error */
+      errorHandler.arrayDepthError(ctx, array.getType(), indexDepth);
     }
 
     List<ExprNode> indexList = new ArrayList<>();
@@ -337,8 +335,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     for (ExprContext index_ : ctx.expr()) {
       ExprNode index = (ExprNode) visit(index_);
       // check every expr can evaluate to integer
-      if (index.getType(currSymbolTable).equalToType(INT_BASIC_TYPE)) {
-        errorHandler.typeMismatch(index_, INT_BASIC_TYPE, index.getType(currSymbolTable));
+      if (!index.getType().equalToType(INT_BASIC_TYPE)) {
+        errorHandler.typeMismatch(index_, INT_BASIC_TYPE, index.getType());
       }
 
       indexList.add(index);
@@ -363,11 +361,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode expr1 = (ExprNode)visit(ctx.expr(0));
     ExprNode expr2 = (ExprNode)visit(ctx.expr(1));
 
-    if(!expr1.getType(currSymbolTable).equalToType(BOOL_BASIC_TYPE)) {
-      errorHandler.typeMismatch(ctx.expr(0), BOOL_BASIC_TYPE, expr1.getType(currSymbolTable));
+    if(!expr1.getType().equalToType(BOOL_BASIC_TYPE)) {
+      errorHandler.typeMismatch(ctx.expr(0), BOOL_BASIC_TYPE, expr1.getType());
     }
-    if(!expr2.getType(currSymbolTable).equalToType(BOOL_BASIC_TYPE)) {
-      errorHandler.typeMismatch(ctx.expr(1), BOOL_BASIC_TYPE, expr2.getType(currSymbolTable));
+    if(!expr2.getType().equalToType(BOOL_BASIC_TYPE)) {
+      errorHandler.typeMismatch(ctx.expr(1), BOOL_BASIC_TYPE, expr2.getType());
     }
     return new BinopNode(expr1, expr2, binop);
   }
@@ -382,12 +380,12 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       return new ArrayNode(null, new ArrayList<>(), length);
     }
     ExprNode firstExpr = (ExprNode) visit(ctx.expr(0));
-    Type firstContentType = firstExpr.getType(currSymbolTable);
+    Type firstContentType = firstExpr.getType();
     List<ExprNode> list = new ArrayList<>();
     for (ExprContext context : ctx.expr()) {
       ExprNode expr = (ExprNode) visit(context);
-      if (firstContentType.equalToType(expr.getType(currSymbolTable))) {
-        errorHandler.typeMismatch(context, firstContentType, expr.getType(currSymbolTable));
+      if (!firstContentType.equalToType(expr.getType())) {
+        errorHandler.typeMismatch(context, firstContentType, expr.getType());
       }
 
       list.add(expr);
@@ -400,8 +398,17 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * */
   @Override
   public Node visitArray_type(Array_typeContext ctx) {
-    ExprNode type = (ExprNode) visitChildren(ctx);
-    return new TypeDeclareNode(new ArrayType(type.getType(currSymbolTable)));
+    TypeDeclareNode type;
+    if (ctx.array_type() != null) {
+      type = (TypeDeclareNode) visitArray_type(ctx.array_type());
+    } else if (ctx.base_type() != null) {
+      type = (TypeDeclareNode) visitBase_type(ctx.base_type());
+    } else if (ctx.pair_type() != null) {
+      type = (TypeDeclareNode) visitPair_type(ctx.pair_type());
+    } else {
+      throw new IllegalArgumentException("type is not clear in visitArray_type");
+    }
+    return new TypeDeclareNode(new ArrayType(type.getType()));
   }
 
   @Override
@@ -416,7 +423,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         errorHandler.symbolNotFound(ctx, varName);
       }
 
-      node = new IdentNode(value.getType(currSymbolTable), varName);
+      node = new IdentNode(value.getType(), varName);
     } else if (ctx.array_elem() != null) {
       node = visitArray_elem(ctx.array_elem());
     } else if (ctx.pair_elem() != null) {
@@ -437,13 +444,22 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       ExprNode snd = (ExprNode) visit(ctx.expr(1));
       node = new PairNode(fst, snd);
     } else if (ctx.CALL() != null) {
-      /* remember to check param types */
       String funcName = ctx.IDENT().getText();
       FuncNode function = globalFuncTable.get(funcName);
       List<ExprNode> params = new ArrayList<>();
 
+      int exprIndex = 0;
       for (ExprContext e : ctx.arg_list().expr()) {
-        params.add((ExprNode) visit(e));
+        ExprNode param = (ExprNode) visit(e);
+        Type targetType = function.getParamList().get(exprIndex).getType();
+
+        /* check param types */
+        if (!param.getType().equalToType(targetType)) {
+          errorHandler.typeMismatch(ctx.expr(exprIndex), targetType, param.getType());
+        }
+        exprIndex++;
+
+        params.add(param);
       }
       
       currSymbolTable = new SymbolTable(currSymbolTable);
@@ -454,7 +470,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     } else if (ctx.pair_elem() != null) {
       node = visitPair_elem(ctx.pair_elem());
     } else {
-      /* throw error */
+      /* expression */
+      node = visit(ctx.expr(0));
     }
 
     return node;
@@ -503,18 +520,19 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         break;
       default:
         /* throw an error */
+        throw new IllegalArgumentException("illegal argument in visitCmpExpr" + bop);
     }
 
     ExprNode expr1 = (ExprNode)visit(ctx.expr(0));
     ExprNode expr2 = (ExprNode)visit(ctx.expr(1));
 
-    if (!expr1.getType(currSymbolTable).equalToType(expr2.getType(currSymbolTable))) {
-      errorHandler.typeMismatch(ctx.expr(1), expr1.getType(currSymbolTable), expr2.getType(currSymbolTable));
+    if (!expr1.getType().equalToType(expr2.getType())) {
+      errorHandler.typeMismatch(ctx.expr(1), expr1.getType(), expr2.getType());
     }
-    if (!expr1.getType(currSymbolTable).equalToType(INT_BASIC_TYPE)
-     && !expr1.getType(currSymbolTable).equalToType(CHAR_BASIC_TYPE)) {
-      errorHandler.typeMismatch(ctx.expr(0), INT_BASIC_TYPE, expr1.getType(currSymbolTable));
-      errorHandler.typeMismatch(ctx.expr(0), CHAR_BASIC_TYPE, expr1.getType(currSymbolTable));
+    if (!expr1.getType().equalToType(INT_BASIC_TYPE)
+     && !expr1.getType().equalToType(CHAR_BASIC_TYPE)) {
+      errorHandler.typeMismatch(ctx.expr(0), INT_BASIC_TYPE, expr1.getType());
+      errorHandler.typeMismatch(ctx.expr(0), CHAR_BASIC_TYPE, expr1.getType());
     }
 
     return new BinopNode(expr1, expr2, binop);
@@ -533,12 +551,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         break;
       default:
         /* throw an error */
+        throw new IllegalArgumentException("illegal argument in visitEqExpr" + bop);
     }
     ExprNode expr1 = (ExprNode) visit(ctx.expr(0));
     ExprNode expr2 = (ExprNode) visit(ctx.expr(1));
 
-    if (!expr1.getType(currSymbolTable).equalToType(expr2.getType(currSymbolTable))) {
-      errorHandler.typeMismatch(ctx.expr(1), expr1.getType(currSymbolTable), expr2.getType(currSymbolTable));
+    if (!expr1.getType().equalToType(expr2.getType())) {
+      errorHandler.typeMismatch(ctx.expr(1), expr1.getType(), expr2.getType());
     }
 
     return new BinopNode(expr1, expr2, binop);
@@ -580,15 +599,16 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         break;
       default:
         /* throw error */
+        throw new IllegalArgumentException("illegal argument in visitMulDivExpr" + bop);
     }
     ExprNode expr1 = (ExprNode) visit(ctx.expr(0));
     ExprNode expr2 = (ExprNode) visit(ctx.expr(1));
 
-    if (!expr1.getType(currSymbolTable).equalToType(INT_BASIC_TYPE)) {
-      errorHandler.typeMismatch(ctx.expr(0), INT_BASIC_TYPE, expr1.getType(currSymbolTable));
+    if (!expr1.getType().equalToType(INT_BASIC_TYPE)) {
+      errorHandler.typeMismatch(ctx.expr(0), INT_BASIC_TYPE, expr1.getType());
     }
-    if (!expr2.getType(currSymbolTable).equalToType(INT_BASIC_TYPE)) {
-      errorHandler.typeMismatch(ctx.expr(1), INT_BASIC_TYPE, expr2.getType(currSymbolTable));
+    if (!expr2.getType().equalToType(INT_BASIC_TYPE)) {
+      errorHandler.typeMismatch(ctx.expr(1), INT_BASIC_TYPE, expr2.getType());
     }
 
     return new BinopNode(expr1, expr2, binop);
@@ -599,34 +619,33 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitPair_elem(Pair_elemContext ctx) {
     ExprNode exprNode = (ExprNode) visit(ctx.expr());
-    if (!exprNode.getType(currSymbolTable).equalToType(PAIR_TYPE)) {
-      errorHandler.typeMismatch(ctx.expr(), PAIR_TYPE, exprNode.getType(currSymbolTable));
+    if (!exprNode.getType().equalToType(PAIR_TYPE)) {
+      errorHandler.typeMismatch(ctx.expr(), PAIR_TYPE, exprNode.getType());
     }
 
     PairNode pairNode = (PairNode) exprNode;
-    if (ctx.getRuleIndex() == WACCParser.FST) {
+    if (ctx.FST() != null) {
       return pairNode.getFst();
-    } else if (ctx.getRuleIndex() == WACCParser.SND) {
+    } else if (ctx.SND() != null) {
       return pairNode.getSnd();
     }
-    throw new IllegalArgumentException("invalid rule index in visit pair elem: " + ctx.getRuleIndex());
+    errorHandler.invalidRuleException(ctx, "visitPair_elem");
+    return null;
   }
 
   @Override
   public Node visitPair_elem_type(Pair_elem_typeContext ctx) {
-    Node node = null;
-
     if (ctx.base_type() != null) {
-      node = visitBase_type(ctx.base_type());
+      return visitBase_type(ctx.base_type());
     } else if (ctx.array_type() != null) {
-      node = visitArray_type(ctx.array_type());
+      return visitArray_type(ctx.array_type());
     } else if (ctx.PAIR() != null) {
-      node = new TypeDeclareNode(new PairType());
+      return new TypeDeclareNode(new PairType());
     } else {
       /* throw error and exit the program */
+      errorHandler.invalidRuleException(ctx, "visitPair_elem_type");
     }
-
-    return node;
+    return null;
   }
 
   /**
@@ -657,18 +676,18 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     Binops binop;
     switch(bop) {
       case "+":
-        binop = Binops.MUL;
+        binop = Binops.PLUS;
         break;
       case "-":
-        binop = Binops.DIV;
+        binop = Binops.MINUS;
         break;
       default:
         throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
     }
     ExprNode expr1 = (ExprNode) visit(ctx.expr(0));
     ExprNode expr2 = (ExprNode) visit(ctx.expr(1));
-    Type expr1Type = expr1.getType(currSymbolTable);
-    Type expr2Type = expr2.getType(currSymbolTable);
+    Type expr1Type = expr1.getType();
+    Type expr2Type = expr2.getType();
 
     if(!expr1Type.equalToType(INT_BASIC_TYPE)) {
       errorHandler.typeMismatch(ctx.expr(0), INT_BASIC_TYPE, expr1Type);
@@ -698,18 +717,17 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * return type: TypeDeclareNode */
   @Override
   public Node visitType(TypeContext ctx) {
-    Node node = null;
     if (ctx.base_type() != null) {
-      node = visitBase_type(ctx.base_type());
+      return visitBase_type(ctx.base_type());
     } else if (ctx.array_type() != null) {
-      node = visitArray_type(ctx.array_type());
+      return visitArray_type(ctx.array_type());
     } else if (ctx.pair_type() != null) {
-      node = visitPair_type(ctx.pair_type());
+      return visitPair_type(ctx.pair_type());
     } else {
       /* should throw an error and exit the program here */
+      errorHandler.invalidRuleException(ctx, "visitType");
     }
-
-    return node;
+    return null;
   }
 
   /**
@@ -717,25 +735,23 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * */
   @Override
   public Node visitBase_type(Base_typeContext ctx) {
-    TypeDeclareNode node = null;
 
     if (ctx.INT() != null) {
-      node = new TypeDeclareNode(INT_BASIC_TYPE);
+      return new TypeDeclareNode(INT_BASIC_TYPE);
     } else if (ctx.BOOL() != null) {
-      node = new TypeDeclareNode(BOOL_BASIC_TYPE);
+      return new TypeDeclareNode(BOOL_BASIC_TYPE);
     } else if (ctx.CHAR() != null) {
-      node = new TypeDeclareNode(CHAR_BASIC_TYPE);
+      return new TypeDeclareNode(CHAR_BASIC_TYPE);
     } else if (ctx.STRING() != null) {
-      node = new TypeDeclareNode(STRING_BASIC_TYPE);
+      return new TypeDeclareNode(STRING_BASIC_TYPE);
     } else {
       /* should throw an error and exit the program here */
+      errorHandler.invalidRuleException(ctx, "visitBase_type");
     }
-
-    return node;
+    return null;
   }
 
   /**
-   * todo: all equalToType should be used in if()
    * return type: UnopNode
    */
   @Override
@@ -743,31 +759,36 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     String uop = ctx.uop.getText();
     ExprNode expr = (ExprNode) visit(ctx.expr());
     Unop unop;
+    Type targetType;
     switch (uop) {
       case "-":
         unop = Unop.MINUS;
-        expr.getType(currSymbolTable).equalToType(INT_BASIC_TYPE);
+        targetType = INT_BASIC_TYPE;
         break;
       case "chr":
         unop = Unop.CHR;
-        expr.getType(currSymbolTable).equalToType(INT_BASIC_TYPE);
+        targetType = INT_BASIC_TYPE;
         break;
       case "!":
         unop = Unop.NOT;
-        expr.getType(currSymbolTable).equalToType(BOOL_BASIC_TYPE);
+        targetType = BOOL_BASIC_TYPE;
         break;
       case "len":
         unop = Unop.LEN;
-        expr.getType(currSymbolTable).equalToType(STRING_BASIC_TYPE);
+        targetType = ARRAY_TYPE;
         break;
       case "ord":
         unop = Unop.ORD;
-        expr.getType(currSymbolTable).equalToType(CHAR_BASIC_TYPE);
+        targetType = CHAR_BASIC_TYPE;
         break;
       default:
-        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + uop);
+        errorHandler.invalidRuleException(ctx, "visitUnopExpr");
+        return null;
     }
 
+    if (!expr.getType().equalToType(targetType)) {
+      errorHandler.typeMismatch(ctx.expr(), targetType, expr.getType());
+    }
     return new UnopNode(expr, unop);
   }
   

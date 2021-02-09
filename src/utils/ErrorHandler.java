@@ -2,6 +2,7 @@ package utils;
 
 import java.util.List;
 
+import antlr.WACCParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -49,6 +50,16 @@ public class ErrorHandler {
         errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
     }
 
+    public void invalidRuleException(ParserRuleContext ctx, String visitorName) {
+        String msg = "No matching rule for " + visitorName + ", bug in compiler";
+        errorHandler(ctx, 0, msg);
+    }
+
+    public void arrayDepthError(ParserRuleContext ctx, Type type, int indexDepth) {
+        String msg = "Array declared as " + type.toString() + ", but called with index depth " + indexDepth;
+        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+    }
+
     private void errorHandler(ParserRuleContext ctx, int code, String msg) {
         int lineNum = 0;
         int linePos = 0;
@@ -66,4 +77,6 @@ public class ErrorHandler {
         System.err.println("line " + lineNum + ":" + linePos + " : " + msg);
         System.exit(code);
     }
+
+
 }

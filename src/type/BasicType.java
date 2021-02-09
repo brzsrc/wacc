@@ -9,6 +9,9 @@ public class BasicType implements Type {
 
     @Override
     public boolean equalToType(Type other) {
+        if (other == null) {
+            return true;
+        }
         if (!(other instanceof BasicType)) {
             return false;
         }

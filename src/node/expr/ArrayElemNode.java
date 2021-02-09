@@ -16,16 +16,12 @@ public class ArrayElemNode extends ExprNode {
     this.array = array;
     this.index = new ArrayList<>();
     this.index.add(index);
+    this.type = ((ArrayType) array.type).getContentType();
   }
 
   public ArrayElemNode(ArrayNode array, List<ExprNode> index) {
     this.array = array;
     this.index = index;
-  }
-
-  @Override
-  public Type getType(SymbolTable symbolTable) {
-    return ((ArrayType) array.type).getContentType();
   }
 
   @Override
