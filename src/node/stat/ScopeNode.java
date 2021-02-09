@@ -20,6 +20,7 @@ public class ScopeNode extends StatNode {
   }
 
   private void mergeScope(StatNode s) {
+    // todo: instance of skip node does not add
     if (s instanceof ScopeNode) {
       body.addAll(((ScopeNode) s).body);
     } else {
@@ -28,13 +29,13 @@ public class ScopeNode extends StatNode {
   }
 
   @Override
-  public void setLeaveAtEnd() {
+  protected void setLeaveAtEnd() {
     assert body.size() > 0;
     leaveAtEnd = body.get(body.size()-1).leaveAtEnd();
   }
 
   @Override
-  public void setHasReturn() {
+  protected void setHasReturn() {
     for (StatNode node : body) {
       if (node.hasReturn()) {
         hasReturn = true;

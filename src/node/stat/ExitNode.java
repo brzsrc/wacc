@@ -1,6 +1,7 @@
 package node.stat;
 
 import node.expr.ExprNode;
+import type.Type;
 
 public class ExitNode extends StatNode {
 
@@ -12,7 +13,7 @@ public class ExitNode extends StatNode {
   }
 
   @Override
-  public void setLeaveAtEnd() {
+  protected void setLeaveAtEnd() {
     leaveAtEnd = true;
   }
 

@@ -1,6 +1,7 @@
 package node.stat;
 
 import node.expr.ExprNode;
+import type.Type;
 
 public class ReturnNode extends StatNode {
 
@@ -12,12 +13,12 @@ public class ReturnNode extends StatNode {
   }
 
   @Override
-  public void setHasReturn() {
+  protected void setHasReturn() {
     hasReturn = true;
   }
 
   @Override
-  public void setLeaveAtEnd() {
+  protected void setLeaveAtEnd() {
     leaveAtEnd = true;
   }
 

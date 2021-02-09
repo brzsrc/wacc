@@ -16,13 +16,13 @@ public class IfNode extends StatNode {
   }
 
   @Override
-  public void setLeaveAtEnd() {
+  protected void setLeaveAtEnd() {
     assert ifBody != null && elseBody != null;
     leaveAtEnd = ifBody.leaveAtEnd() && elseBody.leaveAtEnd();
   }
 
   @Override
-  public void setHasReturn() {
+  protected void setHasReturn() {
     assert ifBody != null && elseBody != null;
     hasReturn = ifBody.hasReturn() || elseBody.hasReturn();
   }

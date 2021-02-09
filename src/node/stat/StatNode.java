@@ -7,15 +7,15 @@ public abstract class StatNode implements Node {
 
   protected boolean leaveAtEnd;
   protected boolean hasReturn;
-  /* Statement scope, SeqNode and ScopeNode actually do not need */
-  private SymbolTable scope;
+  /* Statement scope, ScopeNode actually do not need */
+  protected SymbolTable scope;
 
-  /* Setters */
-  public void setLeaveAtEnd() {
+  /* Setters, protected to prevent misuse from outside*/
+  protected void setLeaveAtEnd() {
     this.leaveAtEnd = false;
   }
 
-  public void setHasReturn() {
+  protected void setHasReturn() {
     this.hasReturn = false;
   }
 
