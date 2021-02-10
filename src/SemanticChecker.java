@@ -64,6 +64,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
       /* get the return type of the function */
       Type returnType = ((TypeDeclareNode) visitType(f.type())).getType();
+      expectedFunctionReturn = returnType;
       /* store the parameters in a list of IdentNode */
       List<IdentNode> param_list = new ArrayList<>();
 
@@ -649,9 +650,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitPair_elem(Pair_elemContext ctx) {
     ExprNode exprNode = (ExprNode) visit(ctx.expr());
 
-    if (!exprNode.getType().equalToType(PAIR_TYPE)) {
-      errorHandler.typeMismatch(ctx.expr(), PAIR_TYPE, exprNode.getType());
+    if (exprNode.getType().equalToType(new PairType())) {
+      errorHandler.nullReferenceError(ctx.expr());
     }
+
+    // if (!exprNode.getType().equalToType(PAIR_TYPE)) {
+    //   errorHandler.typeMismatch(ctx.expr(), PAIR_TYPE, exprNode.getType());
+    // }
 
     boolean isFirst = false;
     Type pairType = exprNode.getType();
