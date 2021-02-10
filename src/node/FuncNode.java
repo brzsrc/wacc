@@ -12,6 +12,10 @@ public class FuncNode implements Node {
     private List<IdentNode> parameters;
     private StatNode functionBody;
 
+    public FuncNode(Type returnType, List<IdentNode> params) {
+        this(returnType, null, params);
+    }
+
     public FuncNode(Type returnType, StatNode functionBody, List<IdentNode> params) {
         this.returnType = returnType;
         this.functionBody = functionBody;
@@ -20,6 +24,10 @@ public class FuncNode implements Node {
 
     public StatNode getFunctionBody() {
         return functionBody;
+    }
+
+    public void setFunctionBody(StatNode functionBody) {
+        this.functionBody = functionBody;
     }
 
     public Type getReturnType() {

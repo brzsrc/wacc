@@ -54,26 +54,43 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitProgram(ProgramContext ctx) {
-    /* a list of functions declared at the beginning of the program */
-    List<FuncNode> functions = new ArrayList<>();
-    
-    /* iterate through a list of function declarations to build a list of FuncNode */
+    /* add the identifiers and parameter list of functions in the globalFuncTable */
     for (FuncContext f : ctx.func()) {
-      /* check function is not defined before */
       String funcName = f.IDENT().getText();
+
+      /* check function is not defined before */
       if (globalFuncTable.containsKey(funcName)) {
         errorHandler.symbolRedeclared(ctx, funcName);
       }
 
-      FuncNode funcNode = (FuncNode) visitFunc(f);
+      /* get the return type of the function */
+      Type returnType = ((TypeDeclareNode) visitType(f.type())).getType();
+      /* store the parameters in a list of IdentNode */
+      List<IdentNode> param_list = new ArrayList<>();
 
-      /* if the function declaration is not terminated with a return/exit statement, then throw the semantic error */
-      if (!funcNode.getFunctionBody().leaveAtEnd()) {
-        errorHandler.invalidFunctionReturnExit(ctx, funcName);
+      if (f.param_list() != null) {
+        for (ParamContext param : f.param_list().param()) {
+          Type param_type = ((TypeDeclareNode) visitType(param.type())).getType();
+          IdentNode paramNode = new IdentNode(param_type, param.IDENT().getText());
+          param_list.add(paramNode);
+        }
       }
 
-      functions.add(funcNode);
-      globalFuncTable.put(funcName, funcNode);
+      globalFuncTable.put(funcName, new FuncNode(returnType, param_list));
+    }
+    
+    /* then iterate through a list of function declarations to visit the function body */
+    for (FuncContext f : ctx.func()) {
+      String funcName = f.IDENT().getText();
+
+      StatNode functionBody = (StatNode) visitFunc(f);
+
+      /* if the function declaration is not terminated with a return/exit statement, then throw the semantic error */
+      if (!functionBody.leaveAtEnd()) {
+        errorHandler.invalidFunctionReturnExit(ctx, funcName);
+      }
+      
+      globalFuncTable.get(funcName).setFunctionBody(functionBody);
     }
 
     /* visit the body of the program and create the root SymbolTable here */
@@ -86,10 +103,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (body.hasReturn()) {
       errorHandler.returnFromMainError(ctx);
     }
+
     if (!(body instanceof ScopeNode)) {
-      return new ProgramNode(functions, new ScopeNode(body));
+      return new ProgramNode(globalFuncTable, new ScopeNode(body));
     }
-    return new ProgramNode(functions, body);
+    return new ProgramNode(globalFuncTable, body);
   }
 
   @Override
@@ -100,36 +118,18 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
      * FuncNode. It will not process the calling of the functions
      */
 
-    /* get the return type of the function */
-    Type returnType = ((TypeDeclareNode) visitType(ctx.type())).getType();
-    /* store the parameters in a list of IdentNode */
-    List<IdentNode> param_list = new ArrayList<>();
-
-    if (ctx.param_list() != null) {
-      for (ParamContext param : ctx.param_list().param()) {
-        Type param_type = ((TypeDeclareNode) visitType(param.type())).getType();
-        IdentNode paramNode = new IdentNode(param_type, param.IDENT().getText());
-        param_list.add(paramNode);
-      }
-    }
+    FuncNode funcNode = globalFuncTable.get(ctx.IDENT().getText());
 
     /* visit the function body */
-    expectedFunctionReturn = returnType;
     currSymbolTable = new SymbolTable(currSymbolTable);
-    param_list.stream().forEach(i -> {
+    funcNode.getParamList().stream().forEach(i -> {
       currSymbolTable.add(i.getName(), i);
     });
     StatNode functionBody = (StatNode) visit(ctx.stat());
     functionBody.setScope(currSymbolTable);
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
-    /* only allow one scope in function body, no one single scope node in a scope node
-     * if original program is itself declared as a new scope, unhandled */
-    if (!(functionBody instanceof ScopeNode)) {
-      return new FuncNode(returnType, new ScopeNode(functionBody), param_list);
-    }
-
-    return new FuncNode(returnType, functionBody, param_list);
+    return functionBody;
   }
 
   /******************************** StatNode Visitors *************************************/
