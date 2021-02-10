@@ -255,8 +255,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitAssignStat(AssignStatContext ctx) {
     
     /* check if the type of lhs and rhs are equal */
-    ExprNode lhs = (ExprNode) visit(ctx.assign_lhs());
-    ExprNode rhs = (ExprNode) visit(ctx.assign_rhs());
+    ExprNode lhs = (ExprNode) visitAssign_lhs(ctx.assign_lhs());
+    ExprNode rhs = (ExprNode) visitAssign_rhs(ctx.assign_rhs());
     Type lhsType = lhs.getType();
     Type rhsType = rhs.getType();
 
@@ -300,7 +300,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode expr = (ExprNode) visitAssign_rhs(ctx.assign_rhs());
     String varName = ctx.IDENT().getText();
     Type varType = ((TypeDeclareNode) visitType(ctx.type())).getType();
-    Type exprType = expr.getType();
+    Type exprType = ((ExprNode) expr).getType();
 
     if (!varType.equalToType(exprType)) {
       errorHandler.typeMismatch(ctx.assign_rhs(), varName, varType, exprType);
@@ -394,6 +394,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
       indexList.add(index);
     }
+
     return new ArrayElemNode(array, indexList);
   }
 
@@ -668,22 +669,18 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     }
 
     PairNode pairNode = (PairNode) exprNode;
-    Type child;
+    ExprNode result = null;
+
     if (ctx.FST() != null) {
-      child = ((PairType) pairNode.getType()).getFstType();
+      result = pairNode.getFst();
     } else if (ctx.SND() != null) {
-      child = ((PairType) pairNode.getType()).getSndType();
+      result = pairNode.getSnd();
     } else {
       errorHandler.invalidRuleException(ctx, "visitPair_elem");
       return null;
     }
 
-    /* if call FST or SND on uninitialised pair,
-     * child will be null, report error */
-    if (child == null) {
-      errorHandler.invalidPairError(ctx);
-    }
-    return new TypeDeclareNode(child);
+    return result;
   }
 
   @Override
@@ -825,7 +822,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         targetType = INT_BASIC_TYPE;
 
         /* explicitely call cast here, in order to cover INT_MIN */
-        IntExprContext intContext = ((IntExprContext) ctx.expr());
         Integer intVal = intParse(ctx.expr(), "-" + ctx.expr().getText());
         return new IntegerNode(intVal);
       case "chr":

@@ -16,16 +16,13 @@ public class ArrayElemNode extends ExprNode {
     this.array = array;
     this.index = new ArrayList<>();
     this.index.add(index);
-    this.type = ((ArrayType) array.type).getContentType();
+    this.type = ((ArrayType) array.getType()).getContentType();
   }
 
   public ArrayElemNode(ArrayNode array, List<ExprNode> index) {
     this.array = array;
     this.index = index;
+    this.type = ((ArrayType) array.getType()).getContentType();
   }
-
-  @Override
-  public void setType(Type type) {
-    throw new UnsupportedOperationException("shouldn't call setType on arrayElemNode, type determined by array it belongs to");
-  }
+  
 }
