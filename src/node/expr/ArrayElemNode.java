@@ -9,19 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ArrayElemNode extends ExprNode {
-  private ArrayNode array;
+  private ExprNode array;
   private List<ExprNode> index;
 
-  public ArrayElemNode(ArrayNode array, ExprNode index) {
+  public ArrayElemNode(ExprNode array, ExprNode index, Type type) {
     this.array = array;
     this.index = new ArrayList<>();
     this.index.add(index);
-    this.type = ((ArrayType) array.getType()).getContentType();
+    this.type = type;
   }
 
-  public ArrayElemNode(ArrayNode array, List<ExprNode> index) {
+  public ArrayElemNode(ExprNode array, List<ExprNode> index, Type type) {
     this.array = array;
     this.index = index;
-    this.type = ((ArrayType) array.getType()).getContentType();
+    this.type = type;
   }
 }

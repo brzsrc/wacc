@@ -1,4 +1,3 @@
-import antlr.WACCParser;
 import antlr.WACCParser.*;
 import antlr.WACCParserBaseVisitor;
 
@@ -13,18 +12,18 @@ import node.Node;
 import node.ProgramNode;
 import node.TypeDeclareNode;
 import node.expr.*;
+import node.stat.*;
 import node.expr.BinopNode.Binops;
 import node.expr.UnopNode.Unop;
-import node.stat.*;
+
 import type.*;
 import utils.ErrorHandler;
 import utils.SymbolTable;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
-  /* Type classes to represent BasicType, ArrayType, and PairType */
+  /* Type classes to represent BasicType, ArrayType, and PairType, used in type comparisons */
   private static Type INT_BASIC_TYPE = new BasicType(BasicTypeEnum.INTEGER);
   private static Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOLEAN);
   private static Type CHAR_BASIC_TYPE = new BasicType(BasicTypeEnum.CHAR);
@@ -38,7 +37,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* recording the current SymbolTable during parser tree visits */
   private SymbolTable currSymbolTable;
 
-  /* global function table */
+  /* global function table, used to record all functions */
   private Map<String, FuncNode> globalFuncTable;
 
   /* used after function declare step, to detect RETURN statement in main body */
@@ -122,9 +121,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     /* visit the function body */
     currSymbolTable = new SymbolTable(currSymbolTable);
-    funcNode.getParamList().stream().forEach(i -> {
-      currSymbolTable.add(i.getName(), i);
-    });
+    funcNode.getParamList().stream().forEach(i -> currSymbolTable.add(i.getName(), i));
     StatNode functionBody = (StatNode) visit(ctx.stat());
     functionBody.setScope(currSymbolTable);
     currSymbolTable = currSymbolTable.getParentSymbolTable();
@@ -405,7 +402,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       indexList.add(index);
     }
 
-    return new ArrayElemNode(array, indexList);
+    return new ArrayElemNode(array, indexList, ((ArrayType) array.getType()).getContentType());
   }
 
   /**
@@ -679,14 +676,22 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     }
 
     boolean isFirst = false;
+    Type pairType = exprNode.getType();
+    Type pairElemType = null;
+
+    if (!pairType.equalToType(PAIR_TYPE)) {
+      errorHandler.typeMismatch(ctx.expr(), PAIR_TYPE, pairType);
+    }
 
     if (ctx.FST() != null) {
       isFirst = true;
+      pairElemType = ((PairType) pairType).getFstType();
     } else if (ctx.SND() != null) {
       isFirst = false;
+      pairElemType = ((PairType) pairType).getSndType();
     }
 
-    return new PairElemNode(exprNode, isFirst, exprNode.getType());
+    return new PairElemNode(exprNode, isFirst, pairElemType);
   }
 
   @Override
