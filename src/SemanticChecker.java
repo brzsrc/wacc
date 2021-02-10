@@ -369,25 +369,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitArray_elem(Array_elemContext ctx) {
 
     String arrayIdent = ctx.IDENT().getText();
-    ExprNode array_ = currSymbolTable.lookupAll(arrayIdent);
+    ExprNode array = currSymbolTable.lookupAll(arrayIdent);
 
-    if (array_ == null) {
+    if (array == null) {
       errorHandler.symbolNotFound(ctx, arrayIdent);
       return null;
-    } else if (!array_.getType().equalToType(ARRAY_TYPE)) {
-      errorHandler.typeMismatch(ctx, ARRAY_TYPE, array_.getType());
-    }
-
-    ArrayNode array = (ArrayNode) array_;
-
-    /* get depth of type */
-    int indexDepth = ctx.expr().size();
-    int arrayMaxDepth = array.getDepth();
-
-    if (arrayMaxDepth < indexDepth) {
-      /* throw type error */
-      errorHandler.arrayDepthError(ctx, array.getType(), indexDepth);
-      return null;
+    } else if (!array.getType().equalToType(ARRAY_TYPE)) {
+      errorHandler.typeMismatch(ctx, ARRAY_TYPE, array.getType());
     }
 
     List<ExprNode> indexList = new ArrayList<>();
@@ -655,16 +643,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new IntegerNode(intParse(ctx, ctx.INT_LITER().getText()));
   }
 
-  private Integer intParse(ParserRuleContext ctx, String intExt) {
-    int integer = 0;
-    try {
-      integer = Integer.parseInt(intExt);
-    } catch (NumberFormatException e) {
-      errorHandler.integerRangeError(ctx, intExt);
-    }
-    return integer;
-  }
-
   /**
    * return type: ExprNode */
   @Override
@@ -833,8 +811,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         targetType = INT_BASIC_TYPE;
 
         /* explicitely call cast here, in order to cover INT_MIN */
-        Integer intVal = intParse(ctx.expr(), "-" + ctx.expr().getText());
-        return new IntegerNode(intVal);
+        String exprText = ctx.expr().getText();
+        if (isDigit(exprText)) {
+          /* explicitely call cast here, in order to cover INT_MIN */
+          Integer intVal = intParse(ctx.expr(), "-" + ctx.expr().getText());
+          return new IntegerNode(intVal);
+        }
+        break;
       case "chr":
         unop = Unop.CHR;
         targetType = INT_BASIC_TYPE;
@@ -862,6 +845,20 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       return null;
     }
     return new UnopNode(expr, unop);
+  }
+
+  private Integer intParse(ParserRuleContext ctx, String intExt) {
+    int integer = 0;
+    try {
+      integer = Integer.parseInt(intExt);
+    } catch (NumberFormatException e) {
+      errorHandler.integerRangeError(ctx, intExt);
+    }
+    return integer;
+  }
+
+  private boolean isDigit(String s) {
+    return s.matches("[0-9]+");
   }
   
 }
