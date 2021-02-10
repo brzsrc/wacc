@@ -42,13 +42,6 @@ test-semantics-check-syntax-valid:
     - make
     - ./scripts/semanticCheckerValid
 
-test-semantics-check-syntax-err:
-  stage: test
-  script:
-    - echo "Using invalid examples with only syntax error to test SemanticChecker, SHOULD generate any proper syntax/semantics error"
-    - make
-    - ./scripts/semanticCheckerSynErr
-
 test-semantics-check-semantic-err:
   stage: test
   script:

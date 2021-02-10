@@ -80,6 +80,11 @@ public class ErrorHandler {
         errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
     }
 
+    public void nullReferenceError(ParserRuleContext ctx) {
+        String msg = "Null reference error when using pair";
+        errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
+    }
+
     // todo: only internal error should terminate compiling, other error should continue and parse the rest stat
     private void errorHandler(ParserRuleContext ctx, int code, String msg) {
         int lineNum = 0;
