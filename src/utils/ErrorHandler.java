@@ -12,8 +12,6 @@ public class ErrorHandler {
 
     public static final int SYNTAX_ERROR_CODE = 100;
     public static final int SEMANTIC_ERROR_CODE = 200;
-    public static final int INTEGER_MAX_VALUE = (int) Math.pow(2,31) - 1;
-    public static final int INTEGER_MIN_VALUE = -(int) Math.pow(2,31);
 
     public void typeMismatch(ParserRuleContext ctx, Type expected, Type actual) {
         String msg = "Expected type " + expected.toString() + ", but the actual type is " + actual.toString();
@@ -98,6 +96,7 @@ public class ErrorHandler {
             linePos = ((ParserRuleContext) ctx).getStart().getCharPositionInLine();
         } else {
             /* internal error */
+            throw new IllegalArgumentException("internal error in errorHandler");
         }
 
         System.err.println("line " + lineNum + ":" + linePos + " : " + msg);

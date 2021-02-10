@@ -64,7 +64,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
       /* get the return type of the function */
       Type returnType = ((TypeDeclareNode) visitType(f.type())).getType();
-      expectedFunctionReturn = returnType;
       /* store the parameters in a list of IdentNode */
       List<IdentNode> param_list = new ArrayList<>();
 
@@ -89,7 +88,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       if (!functionBody.leaveAtEnd()) {
         errorHandler.invalidFunctionReturnExit(ctx, funcName);
       }
-      
+
       globalFuncTable.get(funcName).setFunctionBody(functionBody);
     }
 
@@ -121,6 +120,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     FuncNode funcNode = globalFuncTable.get(ctx.IDENT().getText());
 
     /* visit the function body */
+    expectedFunctionReturn = funcNode.getReturnType();
     currSymbolTable = new SymbolTable(currSymbolTable);
     funcNode.getParamList().stream().forEach(i -> currSymbolTable.add(i.getName(), i));
     StatNode functionBody = (StatNode) visit(ctx.stat());
@@ -307,7 +307,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     Type varType = ((TypeDeclareNode) visitType(ctx.type())).getType();
 
     if (expr != null) {
-      Type exprType = ((ExprNode) expr).getType();
+      Type exprType = expr.getType();
 
       if (!varType.equalToType(exprType)) {
         errorHandler.typeMismatch(ctx.assign_rhs(), varName, varType, exprType);
@@ -670,8 +670,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       isFirst = true;
       pairElemType = ((PairType) pairType).getFstType();
     } else if (ctx.SND() != null) {
-      isFirst = false;
       pairElemType = ((PairType) pairType).getSndType();
+    } else {
+      throw new IllegalArgumentException("bost FST and SND are null in visitPair_elem");
+    }
+
+    if (pairElemType == null) {
+      errorHandler.invalidPairError(ctx.expr());
     }
 
     return new PairElemNode(exprNode, isFirst, pairElemType);

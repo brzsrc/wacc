@@ -2,10 +2,10 @@ package utils;
 
 import org.antlr.v4.runtime.*;
 
+import static utils.ErrorHandler.SYNTAX_ERROR_CODE;
+
 public class ParserErrorHandler extends DefaultErrorStrategy {
 
-    public static final int SYNTAX_ERROR_CODE = 100;
-    
     @Override
     public void recover(Parser recognizer, RecognitionException e) {
         System.exit(SYNTAX_ERROR_CODE);
