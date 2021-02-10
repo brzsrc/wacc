@@ -9,16 +9,17 @@ OUTPUT_DIR	:= bin
 
 ANTLR	:= antlrBuild
 FIND	:= find
-RM	:= rm -rf
+RM	    := rm -rf
 MKDIR	:= mkdir -p
 JAVA	:= java
 JAVAC	:= javac
 
-JFLAGS	:= -sourcepath $(SOURCE_DIR) -d $(OUTPUT_DIR) -cp lib/antlr-4.9.1-complete.jar 
+JFLAGS	:= -sourcepath $(SOURCE_DIR) -d $(OUTPUT_DIR) -cp lib/antlr-4.9.1-complete.jar
+ENTRY_FILE := $(SOURCE_DIR)/Compiler.java
 
 # the make rules
 
-all: rules
+all: rules compiler
 
 # runs the antlr build script then attempts to compile all .java files within src
 rules:
@@ -27,6 +28,9 @@ rules:
 	$(MKDIR) $(OUTPUT_DIR)
 	$(JAVAC) $(JFLAGS) @$@
 	$(RM) rules
+
+compiler:
+	$(JAVAC) $(JFLAGS) $(ENTRY_FILE)
 
 clean:
 	$(RM) rules $(OUTPUT_DIR) $(SOURCE_DIR)/antlr
