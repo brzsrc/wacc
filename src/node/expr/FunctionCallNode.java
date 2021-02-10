@@ -16,10 +16,7 @@ public class FunctionCallNode extends ExprNode {
     this.function = function;
     this.params = params;
     this.funcSymbolTable = new SymbolTable(currScope);
+    this.type = function.getReturnType();
   }
 
-  @Override
-  public Type getType(SymbolTable symbolTable) {
-    return function.getReturnType();
-  }
 }

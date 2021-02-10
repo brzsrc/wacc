@@ -12,9 +12,8 @@ public class IdentNode extends ExprNode {
         this.name = name;
     }
 
-    @Override
-    public Type getType(SymbolTable symbolTable) {
-        return symbolTable.lookupAll(name).type;
+    public String getName() {
+        return name;
     }
     
 }

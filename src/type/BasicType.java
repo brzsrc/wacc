@@ -9,14 +9,22 @@ public class BasicType implements Type {
 
     @Override
     public boolean equalToType(Type other) {
+        if (other == null) {
+            return true;
+        }
         if (!(other instanceof BasicType)) {
             return false;
         }
 
-        return basicTypeEnum == ((BasicType) other).getTypeEnum();
+        return basicTypeEnum.equals(((BasicType) other).getTypeEnum());
     }
 
     public BasicTypeEnum getTypeEnum() {
         return basicTypeEnum;
+    }
+
+    @Override
+    public String toString() {
+        return basicTypeEnum.toString();
     }
 }

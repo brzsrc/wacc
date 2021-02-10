@@ -72,8 +72,8 @@ expr : INT_LITER      #IntExpr
      | IDENT          #IdExpr
      | array_elem     #ArrayExpr
      | uop=( '-' | '!' | 'len' | 'ord' | 'chr' ) expr #UnopExpr
-     | expr bop=( '*' | '/' | '%' ) expr              #MulDivExpr
-     | expr bop=( '+' | '-' ) expr                    #PlusMinExpr
+     | expr bop=( '*' | '/' | '%' ) expr              #ArithmeticExpr
+     | expr bop=( '+' | '-' ) expr                    #ArithmeticExpr
      | expr bop=( '>' | '>=' | '<' | '<=' ) expr      #CmpExpr
      | expr bop=( '==' | '!=' ) expr                  #EqExpr
      | expr bop=( '&&' | '||' ) expr                  #AndOrExpr

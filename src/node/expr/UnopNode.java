@@ -19,21 +19,21 @@ public class UnopNode extends ExprNode {
     public UnopNode(ExprNode expr, Unop operator) {
         this.expr = expr;
         this.operator = operator;
-    }
-
-    @Override
-    public Type getType(SymbolTable symbolTable) {
         switch (operator) {
             case NOT:
-                return new BasicType(BasicTypeEnum.BOOLEAN);
+                type = new BasicType(BasicTypeEnum.BOOLEAN);
+                break;
             case LEN:
             case MINUS:
             case ORD:
-                return new BasicType(BasicTypeEnum.INTEGER);
+                type = new BasicType(BasicTypeEnum.INTEGER);
+                break;
             case CHR:
-                return new BasicType(BasicTypeEnum.CHAR);
+                type = new BasicType(BasicTypeEnum.CHAR);
+                break;
             default:
                 throw new IllegalArgumentException("operator field in Unop class not setup properly, with emun value: " + operator);
         }
     }
+
 }

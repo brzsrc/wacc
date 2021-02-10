@@ -21,18 +21,16 @@ public class BinopNode extends ExprNode {
         this.expr1 = expr1;
         this.expr2 = expr2;
         this.operator = operator;
-    }
-
-    @Override
-    public Type getType(SymbolTable symbolTable) {
         switch (operator) {
             case PLUS:
             case MINUS:
             case DIV:
             case MUL:
-                return new BasicType(BasicTypeEnum.INTEGER);
+            case MOD:
+                type = new BasicType(BasicTypeEnum.INTEGER);
+                break;
             default:
-                return new BasicType(BasicTypeEnum.BOOLEAN);
+                type = new BasicType(BasicTypeEnum.BOOLEAN);
         }
     }
 

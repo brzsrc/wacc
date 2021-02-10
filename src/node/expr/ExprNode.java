@@ -7,7 +7,7 @@ import utils.SymbolTable;
 public abstract class ExprNode implements Node {
     protected Type type;
 
-    public Type getType(SymbolTable symbolTable) {
+    public Type getType() {
         return this.type;
     }
 

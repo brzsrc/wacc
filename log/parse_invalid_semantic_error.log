@@ -10,6 +10,7 @@
 ./src/test/examples/invalid/semanticErr/if/ifIntCondition.wacc
 ./src/test/examples/invalid/semanticErr/IO/readTypeErr.wacc
 ./src/test/examples/invalid/semanticErr/scope/badScopeRedefine.wacc
+./src/test/examples/invalid/semanticErr/function/functionJunkAfterReturn.wacc
 ./src/test/examples/invalid/semanticErr/function/functionOverArgs.wacc
 ./src/test/examples/invalid/semanticErr/function/funcVarAccess.wacc
 ./src/test/examples/invalid/semanticErr/function/functionAssign.wacc
@@ -34,6 +35,7 @@
 ./src/test/examples/invalid/semanticErr/variables/undeclaredVarAccess.wacc
 ./src/test/examples/invalid/semanticErr/variables/basicTypeErr01.wacc
 ./src/test/examples/invalid/semanticErr/variables/basicTypeErr06.wacc
+./src/test/examples/invalid/semanticErr/variables/bigIntAssignment.wacc
 ./src/test/examples/invalid/semanticErr/variables/basicTypeErr10.wacc
 ./src/test/examples/invalid/semanticErr/variables/caseMatters.wacc
 ./src/test/examples/invalid/semanticErr/variables/basicTypeErr11.wacc

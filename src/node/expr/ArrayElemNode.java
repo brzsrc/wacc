@@ -9,28 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ArrayElemNode extends ExprNode {
-  private ArrayNode array;
+  private ExprNode array;
   private List<ExprNode> index;
 
-  public ArrayElemNode(ArrayNode array, ExprNode index) {
+  public ArrayElemNode(ExprNode array, ExprNode index, Type type) {
     this.array = array;
     this.index = new ArrayList<>();
     this.index.add(index);
+    this.type = type;
   }
 
-  public ArrayElemNode(ArrayNode array, List<ExprNode> index) {
+  public ArrayElemNode(ExprNode array, List<ExprNode> index, Type type) {
     this.array = array;
     this.index = index;
-  }
-
-  @Override
-  public Type getType(SymbolTable symbolTable) {
-    // todo: support list index
-    return ((ArrayType) array.type).getContentType();
-  }
-
-  @Override
-  public void setType(Type type) {
-    throw new UnsupportedOperationException("shouldn't call setType on arrayElemNode, type determined by array it belongs to");
+    this.type = type;
   }
 }

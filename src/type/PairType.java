@@ -10,6 +10,10 @@ public class PairType implements Type {
         this.sndType = sndType;
     }
 
+    public PairType() {
+        this(null, null);
+    }
+
     public Type getFstType() {
         return fstType;
     }
@@ -28,6 +32,9 @@ public class PairType implements Type {
 
     @Override
     public boolean equalToType(Type other) {
+        if (other == null) {
+            return true;
+        }
         if (!(other instanceof PairType)) {
             return false;
         }
@@ -35,12 +42,11 @@ public class PairType implements Type {
         PairType otherPair = (PairType) other;
 
         return subTypeCompact(fstType, otherPair.fstType)
-                && subTypeCompact(sndType, otherPair.sndType)
-                ;
+                && subTypeCompact(sndType, otherPair.sndType);
     }
 
     private boolean subTypeCompact(Type type1, Type type2) {
-        if (type1 == null) {
+        if (type1 == null || type2 == null) {
             // type1 is null indicate current type is Pair, a branch of Pair(Pair, _)
             // this happens when calling fst x = ...
             // allow any type, since this cause a cast.
@@ -53,7 +59,11 @@ public class PairType implements Type {
 
         // base/array type check
         return type1.equalToType(type2);
+    }
 
+    @Override
+    public String toString() {
+        return "Pair<" + fstType + ", " + sndType +">";
     }
     
 }
