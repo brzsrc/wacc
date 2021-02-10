@@ -50,6 +50,11 @@ public class ErrorHandler {
         errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
     }
 
+    public void functionJunkAfterReturn(WACCParser.SeqStatContext ctx) {
+        String msg = "Function Junk exists.";
+        errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
+    }
+
     public void invalidRuleException(ParserRuleContext ctx, String visitorName) {
         String msg = "No matching rule for " + visitorName + ", bug in compiler";
         errorHandler(ctx, 0, msg);
@@ -68,6 +73,11 @@ public class ErrorHandler {
     public void invalidPairError(ParserRuleContext ctx) {
         String msg = "Calling fst/snd on uninitialised pair expr is not allowed";
         errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+    }
+
+    public void integerRangeError(ParserRuleContext ctx, String intText) {
+        String msg = "Integer " + intText + " format not compatible with 32bit int";
+        errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
     }
 
     // todo: only internal error should terminate compiling, other error should continue and parse the rest stat

@@ -18,6 +18,8 @@ import node.stat.*;
 import type.*;
 import utils.ErrorHandler;
 import utils.SymbolTable;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
@@ -56,8 +58,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     
     /* iterate through a list of function declarations to build a list of FuncNode */
     for (FuncContext f : ctx.func()) {
-      FuncNode funcNode = (FuncNode) visitFunc(f);
+      /* check function is not defined before */
       String funcName = f.IDENT().getText();
+      if (globalFuncTable.containsKey(funcName)) {
+        errorHandler.symbolRedeclared(ctx, funcName);
+      }
+
+      FuncNode funcNode = (FuncNode) visitFunc(f);
 
       /* if the function declaration is not terminated with a return/exit statement, then throw the semantic error */
       if (!funcNode.getFunctionBody().leaveAtEnd()) {
@@ -97,10 +104,12 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* store the parameters in a list of IdentNode */
     List<IdentNode> param_list = new ArrayList<>();
 
-    for (ParamContext param : ctx.param_list().param()) {
-      Type param_type = ((TypeDeclareNode) visitType(param.type())).getType();
-      IdentNode paramNode = new IdentNode(param_type, param.IDENT().getText());
-      param_list.add(paramNode);
+    if (ctx.param_list() != null) {
+      for (ParamContext param : ctx.param_list().param()) {
+        Type param_type = ((TypeDeclareNode) visitType(param.type())).getType();
+        IdentNode paramNode = new IdentNode(param_type, param.IDENT().getText());
+        param_list.add(paramNode);
+      }
     }
 
     /* visit the function body */
@@ -122,21 +131,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new FuncNode(returnType, functionBody, param_list);
   }
 
-//  private boolean checkTerminateType(FuncContext ctx, StatNode lastNode, Type returnType) {
-//    if (lastNode instanceof ScopeNode) {
-//      List<StatNode> body = ((ScopeNode) lastNode).getBody();
-//      checkTerminateType(ctx, body.get(body.size() - 1), returnType);
-//    } else if (lastNode instanceof IfNode) {
-//      IfNode node = (IfNode) lastNode;
-//      checkTerminateType(ctx, node.getIfBody(), returnType);
-//      checkTerminateType(ctx, node.getElseBody(), returnType);
-//    } else if (lastNode instanceof ReturnNode) {
-//      if (returnType.equalToType(((ReturnNode) lastNode).getReturnType())) {
-//        errorHandler.typeMismatch(ctx.);
-//      }
-//    }
-//  }
-
   /******************************** StatNode Visitors *************************************/
   /** all following function's return type are statNode */
 
@@ -144,9 +138,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitSeqStat(SeqStatContext ctx) {
     StatNode before = (StatNode) visit(ctx.stat(0));
     StatNode after = (StatNode) visit(ctx.stat(1));
+    if (!isMainFunction && before.leaveAtEnd()) {
+      errorHandler.functionJunkAfterReturn(ctx);
+    }
+
+    StatNode node = new ScopeNode(before, after);
 
     /* ensure all statNode has scope not null */
-    StatNode node = new ScopeNode(before, after);
     node.setScope(currSymbolTable);
     return node;
   }
@@ -308,6 +306,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       errorHandler.typeMismatch(ctx.assign_rhs(), varName, varType, exprType);
     }
 
+    /* first exprNode is responsible for recording type */
+    expr.setType(varType);
+
     StatNode node = new DeclareNode(varName, expr);
     node.setScope(currSymbolTable);
 
@@ -366,6 +367,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (array_ == null) {
       errorHandler.symbolNotFound(ctx, arrayIdent);
       return null;
+    } else if (!array_.getType().equalToType(ARRAY_TYPE)) {
+      errorHandler.typeMismatch(ctx, ARRAY_TYPE, array_.getType());
     }
 
     ArrayNode array = (ArrayNode) array_;
@@ -377,6 +380,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (arrayMaxDepth < indexDepth) {
       /* throw type error */
       errorHandler.arrayDepthError(ctx, array.getType(), indexDepth);
+      return null;
     }
 
     List<ExprNode> indexList = new ArrayList<>();
@@ -497,18 +501,32 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       FuncNode function = globalFuncTable.get(funcName);
       List<ExprNode> params = new ArrayList<>();
 
-      int exprIndex = 0;
-      for (ExprContext e : ctx.arg_list().expr()) {
-        ExprNode param = (ExprNode) visit(e);
-        Type targetType = function.getParamList().get(exprIndex).getType();
-
-        /* check param types */
-        if (!param.getType().equalToType(targetType)) {
-          errorHandler.typeMismatch(ctx.expr(exprIndex), targetType, param.getType());
+      /* check whether function has same number of parameter */
+      int expectedParamNum = function.getParamList().size();
+      if (expectedParamNum != 0) {
+        if (ctx.arg_list() == null) {
+          errorHandler.invalidFuncArgCount(ctx, expectedParamNum, 0);
+          return null;
+        } else if (expectedParamNum != ctx.arg_list().expr().size()) {
+          errorHandler.invalidFuncArgCount(ctx, expectedParamNum, ctx.arg_list().expr().size());
+          return null;
         }
-        exprIndex++;
 
-        params.add(param);
+        /* given argument number is not 0, generate list */
+        int exprIndex = 0;
+        for (ExprContext e : ctx.arg_list().expr()) {
+          ExprNode param = (ExprNode) visit(e);
+
+          Type targetType = function.getParamList().get(exprIndex).getType();
+
+          /* check param types */
+          if (!param.getType().equalToType(targetType)) {
+            errorHandler.typeMismatch(ctx.expr(exprIndex), targetType, param.getType());
+          }
+          exprIndex++;
+
+          params.add(param);
+        }
       }
       
       currSymbolTable = new SymbolTable(currSymbolTable);
@@ -627,8 +645,17 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * return type: IntegerNode */
   @Override
   public Node visitIntExpr(IntExprContext ctx) {
-    int integer = Integer.parseInt(ctx.INT_LITER().getText());
-    return new IntegerNode(integer);
+    return new IntegerNode(intParse(ctx, ctx.INT_LITER().getText()));
+  }
+
+  private Integer intParse(ParserRuleContext ctx, String intExt) {
+    int integer = 0;
+    try {
+      integer = Integer.parseInt(intExt);
+    } catch (NumberFormatException e) {
+      errorHandler.integerRangeError(ctx, intExt);
+    }
+    return integer;
   }
 
   /**
@@ -641,11 +668,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     }
 
     PairNode pairNode = (PairNode) exprNode;
-    ExprNode child;
+    Type child;
     if (ctx.FST() != null) {
-      child = pairNode.getFst();
+      child = ((PairType) pairNode.getType()).getFstType();
     } else if (ctx.SND() != null) {
-      child = pairNode.getSnd();
+      child = ((PairType) pairNode.getType()).getSndType();
     } else {
       errorHandler.invalidRuleException(ctx, "visitPair_elem");
       return null;
@@ -656,7 +683,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (child == null) {
       errorHandler.invalidPairError(ctx);
     }
-    return child;
+    return new TypeDeclareNode(child);
   }
 
   @Override
@@ -715,7 +742,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         binop = Binops.MOD;
         break;
       default:
-        throw new IllegalArgumentException("invalid unary operator in visitUnopExpr: " + bop);
+        throw new IllegalArgumentException("invalid unary operator in visitBinopExpr: " + bop);
     }
     ExprNode expr1 = (ExprNode) visit(ctx.expr(0));
     ExprNode expr2 = (ExprNode) visit(ctx.expr(1));
@@ -790,14 +817,17 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitUnopExpr(UnopExprContext ctx) {
     String uop = ctx.uop.getText();
-    ExprNode expr = (ExprNode) visit(ctx.expr());
     Unop unop;
     Type targetType;
     switch (uop) {
       case "-":
         unop = Unop.MINUS;
         targetType = INT_BASIC_TYPE;
-        break;
+
+        /* explicitely call cast here, in order to cover INT_MIN */
+        IntExprContext intContext = ((IntExprContext) ctx.expr());
+        Integer intVal = intParse(ctx.expr(), "-" + ctx.expr().getText());
+        return new IntegerNode(intVal);
       case "chr":
         unop = Unop.CHR;
         targetType = INT_BASIC_TYPE;
@@ -819,6 +849,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         return null;
     }
 
+    ExprNode expr = (ExprNode) visit(ctx.expr());
     if (!expr.getType().equalToType(targetType)) {
       errorHandler.typeMismatch(ctx.expr(), targetType, expr.getType());
       return null;
