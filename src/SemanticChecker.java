@@ -518,7 +518,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
           /* check param types */
           if (!param.getType().equalToType(targetType)) {
-            errorHandler.typeMismatch(ctx.expr(exprIndex), targetType, param.getType());
+            errorHandler.typeMismatch(ctx.arg_list().expr(exprIndex), targetType, param.getType());
           }
           exprIndex++;
 

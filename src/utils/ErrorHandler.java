@@ -88,6 +88,11 @@ public class ErrorHandler {
         int lineNum = 0;
         int linePos = 0;
 
+        if (ctx == null) {
+            System.err.println(msg);
+            System.exit(code);
+        }
+
         if (ctx instanceof TerminalNode) {
             lineNum = ((TerminalNode) ctx).getSymbol().getLine();
             linePos = ((TerminalNode) ctx).getSymbol().getCharPositionInLine();
