@@ -3,6 +3,7 @@ import antlr.WACCParser.*;
 import antlr.WACCParserBaseVisitor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -212,14 +213,17 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitReadStat(ReadStatContext ctx) {
     /* a list of allowed types in Read statement */
-    List<Type> allowedTypes = List.of(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE);
+    List<Type> allowedTypes = new ArrayList<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
 
     ExprNode exprNode = (ExprNode) visitAssign_lhs(ctx.assign_lhs());
-    Type inputType = exprNode.getType();
+      if (exprNode != null) {
 
-    /* check if the variable for the read input is of type string, int, or char */
-    if (allowedTypes.stream().noneMatch(inputType::equalToType)) {
-      errorHandler.typeMismatch(ctx.assign_lhs(), allowedTypes, inputType);
+      Type inputType = exprNode.getType();
+
+      /* check if the variable for the read input is of type string, int, or char */
+      if (allowedTypes.stream().noneMatch(inputType::equalToType)) {
+        errorHandler.typeMismatch(ctx.assign_lhs(), allowedTypes, inputType);
+      }
     }
 
     ReadNode readNode = new ReadNode(exprNode);
@@ -257,11 +261,14 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* check if the type of lhs and rhs are equal */
     ExprNode lhs = (ExprNode) visitAssign_lhs(ctx.assign_lhs());
     ExprNode rhs = (ExprNode) visitAssign_rhs(ctx.assign_rhs());
-    Type lhsType = lhs.getType();
-    Type rhsType = rhs.getType();
 
-    if (!lhsType.equalToType(rhsType)) {
-      errorHandler.typeMismatch(ctx.assign_rhs(), lhsType, rhsType);
+    if (rhs != null && lhs != null) {
+      Type lhsType = lhs.getType();
+      Type rhsType = rhs.getType();
+
+      if (!lhsType.equalToType(rhsType)) {
+        errorHandler.typeMismatch(ctx.assign_rhs(), lhsType, rhsType);
+      }
     }
 
     StatNode node = new AssignNode(lhs, rhs);
@@ -273,7 +280,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitFreeStat(FreeStatContext ctx) {
     /* the allowed types of free statement */
-    List<Type> allowedType = List.of(ARRAY_TYPE, PAIR_TYPE);
+    List<Type> allowedType = new ArrayList<>(Arrays.asList(ARRAY_TYPE, PAIR_TYPE));
 
     ExprNode ref = (ExprNode) visit(ctx.expr());
     Type refType = ref.getType();
@@ -300,14 +307,17 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode expr = (ExprNode) visitAssign_rhs(ctx.assign_rhs());
     String varName = ctx.IDENT().getText();
     Type varType = ((TypeDeclareNode) visitType(ctx.type())).getType();
-    Type exprType = ((ExprNode) expr).getType();
 
-    if (!varType.equalToType(exprType)) {
-      errorHandler.typeMismatch(ctx.assign_rhs(), varName, varType, exprType);
+    if (expr != null) {
+      Type exprType = ((ExprNode) expr).getType();
+
+      if (!varType.equalToType(exprType)) {
+        errorHandler.typeMismatch(ctx.assign_rhs(), varName, varType, exprType);
+      }
+
+      /* first exprNode is responsible for recording type */
+      expr.setType(varType);
     }
-
-    /* first exprNode is responsible for recording type */
-    expr.setType(varType);
 
     StatNode node = new DeclareNode(varName, expr);
     node.setScope(currSymbolTable);
@@ -538,7 +548,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     } else if (ctx.pair_elem() != null) {
       node = visitPair_elem(ctx.pair_elem());
     } else {
-      /* expression */
       node = visit(ctx.expr(0));
     }
 
@@ -598,7 +607,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       errorHandler.typeMismatch(ctx.expr(1), expr1.getType(), expr2.getType());
     }
 
-    List<Type> allowedTypes = List.of(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE);
+    List<Type> allowedTypes = new ArrayList<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
 
     if (allowedTypes.stream().noneMatch(expr1.getType()::equalToType)) {
       errorHandler.typeMismatch(ctx.expr(0), allowedTypes, expr1.getType());
@@ -664,23 +673,20 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitPair_elem(Pair_elemContext ctx) {
     ExprNode exprNode = (ExprNode) visit(ctx.expr());
+
     if (!exprNode.getType().equalToType(PAIR_TYPE)) {
       errorHandler.typeMismatch(ctx.expr(), PAIR_TYPE, exprNode.getType());
     }
 
-    PairNode pairNode = (PairNode) exprNode;
-    ExprNode result = null;
+    boolean isFirst = false;
 
     if (ctx.FST() != null) {
-      result = pairNode.getFst();
+      isFirst = true;
     } else if (ctx.SND() != null) {
-      result = pairNode.getSnd();
-    } else {
-      errorHandler.invalidRuleException(ctx, "visitPair_elem");
-      return null;
+      isFirst = false;
     }
 
-    return result;
+    return new PairElemNode(exprNode, isFirst, exprNode.getType());
   }
 
   @Override

@@ -24,5 +24,4 @@ public class ArrayElemNode extends ExprNode {
     this.index = index;
     this.type = ((ArrayType) array.getType()).getContentType();
   }
-  
 }
