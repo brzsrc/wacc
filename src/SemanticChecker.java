@@ -650,13 +650,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitPair_elem(Pair_elemContext ctx) {
     ExprNode exprNode = (ExprNode) visit(ctx.expr());
 
-    if (exprNode.getType().equalToType(new PairType())) {
-      errorHandler.nullReferenceError(ctx.expr());
-    }
-
-    // if (!exprNode.getType().equalToType(PAIR_TYPE)) {
-    //   errorHandler.typeMismatch(ctx.expr(), PAIR_TYPE, exprNode.getType());
+    // if (exprNode.getType().equalToType(new PairType())) {
+    //   errorHandler.nullReferenceError(ctx.expr());
     // }
+
+    if (!exprNode.getType().equalToType(PAIR_TYPE)) {
+      errorHandler.typeMismatch(ctx.expr(), PAIR_TYPE, exprNode.getType());
+    }
 
     boolean isFirst = false;
     Type pairType = exprNode.getType();
