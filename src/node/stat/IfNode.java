@@ -12,7 +12,7 @@ public class IfNode extends StatNode {
     this.cond = cond;
     this.ifBody = ifBody;
     this.elseBody = elseBody;
-    setAll();
+    setLeaveAtEnd();
   }
 
   @Override
@@ -21,9 +21,4 @@ public class IfNode extends StatNode {
     leaveAtEnd = ifBody.leaveAtEnd() && elseBody.leaveAtEnd();
   }
 
-  @Override
-  protected void setHasReturn() {
-    assert ifBody != null && elseBody != null;
-    hasReturn = ifBody.hasReturn() || elseBody.hasReturn();
-  }
 }

@@ -5,24 +5,12 @@ import utils.SymbolTable;
 
 public abstract class StatNode implements Node {
 
-  protected boolean leaveAtEnd;
-  protected boolean hasReturn;
-  /* Statement scope, ScopeNode actually do not need */
+  protected boolean leaveAtEnd = false;
   protected SymbolTable scope;
 
-  /* Setters, protected to prevent misuse from outside*/
+  /* Set leaveAtEnd if needs overwrite */
   protected void setLeaveAtEnd() {
     this.leaveAtEnd = false;
-  }
-
-  protected void setHasReturn() {
-    this.hasReturn = false;
-  }
-
-  /* All StatNode should call setAll at their constructors */
-  protected void setAll() {
-    setLeaveAtEnd();
-    setHasReturn();
   }
 
   public void setScope(SymbolTable scope) {
@@ -32,10 +20,6 @@ public abstract class StatNode implements Node {
   /* Getters */
   public boolean leaveAtEnd() {
     return leaveAtEnd;
-  }
-
-  public boolean hasReturn() {
-    return hasReturn;
   }
 
   @Override

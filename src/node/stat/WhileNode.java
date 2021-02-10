@@ -10,12 +10,6 @@ public class WhileNode extends StatNode {
   public WhileNode(ExprNode cond, StatNode body) {
     this.cond = cond;
     this.body = body;
-    setAll();
   }
 
-  @Override
-  protected void setHasReturn() {
-    assert body != null;
-    hasReturn = body.hasReturn();
-  }
 }

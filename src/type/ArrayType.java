@@ -33,4 +33,8 @@ public class ArrayType implements Type {
         return "Array<" + contentType + ">";
     }
 
+    @Override
+    public ArrayType asArrayType() {
+        return this;
+    }
 }

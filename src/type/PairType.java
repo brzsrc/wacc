@@ -31,6 +31,11 @@ public class PairType implements Type {
     }
 
     @Override
+    public PairType asPairType() {
+        return this;
+    }
+
+    @Override
     public boolean equalToType(Type other) {
         if (other == null) {
             return true;

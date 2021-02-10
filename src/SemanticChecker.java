@@ -99,10 +99,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     body.setScope(currSymbolTable);
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
-    if (body.hasReturn()) {
-      errorHandler.returnFromMainError(ctx);
-    }
-
     if (!(body instanceof ScopeNode)) {
       return new ProgramNode(globalFuncTable, new ScopeNode(body));
     }
@@ -391,7 +387,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       indexList.add(index);
     }
 
-    return new ArrayElemNode(array, indexList, ((ArrayType) array.getType()).getContentType());
+    return new ArrayElemNode(array, indexList, array.getType().asArrayType().getContentType());
   }
 
   /**

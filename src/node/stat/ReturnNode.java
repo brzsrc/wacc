@@ -9,17 +9,7 @@ public class ReturnNode extends StatNode {
 
   public ReturnNode(ExprNode value) {
     this.value = value;
-    setAll();
-  }
-
-  @Override
-  protected void setHasReturn() {
-    hasReturn = true;
-  }
-
-  @Override
-  protected void setLeaveAtEnd() {
-    leaveAtEnd = true;
+    this.leaveAtEnd = true;
   }
 
 }

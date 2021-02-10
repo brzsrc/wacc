@@ -9,14 +9,14 @@ public class ScopeNode extends StatNode {
 
   public ScopeNode(StatNode node) {
     mergeScope(node);
-    setAll();
+    setLeaveAtEnd();
   }
 
   /* Handle the SeqStat */
   public ScopeNode(StatNode before, StatNode after) {
     mergeScope(before);
     mergeScope(after);
-    setAll();
+    setLeaveAtEnd();
   }
 
   private void mergeScope(StatNode s) {
@@ -34,14 +34,4 @@ public class ScopeNode extends StatNode {
     leaveAtEnd = body.get(body.size()-1).leaveAtEnd();
   }
 
-  @Override
-  protected void setHasReturn() {
-    for (StatNode node : body) {
-      if (node.hasReturn()) {
-        hasReturn = true;
-        return;
-      }
-    }
-    hasReturn = false;
-  }
 }
