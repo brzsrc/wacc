@@ -12,4 +12,9 @@ public class TypeDeclareNode implements Node {
     public Type getType() {
         return declaredType;
     }
+
+    @Override
+    public TypeDeclareNode asTypeDeclareNode() {
+        return this;
+    }
 }

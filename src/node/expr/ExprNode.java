@@ -18,4 +18,9 @@ public abstract class ExprNode implements Node {
     public boolean check() {
         return false;
     }
+
+    @Override
+    public ExprNode asExprNode() {
+        return this;
+    }
 }

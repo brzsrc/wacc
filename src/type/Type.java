@@ -1,5 +1,9 @@
 package type;
 
 public interface Type {
-    public boolean equalToType(Type other);
+    boolean equalToType(Type other);
+
+    default PairType asPairType() {
+        throw new IllegalArgumentException("cast not allowed");
+    }
 }

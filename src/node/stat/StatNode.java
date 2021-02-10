@@ -37,4 +37,9 @@ public abstract class StatNode implements Node {
   public boolean hasReturn() {
     return hasReturn;
   }
+
+  @Override
+  public StatNode asStatNode() {
+    return this;
+  }
 }
