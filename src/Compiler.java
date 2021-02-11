@@ -43,7 +43,6 @@ public class Compiler {
             parser.setErrorHandler(new ParserErrorHandler());
             // Start parsing using the `program` rule defined in antlr_config/WACCParser.g4
             ProgramContext tree = parser.program();
-            
 
             // If the `--parse_only` flag is specified, then we do not run semantic analysis
             if (!cmd_ops.contains("--parse_only")) {
