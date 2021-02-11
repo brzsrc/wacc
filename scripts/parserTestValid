@@ -3,10 +3,19 @@
 VALID_EXAMPLES="./src/test/examples/valid"
 VALID_PARSER_EXAMPLES_LOG="./log/parse_valid_error.log"
 
-./grun antlr.WACC program -tree $(find $VALID_EXAMPLES -name "*.wacc") 2> $VALID_PARSER_EXAMPLES_LOG
-
-if grep "line [0-9]*:[0-9]*" $VALID_PARSER_EXAMPLES_LOG > /dev/null; then
-  echo "expecting no error but found the following:"
-  cat $VALID_PARSER_EXAMPLES_LOG
-  exit 1
-fi
+for file in $(find $VALID_EXAMPLES -name "*.wacc")
+do
+  ./compile $file 2> $VALID_PARSER_EXAMPLES_LOG
+  ret=$?
+  echo "exit status: " $ret
+  if [ $ret -ne 0 ]; then
+    echo "status code incorrect: " $ret
+    exit 1
+  fi
+  
+  if grep "line [0-9]*:[0-9]*" $VALID_PARSER_EXAMPLES_LOG > /dev/null; then
+    echo "expecting no error but found the following:"
+    cat $VALID_PARSER_EXAMPLES_LOG
+    exit 1
+  fi
+done
