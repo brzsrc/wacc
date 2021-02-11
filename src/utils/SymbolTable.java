@@ -16,11 +16,13 @@ public class SymbolTable {
         this.parentSymbolTable = parentSymbolTable;
     }
 
-    public void add(String name, ExprNode expr) {
+    public boolean add(String name, ExprNode expr) {
         if (dictionary.containsKey(name)) {
             SemanticErrorHandler.symbolRedeclared(null, name);
+            return true;
         }
         this.dictionary.put(name, expr);
+        return false;
     }
 
     public HashMap<String, ExprNode> getDictionary() {

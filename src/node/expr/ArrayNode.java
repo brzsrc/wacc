@@ -28,8 +28,9 @@ public class ArrayNode extends ExprNode {
         return length;
     }
 
-    public int getDepth() {
-        return depth;
+    @Override
+    public ArrayNode asArrayNode() {
+        return this;
     }
 
     /**

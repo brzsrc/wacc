@@ -1,9 +1,11 @@
 package node;
 
 import node.expr.ArrayElemNode;
+import node.expr.ArrayNode;
 import node.expr.ExprNode;
 import node.expr.PairNode;
 import node.stat.StatNode;
+import type.ArrayType;
 import type.PairType;
 
 public interface Node {
@@ -20,4 +22,7 @@ public interface Node {
     throw new IllegalArgumentException("cast not allowed");
   }
 
+  default ArrayNode asArrayNode() {
+    throw new IllegalArgumentException("cast not allowed");
+  }
 }

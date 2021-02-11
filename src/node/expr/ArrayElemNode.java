@@ -3,6 +3,7 @@ package node.expr;
 import node.Node;
 import type.ArrayType;
 import type.Type;
+import utils.SemanticErrorHandler;
 import utils.SymbolTable;
 
 import java.util.ArrayList;
@@ -23,5 +24,9 @@ public class ArrayElemNode extends ExprNode {
     this.array = array;
     this.index = index;
     this.type = type;
+
+    if (array.getType().asArrayType().getDepth() < index.size()) {
+      SemanticErrorHandler.arrayDepthError(null, array.getType(), index.size());
+    }
   }
 }
