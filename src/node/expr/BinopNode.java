@@ -9,15 +9,15 @@ import utils.SymbolTable;
 
 public class BinopNode extends ExprNode {
 
-    public enum Binops {
+    public enum Binop {
         PLUS, MINUS, MUL, DIV, MOD, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, EQUAL, UNEQUAL, AND, OR
     }
     
     private ExprNode expr1;
     private ExprNode expr2;
-    private Binops operator;
+    private Binop operator;
 
-    public BinopNode(ExprNode expr1, ExprNode expr2, Binops operator) {
+    public BinopNode(ExprNode expr1, ExprNode expr2, Binop operator) {
         this.expr1 = expr1;
         this.expr2 = expr2;
         this.operator = operator;
@@ -50,11 +50,11 @@ public class BinopNode extends ExprNode {
         this.expr2 = expr2;
     }
 
-    public Binops getOperator() {
+    public Binop getOperator() {
         return operator;
     }
 
-    public void setOperator(Binops operator) {
+    public void setOperator(Binop operator) {
         this.operator = operator;
     }
 

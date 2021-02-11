@@ -101,8 +101,7 @@ public class SemanticErrorHandler {
             lineNum = ((ParserRuleContext) ctx).getStart().getLine();
             linePos = ((ParserRuleContext) ctx).getStart().getCharPositionInLine();
         } else {
-            /* internal error */
-            throw new IllegalArgumentException("internal error in errorHandler");
+            throw new IllegalArgumentException("Internal exception in errorHandler!");
         }
 
         System.err.println("line " + lineNum + ":" + linePos + " : " + msg);

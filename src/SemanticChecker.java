@@ -2,9 +2,7 @@ import antlr.WACCParser.*;
 import antlr.WACCParserBaseVisitor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,13 +13,13 @@ import node.ProgramNode;
 import node.TypeDeclareNode;
 import node.expr.*;
 import node.stat.*;
-import node.expr.BinopNode.Binops;
+import node.expr.BinopNode.Binop;
 import node.expr.UnopNode.Unop;
 
 import type.*;
 import utils.SemanticErrorHandler;
 import utils.SymbolTable;
-import org.antlr.v4.runtime.ParserRuleContext;
+import utils.Utils;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
@@ -43,6 +41,23 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   private static final Set<Type> readStatAllowedTypes = Set.of(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE);
   private static final Set<Type> freeStatAllowedTypes = Set.of(ARRAY_TYPE, PAIR_TYPE);
   private static final Set<Type> cmpStatAllowedTypes = Set.of(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE);
+
+  /* mapping from string literals to internal representations of UnopEnum and Type */
+  private static final Map<String, Unop> unopEnumMapping = Map.of("-", Unop.MINUS, 
+                                                                  "chr", Unop.CHR,
+                                                                  "!", Unop.NOT, 
+                                                                  "len", Unop.LEN, 
+                                                                  "ord", Unop.ORD);
+  private static final Map<String, Type> unopTypeMapping = Map.of("-", INT_BASIC_TYPE,
+                                                                  "chr", INT_BASIC_TYPE,
+                                                                  "!", BOOL_BASIC_TYPE,
+                                                                  "len", ARRAY_TYPE, 
+                                                                  "ord", CHAR_BASIC_TYPE);
+  private static final Map<String, Binop> binopEnumMapping = Map.of("+", Binop.PLUS,
+                                                                    "-", Binop.MINUS,
+                                                                    "*", Binop.MUL,
+                                                                    "/", Binop.DIV,
+                                                                    "%", Binop.MOD);
 
   /* recording the current SymbolTable during parser tree visits */
   private SymbolTable currSymbolTable;
@@ -75,13 +90,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       }
 
       /* get the return type of the function */
-      Type returnType = visitType(f.type()).asTypeDeclareNode().getType();
+      Type returnType = visit(f.type()).asTypeDeclareNode().getType();
       /* store the parameters in a list of IdentNode */
       List<IdentNode> param_list = new ArrayList<>();
 
       if (f.param_list() != null) {
         for (ParamContext param : f.param_list().param()) {
-          Type param_type = visitType(param.type()).asTypeDeclareNode().getType();
+          Type param_type = visit(param.type()).asTypeDeclareNode().getType();
           IdentNode paramNode = new IdentNode(param_type, param.IDENT().getText());
           param_list.add(paramNode);
         }
@@ -161,7 +176,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* check that the condition of if statement is of type boolean */
     ExprNode condition = visit(ctx.expr()).asExprNode();
     Type conditionType = condition.getType();
-    typeCheck(ctx.expr(), BOOL_BASIC_TYPE, conditionType);
+    Utils.typeCheck(ctx.expr(), BOOL_BASIC_TYPE, conditionType);
     
     /* create the StatNode for the if body and gegerate new child scope */
     currSymbolTable = new SymbolTable(currSymbolTable);
@@ -185,7 +200,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* check that the condition of while statement is of type boolean */
     ExprNode condition = visit(ctx.expr()).asExprNode();
     Type conditionType = condition.getType();
-    typeCheck(ctx.expr(), BOOL_BASIC_TYPE, conditionType);    
+    Utils.typeCheck(ctx.expr(), BOOL_BASIC_TYPE, conditionType);    
 
     /* get the StatNode of the execution body of while loop */
     currSymbolTable = new SymbolTable(currSymbolTable);
@@ -215,7 +230,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode exprNode = visitAssign_lhs(ctx.assign_lhs()).asExprNode();
     if (exprNode != null) {
       Type inputType = exprNode.getType();
-      typeCheck(ctx.assign_lhs(), readStatAllowedTypes, inputType);
+      Utils.typeCheck(ctx.assign_lhs(), readStatAllowedTypes, inputType);
     }
 
     ReadNode readNode = new ReadNode(exprNode);
@@ -258,7 +273,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       Type lhsType = lhs.getType();
       Type rhsType = rhs.getType();
 
-      typeCheck(ctx.assign_rhs(), lhsType, rhsType);
+      Utils.typeCheck(ctx.assign_rhs(), lhsType, rhsType);
     }
 
     StatNode node = new AssignNode(lhs, rhs);
@@ -273,7 +288,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     Type refType = ref.getType();
     
     /* check if the reference has correct type(array or pair) */
-    typeCheck(ctx.expr(), freeStatAllowedTypes, refType);
+    Utils.typeCheck(ctx.expr(), freeStatAllowedTypes, refType);
 
     StatNode node = new FreeNode(ref);
     node.setScope(currSymbolTable);
@@ -291,11 +306,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     ExprNode expr = visitAssign_rhs(ctx.assign_rhs()).asExprNode();
     String varName = ctx.IDENT().getText();
-    Type varType = visitType(ctx.type()).asTypeDeclareNode().getType();
+    Type varType = visit(ctx.type()).asTypeDeclareNode().getType();
 
     if (expr != null) {
       Type exprType = expr.getType();
-      typeCheck(ctx.assign_rhs(), varName, exprType, varType);
+      Utils.typeCheck(ctx.assign_rhs(), varName, exprType, varType);
       /* first exprNode is responsible for recording type */
       expr.setType(varType);
     }
@@ -317,7 +332,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     }
 
     Type returnType = returnNum.getType();
-    typeCheck(ctx.expr(), expectedFunctionReturn, returnType);
+    Utils.typeCheck(ctx.expr(), expectedFunctionReturn, returnType);
 
     StatNode node = new ReturnNode(returnNum);
     node.setScope(currSymbolTable);
@@ -329,7 +344,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode exitCode = visit(ctx.expr()).asExprNode();
     Type exitCodeType = exitCode.getType();
 
-    typeCheck(ctx.expr(), INT_BASIC_TYPE, exitCodeType);
+    Utils.typeCheck(ctx.expr(), INT_BASIC_TYPE, exitCodeType);
 
     StatNode node = new ExitNode(exitCode);
     node.setScope(currSymbolTable);
@@ -358,7 +373,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       SemanticErrorHandler.symbolNotFound(ctx, arrayIdent);
     }
 
-    typeCheck(ctx, ARRAY_TYPE, array.getType());
+    Utils.typeCheck(ctx, ARRAY_TYPE, array.getType());
 
     List<ExprNode> indexList = new ArrayList<>();
 
@@ -366,7 +381,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       ExprNode index = visit(index_).asExprNode();
       // check every expr can evaluate to integer
       Type elemType = index.getType();
-      typeCheck(index_, INT_BASIC_TYPE, elemType);
+      Utils.typeCheck(index_, INT_BASIC_TYPE, elemType);
       indexList.add(index);
     }
 
@@ -378,11 +393,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitAndOrExpr(AndOrExprContext ctx) {
     String bop = ctx.bop.getText();
-    Binops binop = null;
+    Binop binop = null;
     if(bop.equals("&&")) {
-      binop = Binops.AND;
+      binop = Binop.AND;
     } else if(bop.equals("||")) {
-      binop = Binops.OR;
+      binop = Binop.OR;
     } else {
       /* throw error */
     }
@@ -392,8 +407,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode expr2 = visit(ctx.expr(1)).asExprNode();
     Type expr2Type = expr2.getType();
 
-    typeCheck(ctx.expr(0), BOOL_BASIC_TYPE, expr1Type);
-    typeCheck(ctx.expr(1), BOOL_BASIC_TYPE, expr2Type);
+    Utils.typeCheck(ctx.expr(0), BOOL_BASIC_TYPE, expr1Type);
+    Utils.typeCheck(ctx.expr(1), BOOL_BASIC_TYPE, expr2Type);
 
     return new BinopNode(expr1, expr2, binop);
   }
@@ -413,7 +428,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     for (ExprContext context : ctx.expr()) {
       ExprNode expr = visit(context).asExprNode();
       Type exprType = expr.getType();
-      typeCheck(context, firstContentType, exprType);
+      Utils.typeCheck(context, firstContentType, exprType);
       list.add(expr);
     }
     return new ArrayNode(firstContentType, list, length);
@@ -428,7 +443,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (ctx.array_type() != null) {
       type = visitArray_type(ctx.array_type()).asTypeDeclareNode();
     } else if (ctx.base_type() != null) {
-      type = visitBase_type(ctx.base_type()).asTypeDeclareNode();
+      type = visit(ctx.base_type()).asTypeDeclareNode();
     } else if (ctx.pair_type() != null) {
       type = visitPair_type(ctx.pair_type()).asTypeDeclareNode();
     } else {
@@ -493,7 +508,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
           Type targetType = function.getParamList().get(exprIndex).getType();
 
           /* check param types */
-          typeCheck(ctx.arg_list().expr(exprIndex), targetType, paramType);
+          Utils.typeCheck(ctx.arg_list().expr(exprIndex), targetType, paramType);
           params.add(param);
           exprIndex++;
         }
@@ -540,19 +555,19 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitCmpExpr(CmpExprContext ctx) {
     String bop = ctx.bop.getText();
-    Binops binop = null;
+    Binop binop = null;
     switch(bop) {
       case ">":
-        binop = Binops.GREATER;
+        binop = Binop.GREATER;
         break;
       case ">=":
-        binop = Binops.GREATER_EQUAL;
+        binop = Binop.GREATER_EQUAL;
         break;
       case "<":
-        binop = Binops.LESS;
+        binop = Binop.LESS;
         break;
       case "<=":
-        binop = Binops.LESS_EQUAL;
+        binop = Binop.LESS_EQUAL;
         break;
       default:
         /* throw an error */
@@ -564,9 +579,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode expr2 = visit(ctx.expr(1)).asExprNode();
     Type expr2Type = expr2.getType();
 
-    typeCheck(ctx.expr(0), cmpStatAllowedTypes, expr1Type);
-    typeCheck(ctx.expr(1), cmpStatAllowedTypes, expr2Type);
-    typeCheck(ctx.expr(0), expr1Type, expr2Type);
+    Utils.typeCheck(ctx.expr(0), cmpStatAllowedTypes, expr1Type);
+    Utils.typeCheck(ctx.expr(1), cmpStatAllowedTypes, expr2Type);
+    Utils.typeCheck(ctx.expr(0), expr1Type, expr2Type);
 
     return new BinopNode(expr1, expr2, binop);
   }
@@ -574,13 +589,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitEqExpr(EqExprContext ctx) {
     String bop = ctx.bop.getText();
-    Binops binop = null;
+    Binop binop = null;
     switch(bop) {
       case "==":
-        binop = Binops.EQUAL;
+        binop = Binop.EQUAL;
         break;
       case "!=":
-        binop = Binops.UNEQUAL;
+        binop = Binop.UNEQUAL;
         break;
       default:
         /* throw an error */
@@ -591,7 +606,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode expr2 = visit(ctx.expr(1)).asExprNode();
     Type expr2Type = expr2.getType();
 
-    typeCheck(ctx.expr(0), exrp1Type, expr2Type);
+    Utils.typeCheck(ctx.expr(0), exrp1Type, expr2Type);
 
     return new BinopNode(expr1, expr2, binop);
   }
@@ -610,7 +625,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * return type: IntegerNode */
   @Override
   public Node visitIntExpr(IntExprContext ctx) {
-    return new IntegerNode(intParse(ctx, ctx.INT_LITER().getText()));
+    return new IntegerNode(Utils.intParse(ctx, ctx.INT_LITER().getText()));
   }
 
   /**
@@ -622,7 +637,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     boolean isFirst = false;
     Type pairElemType = null;
 
-    typeCheck(ctx.expr(), PAIR_TYPE, pairType);
+    Utils.typeCheck(ctx.expr(), PAIR_TYPE, pairType);
 
     if (ctx.FST() != null) {
       isFirst = true;
@@ -640,27 +655,12 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new PairElemNode(exprNode, isFirst, pairElemType);
   }
 
-  @Override
-  public Node visitPair_elem_type(Pair_elem_typeContext ctx) {
-    if (ctx.base_type() != null) {
-      return visitBase_type(ctx.base_type());
-    } else if (ctx.array_type() != null) {
-      return visitArray_type(ctx.array_type());
-    } else if (ctx.PAIR() != null) {
-      return new TypeDeclareNode(new PairType());
-    } else {
-      /* throw error and exit the program */
-      SemanticErrorHandler.invalidRuleException(ctx, "visitPair_elem_type");
-    }
-    return null;
-  }
-
   /**
    * return type: TypeDeclareNode */
   @Override
   public Node visitPair_type(Pair_typeContext ctx) {
-    TypeDeclareNode leftChild = visitPair_elem_type(ctx.pair_elem_type(0)).asTypeDeclareNode();
-    TypeDeclareNode rightChild = visitPair_elem_type(ctx.pair_elem_type(1)).asTypeDeclareNode();
+    TypeDeclareNode leftChild = visit(ctx.pair_elem_type(0)).asTypeDeclareNode();
+    TypeDeclareNode rightChild = visit(ctx.pair_elem_type(1)).asTypeDeclareNode();
     Type type = new PairType(leftChild.getType(), rightChild.getType());
     return new TypeDeclareNode(type);
   }
@@ -669,179 +669,94 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * return type: FuncParamNode */
   @Override
   public Node visitParam(ParamContext ctx) {
-    // add an elem in current cymbol table scope
-    // no node corrisponding to param, node should be explicitely traversed in function def visit
-    TypeDeclareNode type = visitType(ctx.type()).asTypeDeclareNode();
+    TypeDeclareNode type = visit(ctx.type()).asTypeDeclareNode();
     return new IdentNode(type.getType(), ctx.IDENT().getText());
   }
 
   @Override
   public Node visitArithmeticExpr(ArithmeticExprContext ctx) {
-    String bop = ctx.bop.getText();
-    Binops binop;
-    switch(bop) {
-      case "+":
-        binop = Binops.PLUS;
-        break;
-      case "-":
-        binop = Binops.MINUS;
-        break;
-      case "*":
-        binop = Binops.MUL;
-        break;
-      case "/":
-        binop = Binops.DIV;
-        break;
-      case "%":
-        binop = Binops.MOD;
-        break;
-      default:
-        throw new IllegalArgumentException("invalid unary operator in visitBinopExpr: " + bop);
-    }
+    String literal = ctx.bop.getText();
+    Binop binop = binopEnumMapping.get(literal);
+
     ExprNode expr1 = visit(ctx.expr(0)).asExprNode();
     ExprNode expr2 = visit(ctx.expr(1)).asExprNode();
     Type expr1Type = expr1.getType();
     Type expr2Type = expr2.getType();
 
-    typeCheck(ctx.expr(0), INT_BASIC_TYPE, expr1Type);
-    typeCheck(ctx.expr(1), INT_BASIC_TYPE, expr2Type);
+    Utils.typeCheck(ctx.expr(0), INT_BASIC_TYPE, expr1Type);
+    Utils.typeCheck(ctx.expr(1), INT_BASIC_TYPE, expr2Type);
 
     return new BinopNode(expr1, expr2, binop);
   }
 
-  /**
-   * return type: ArrayElemNode */
   @Override
   public Node visitArrayExpr(ArrayExprContext ctx) {
     return visitArray_elem(ctx.array_elem());
   }
 
-  /**
-   * return type: StringNode */
   @Override
   public Node visitStrExpr(StrExprContext ctx) {
     return new StringNode(ctx.STR_LITER().getText());
   }
 
-  /**
-   * return type: TypeDeclareNode */
-  @Override
-  public Node visitType(TypeContext ctx) {
-    if (ctx.base_type() != null) {
-      return visitBase_type(ctx.base_type());
-    } else if (ctx.array_type() != null) {
-      return visitArray_type(ctx.array_type());
-    } else if (ctx.pair_type() != null) {
-      return visitPair_type(ctx.pair_type());
-    } else {
-      /* should throw an error and exit the program here */
-      SemanticErrorHandler.invalidRuleException(ctx, "visitType");
-    }
-    return null;
-  }
-
-  /**
-   * return type: TypeDeclareNode
-   * */
-  @Override
-  public Node visitBase_type(Base_typeContext ctx) {
-
-    if (ctx.INT() != null) {
-      return new TypeDeclareNode(INT_BASIC_TYPE);
-    } else if (ctx.BOOL() != null) {
-      return new TypeDeclareNode(BOOL_BASIC_TYPE);
-    } else if (ctx.CHAR() != null) {
-      return new TypeDeclareNode(CHAR_BASIC_TYPE);
-    } else if (ctx.STRING() != null) {
-      return new TypeDeclareNode(STRING_BASIC_TYPE);
-    } else {
-      /* should throw an error and exit the program here */
-      SemanticErrorHandler.invalidRuleException(ctx, "visitBase_type");
-    }
-    return null;
-  }
-
-  /**
-   * return type: UnopNode NullAble
-   */
+  /* visit UnopExpr with a special case on the MINUS sign being the negative sign of an integer */
   @Override
   public Node visitUnopExpr(UnopExprContext ctx) {
-    String uop = ctx.uop.getText();
-    Unop unop;
-    Type targetType;
-    switch (uop) {
-      case "-":
-        unop = Unop.MINUS;
-        targetType = INT_BASIC_TYPE;
+    String literal = ctx.uop.getText();
+    Unop unop = unopEnumMapping.get(literal);
+    Type targetType = unopTypeMapping.get(literal);
 
-        String exprText = ctx.expr().getText();
-        if (isDigit(exprText)) {
-          /* explicitely call cast here, in order to cover INT_MIN */
-          Integer intVal = intParse(ctx.expr(), "-" + ctx.expr().getText());
-          return new IntegerNode(intVal);
-        }
-        break;
-      case "chr":
-        unop = Unop.CHR;
-        targetType = INT_BASIC_TYPE;
-        break;
-      case "!":
-        unop = Unop.NOT;
-        targetType = BOOL_BASIC_TYPE;
-        break;
-      case "len":
-        unop = Unop.LEN;
-        targetType = ARRAY_TYPE;
-        break;
-      case "ord":
-        unop = Unop.ORD;
-        targetType = CHAR_BASIC_TYPE;
-        break;
-      default:
-        SemanticErrorHandler.invalidRuleException(ctx, "visitUnopExpr");
-        return null;
+    /* special case of MINUS: can be potentially parsed directly as a negative number(IntegerNode) */
+    String exprText = ctx.expr().getText();
+    if (literal.equals("-") && Utils.isInteger(exprText)) {
+        Integer intVal = Utils.intParse(ctx.expr(), "-" + exprText);
+        return new IntegerNode(intVal);
     }
 
     ExprNode expr = visit(ctx.expr()).asExprNode();
     Type exprType = expr.getType();
-
-    typeCheck(ctx.expr(), targetType, exprType);
+    Utils.typeCheck(ctx.expr(), targetType, exprType);
 
     return new UnopNode(expr, unop);
   }
 
-  /* Helper functions */
+  /* =======================================================
+   *                     Type visitors
+   * =======================================================
+   */
 
-  private void typeCheck(ParserRuleContext ctx, Type expected, Type actual) {
-    if (!actual.equalToType(expected)) {
-      SemanticErrorHandler.typeMismatch(ctx, expected, actual);
-    }
+  @Override
+  public Node visitIntType(IntTypeContext ctx) {
+    return new TypeDeclareNode(INT_BASIC_TYPE);
   }
 
-  private void typeCheck(ParserRuleContext ctx, Set<Type> expected, Type actual) {
-    if (expected.stream().noneMatch(actual::equalToType)) {
-      SemanticErrorHandler.typeMismatch(ctx, expected, actual);
-    }
+  @Override
+  public Node visitBoolType(BoolTypeContext ctx) {
+    return new TypeDeclareNode(BOOL_BASIC_TYPE);
   }
 
-  private void typeCheck(ParserRuleContext ctx, String varName, Type expected, Type actual) {
-    if (!actual.equalToType(expected)) {
-      SemanticErrorHandler.typeMismatch(ctx, varName, expected, actual);
-    }
+  @Override
+  public Node visitCharType(CharTypeContext ctx) {
+    return new TypeDeclareNode(CHAR_BASIC_TYPE);
   }
 
-  private Integer intParse(ParserRuleContext ctx, String intExt) {
-    int integer = 0;
-    try {
-      integer = Integer.parseInt(intExt);
-    } catch (NumberFormatException e) {
-      SemanticErrorHandler.integerRangeError(ctx, intExt);
-    }
-    return integer;
+  @Override
+  public Node visitStringType(StringTypeContext ctx) {
+    return new TypeDeclareNode(STRING_BASIC_TYPE);
   }
 
-  private boolean isDigit(String s) {
-    return s.matches("[0-9]+");
+  @Override
+  public Node visitArrayType(ArrayTypeContext ctx) {
+    return visitArray_type(ctx.array_type());
   }
-  
+
+  @Override
+  public Node visitPairType(PairTypeContext ctx) {
+    return visitPair_type(ctx.pair_type());
+  }
+
+  @Override
+  public Node visitPairElemNewPair(PairElemNewPairContext ctx) {
+    return new TypeDeclareNode(new PairType());
+  }
 }
