@@ -6,7 +6,6 @@ import node.expr.ExprNode;
 
 public class SymbolTable {
 
-    private final static SemanticErrorHandler SEMANTIC_ERROR_HANDLER = new SemanticErrorHandler();
     // symbol table only record declaired type, so should map type instead of node?
     // node is determinded at run time, i.e x can be assigned 1 + 2 later, symbol table should't change on that
     private HashMap<String, ExprNode> dictionary;
@@ -17,11 +16,13 @@ public class SymbolTable {
         this.parentSymbolTable = parentSymbolTable;
     }
 
-    public void add(String name, ExprNode expr) {
+    public boolean add(String name, ExprNode expr) {
         if (dictionary.containsKey(name)) {
-            SEMANTIC_ERROR_HANDLER.symbolRedeclared(null, name);
+            SemanticErrorHandler.symbolRedeclared(null, name);
+            return true;
         }
         this.dictionary.put(name, expr);
+        return false;
     }
 
     public HashMap<String, ExprNode> getDictionary() {

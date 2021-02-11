@@ -32,6 +32,11 @@ public class ArrayNode extends ExprNode {
         return depth;
     }
 
+    @Override
+    public ArrayNode asArrayNode() {
+        return this;
+    }
+
     /**
      * this function is used when a[] appear on the rhs,
      * lhs array elem assignment is represented by ArrayElemNode */
