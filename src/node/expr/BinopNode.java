@@ -10,7 +10,7 @@ import utils.SymbolTable;
 public class BinopNode extends ExprNode {
 
     public enum Binop {
-        PLUS, MINUS, MUL, DIV, MOD, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, EQUAL, UNEQUAL, AND, OR
+        PLUS, MINUS, MUL, DIV, MOD, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, EQUAL, INEQUAL, AND, OR
     }
     
     private ExprNode expr1;

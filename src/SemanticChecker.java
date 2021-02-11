@@ -58,6 +58,10 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
                                                                     "*", Binop.MUL,
                                                                     "/", Binop.DIV,
                                                                     "%", Binop.MOD);
+  private static final Map<String, Binop> EqEnumMapping = Map.of("==", Binop.EQUAL, "!=", Binop.INEQUAL);
+  private static final Map<String, Binop> LogicOpEnumMapping = Map.of("&&", Binop.AND, "||", Binop.OR);
+  private static final Map<String, Binop> CmpEnumMapping = Map.of(">", Binop.GREATER, ">=", Binop.GREATER_EQUAL,
+                                                                  "<", Binop.LESS, "<=", Binop.LESS_EQUAL);
 
   /* recording the current SymbolTable during parser tree visits */
   private SymbolTable currSymbolTable;
@@ -227,7 +231,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitReadStat(ReadStatContext ctx) {
-    ExprNode exprNode = visitAssign_lhs(ctx.assign_lhs()).asExprNode();
+    ExprNode exprNode = visit(ctx.assign_lhs()).asExprNode();
     if (exprNode != null) {
       Type inputType = exprNode.getType();
       Utils.typeCheck(ctx.assign_lhs(), readStatAllowedTypes, inputType);
@@ -266,8 +270,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitAssignStat(AssignStatContext ctx) {
     
     /* check if the type of lhs and rhs are equal */
-    ExprNode lhs = visitAssign_lhs(ctx.assign_lhs()).asExprNode();
-    ExprNode rhs = visitAssign_rhs(ctx.assign_rhs()).asExprNode();
+    ExprNode lhs = visit(ctx.assign_lhs()).asExprNode();
+    ExprNode rhs = visit(ctx.assign_rhs()).asExprNode();
 
     if (rhs != null && lhs != null) {
       Type lhsType = lhs.getType();
@@ -304,7 +308,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitDeclareStat(DeclareStatContext ctx) {
 
-    ExprNode expr = visitAssign_rhs(ctx.assign_rhs()).asExprNode();
+    ExprNode expr = visit(ctx.assign_rhs()).asExprNode();
     String varName = ctx.IDENT().getText();
     Type varType = visit(ctx.type()).asTypeDeclareNode().getType();
 
@@ -367,11 +371,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitArray_elem(Array_elemContext ctx) {
 
     String arrayIdent = ctx.IDENT().getText();
-    ExprNode array = currSymbolTable.lookupAll(arrayIdent);
-
-    if (array == null) {
-      SemanticErrorHandler.symbolNotFound(ctx, arrayIdent);
-    }
+    ExprNode array = Utils.lookUpWithNotFoundException(ctx, currSymbolTable, arrayIdent);
 
     Utils.typeCheck(ctx, ARRAY_TYPE, array.getType());
 
@@ -392,15 +392,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * return type: BinopNode */
   @Override
   public Node visitAndOrExpr(AndOrExprContext ctx) {
-    String bop = ctx.bop.getText();
-    Binop binop = null;
-    if(bop.equals("&&")) {
-      binop = Binop.AND;
-    } else if(bop.equals("||")) {
-      binop = Binop.OR;
-    } else {
-      /* throw error */
-    }
+    String literal = ctx.bop.getText();
+    Binop binop = LogicOpEnumMapping.get(literal);
 
     ExprNode expr1 = visit(ctx.expr(0)).asExprNode();
     Type expr1Type = expr1.getType();
@@ -453,126 +446,76 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   @Override
-  public Node visitAssign_lhs(Assign_lhsContext ctx) {
-    Node node = null;
+  public Node visitIdent(IdentContext ctx) {
+    String varName = ctx.IDENT().getText();
+    ExprNode value = Utils.lookUpWithNotFoundException(ctx, currSymbolTable, varName);
 
-    if (ctx.IDENT() != null) {
-      String varName = ctx.IDENT().getText();
-      ExprNode value = currSymbolTable.lookupAll(varName);
-
-      if (value == null) {
-        SemanticErrorHandler.symbolNotFound(ctx, varName);
-      }
-
-      node = new IdentNode(value.getType(), varName);
-    } else if (ctx.array_elem() != null) {
-      node = visitArray_elem(ctx.array_elem());
-    } else if (ctx.pair_elem() != null) {
-      node = visitPair_elem(ctx.pair_elem());
-    } else {
-      /* throw error and exit program */
-    }
-
-    return node;
+    return new IdentNode(value.getType(), varName);
   }
 
   @Override
-  public Node visitAssign_rhs(Assign_rhsContext ctx) {
-    Node node = null;
+  public Node visitNewPair(NewPairContext ctx) {
+    ExprNode fst = visit(ctx.expr(0)).asExprNode();
+    ExprNode snd = visit(ctx.expr(1)).asExprNode();
+    return new PairNode(fst, snd);
+  }
 
-    if (ctx.NEWPAIR() != null) {
-      ExprNode fst = visit(ctx.expr(0)).asExprNode();
-      ExprNode snd = visit(ctx.expr(1)).asExprNode();
-      node = new PairNode(fst, snd);
-    } else if (ctx.CALL() != null) {
-      String funcName = ctx.IDENT().getText();
-      FuncNode function = globalFuncTable.get(funcName);
-      List<ExprNode> params = new ArrayList<>();
+  @Override
+  public Node visitFunctionCall(FunctionCallContext ctx) {
+    String funcName = ctx.IDENT().getText();
+    FuncNode function = globalFuncTable.get(funcName);
+    List<ExprNode> params = new ArrayList<>();
 
-      /* check whether function has same number of parameter */
-      int expectedParamNum = function.getParamList().size();
-      if (expectedParamNum != 0) {
-        if (ctx.arg_list() == null) {
-          SemanticErrorHandler.invalidFuncArgCount(ctx, expectedParamNum, 0);
-          return null;
-        } else if (expectedParamNum != ctx.arg_list().expr().size()) {
-          SemanticErrorHandler.invalidFuncArgCount(ctx, expectedParamNum, ctx.arg_list().expr().size());
-          return null;
-        }
-
-        /* given argument number is not 0, generate list */
-        int exprIndex = 0;
-        for (ExprContext e : ctx.arg_list().expr()) {
-          ExprNode param = visit(e).asExprNode();
-          Type paramType = param.getType();
-          Type targetType = function.getParamList().get(exprIndex).getType();
-
-          /* check param types */
-          Utils.typeCheck(ctx.arg_list().expr(exprIndex), targetType, paramType);
-          params.add(param);
-          exprIndex++;
-        }
+    /* check whether function has same number of parameter */
+    int expectedParamNum = function.getParamList().size();
+    if (expectedParamNum != 0) {
+      if (ctx.arg_list() == null) {
+        SemanticErrorHandler.invalidFuncArgCount(ctx, expectedParamNum, 0);
+      } else if (expectedParamNum != ctx.arg_list().expr().size()) {
+        SemanticErrorHandler.invalidFuncArgCount(ctx, expectedParamNum, ctx.arg_list().expr().size());
       }
-      
-      currSymbolTable = new SymbolTable(currSymbolTable);
-      node = new FunctionCallNode(function, params, currSymbolTable);
-      currSymbolTable = currSymbolTable.getParentSymbolTable();
-    } else if (ctx.array_liter() != null) {
-      node = visitArray_liter(ctx.array_liter());
-    } else if (ctx.pair_elem() != null) {
-      node = visitPair_elem(ctx.pair_elem());
-    } else {
-      node = visit(ctx.expr(0));
+
+      /* given argument number is not 0, generate list */
+      int exprIndex = 0;
+      for (ExprContext e : ctx.arg_list().expr()) {
+        ExprNode param = visit(e).asExprNode();
+        Type paramType = param.getType();
+        Type targetType = function.getParamList().get(exprIndex).getType();
+
+        /* check param types */
+        Utils.typeCheck(ctx.arg_list().expr(exprIndex), targetType, paramType);
+        params.add(param);
+        exprIndex++;
+      }
     }
+    
+    currSymbolTable = new SymbolTable(currSymbolTable);
+    Node node = new FunctionCallNode(function, params, currSymbolTable);
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     return node;
   }
 
-  /**
-   * return type: BoolNode */
   @Override
   public Node visitBoolExpr(BoolExprContext ctx) {
     String bool = ctx.BOOL_LITER().getText();
     return new BoolNode(bool.equals("true"));
   }
 
-  /**
-   * return type: PairNode */
   @Override
   public Node visitPairExpr(PairExprContext ctx) {
     return new PairNode();
   }
 
-  /**
-   * return type: CharNode */
   @Override
   public Node visitCharExpr(CharExprContext ctx) {
     return new CharNode(ctx.CHAR_LITER().getText().charAt(0));
   }
 
-  /**
-   * return type: BinopNode */
   @Override
   public Node visitCmpExpr(CmpExprContext ctx) {
-    String bop = ctx.bop.getText();
-    Binop binop = null;
-    switch(bop) {
-      case ">":
-        binop = Binop.GREATER;
-        break;
-      case ">=":
-        binop = Binop.GREATER_EQUAL;
-        break;
-      case "<":
-        binop = Binop.LESS;
-        break;
-      case "<=":
-        binop = Binop.LESS_EQUAL;
-        break;
-      default:
-        /* throw an error */
-        throw new IllegalArgumentException("illegal argument in visitCmpExpr" + bop);
-    }
+    String literal = ctx.bop.getText();
+    Binop binop = CmpEnumMapping.get(literal);
 
     ExprNode expr1 = visit(ctx.expr(0)).asExprNode();
     Type expr1Type = expr1.getType();
@@ -588,19 +531,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitEqExpr(EqExprContext ctx) {
-    String bop = ctx.bop.getText();
-    Binop binop = null;
-    switch(bop) {
-      case "==":
-        binop = Binop.EQUAL;
-        break;
-      case "!=":
-        binop = Binop.UNEQUAL;
-        break;
-      default:
-        /* throw an error */
-        throw new IllegalArgumentException("illegal argument in visitEqExpr" + bop);
-    }
+    String literal = ctx.bop.getText();
+    Binop binop = EqEnumMapping.get(literal);
+
     ExprNode expr1 = visit(ctx.expr(0)).asExprNode();
     Type exrp1Type = expr1.getType();
     ExprNode expr2 = visit(ctx.expr(1)).asExprNode();
@@ -614,59 +547,44 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitIdExpr(IdExprContext ctx) {
     String name = ctx.IDENT().getText();
-    ExprNode value = currSymbolTable.lookupAll(name);
-    if (value == null) {
-      SemanticErrorHandler.symbolNotFound(ctx, name);
-    }
-    return value;
+    return Utils.lookUpWithNotFoundException(ctx, currSymbolTable, name);
   }
 
-  /**
-   * return type: IntegerNode */
   @Override
   public Node visitIntExpr(IntExprContext ctx) {
     return new IntegerNode(Utils.intParse(ctx, ctx.INT_LITER().getText()));
   }
 
-  /**
-   * return type: ExprNode */
   @Override
-  public Node visitPair_elem(Pair_elemContext ctx) {
+  public Node visitFstExpr(FstExprContext ctx) {
     ExprNode exprNode = visit(ctx.expr()).asExprNode();
     Type pairType = exprNode.getType();
-    boolean isFirst = false;
-    Type pairElemType = null;
+    Type pairElemType = pairType.asPairType().getFstType();
 
     Utils.typeCheck(ctx.expr(), PAIR_TYPE, pairType);
-
-    if (ctx.FST() != null) {
-      isFirst = true;
-      pairElemType = pairType.asPairType().getFstType();
-    } else if (ctx.SND() != null) {
-      pairElemType = pairType.asPairType().getSndType();
-    } else {
-      throw new IllegalArgumentException("bost FST and SND are null in visitPair_elem");
-    }
 
     if (pairElemType == null) {
       SemanticErrorHandler.invalidPairError(ctx.expr());
     }
 
-    return new PairElemNode(exprNode, isFirst, pairElemType);
+    return new PairElemNode(exprNode, pairElemType);
   }
 
-  /**
-   * return type: TypeDeclareNode */
   @Override
-  public Node visitPair_type(Pair_typeContext ctx) {
-    TypeDeclareNode leftChild = visit(ctx.pair_elem_type(0)).asTypeDeclareNode();
-    TypeDeclareNode rightChild = visit(ctx.pair_elem_type(1)).asTypeDeclareNode();
-    Type type = new PairType(leftChild.getType(), rightChild.getType());
-    return new TypeDeclareNode(type);
+  public Node visitSndExpr(SndExprContext ctx) {
+    ExprNode exprNode = visit(ctx.expr()).asExprNode();
+    Type pairType = exprNode.getType();
+    Type pairElemType = pairType.asPairType().getSndType();
+
+    Utils.typeCheck(ctx.expr(), PAIR_TYPE, pairType);
+
+    if (pairElemType == null) {
+      SemanticErrorHandler.invalidPairError(ctx.expr());
+    }
+
+    return new PairElemNode(exprNode, pairElemType);
   }
 
-  /**
-   * return type: FuncParamNode */
   @Override
   public Node visitParam(ParamContext ctx) {
     TypeDeclareNode type = visit(ctx.type()).asTypeDeclareNode();
@@ -756,7 +674,15 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   @Override
-  public Node visitPairElemNewPair(PairElemNewPairContext ctx) {
+  public Node visitPairElemPairType(PairElemPairTypeContext ctx) {
     return new TypeDeclareNode(new PairType());
+  }
+
+  @Override
+  public Node visitPair_type(Pair_typeContext ctx) {
+    TypeDeclareNode leftChild = visit(ctx.pair_elem_type(0)).asTypeDeclareNode();
+    TypeDeclareNode rightChild = visit(ctx.pair_elem_type(1)).asTypeDeclareNode();
+    Type type = new PairType(leftChild.getType(), rightChild.getType());
+    return new TypeDeclareNode(type);
   }
 }
