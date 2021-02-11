@@ -41,26 +41,25 @@ pair_elem : FST expr
           | SND expr
           ;
 
-type : base_type
-     | array_type
-     | pair_type 
+type : base_type  #BaseType
+     | array_type #ArrayType
+     | pair_type  #PairType
      ;
 
-// put base type here, maybe easier to implement expr? (not sure)
-base_type : INT
-          | BOOL
-          | CHAR
-          | STRING
+base_type : INT    #IntType
+          | BOOL   #BoolType
+          | CHAR   #CharType
+          | STRING #StringType
           ;
 
-array_type     : array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET 
+array_type     : array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
                | base_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
                | pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
                ;
 pair_type      : PAIR OPEN_PARENTHESES pair_elem_type  COMMA pair_elem_type  CLOSE_PARENTHESES ;
-pair_elem_type : base_type
-               | array_type  
-               | PAIR 
+pair_elem_type : base_type  #PairElemBaseType   // This visitor will be replaced by base_type visitors
+               | array_type #PairElemArrayType  // This visitor will be replaced by array_type visitors
+               | PAIR       #PairElemNewPair
                ;
 
 expr : INT_LITER      #IntExpr

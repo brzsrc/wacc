@@ -1,6 +1,7 @@
 package utils;
 
 import java.util.List;
+import java.util.Set;
 
 import antlr.WACCParser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -13,78 +14,78 @@ public class SemanticErrorHandler {
     public static final int SYNTAX_ERROR_CODE = 100;
     public static final int SEMANTIC_ERROR_CODE = 200;
 
-    public void typeMismatch(ParserRuleContext ctx, Type expected, Type actual) {
+    public static void typeMismatch(ParserRuleContext ctx, Type expected, Type actual) {
         String msg = "Expected type " + expected.toString() + ", but the actual type is " + actual.toString();
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void typeMismatch(ParserRuleContext ctx, String ident, Type expected, Type actual) {
+    public static void typeMismatch(ParserRuleContext ctx, String ident, Type expected, Type actual) {
         String msg = "Expected type " + expected.toString() + " for variable " + ident + ", but the actual type is " + actual.toString();
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void typeMismatch(ParserRuleContext ctx, List<Type> expected, Type actual) {
+    public static void typeMismatch(ParserRuleContext ctx, Set<Type> expected, Type actual) {
         String msg = "Expected types are " + expected.toString() + ", but the actual type is " + actual.toString();
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void invalidFuncArgCount(ParserRuleContext ctx, int expected, int actual) {
+    public static void invalidFuncArgCount(ParserRuleContext ctx, int expected, int actual) {
         String msg = "Invalid number of arguments: Expected " + expected + " argument(s), but actual number is " + actual;
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void symbolNotFound(ParserRuleContext ctx, String ident) {
+    public static void symbolNotFound(ParserRuleContext ctx, String ident) {
         String msg = "Symbol " + ident + " is not found in the current scope of the program";
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void symbolRedeclared(ParserRuleContext ctx, String ident) {
+    public static void symbolRedeclared(ParserRuleContext ctx, String ident) {
         String msg = "Symbol " + ident + " has already been declared in the current scope of the program";
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void invalidFunctionReturnExit(ParserRuleContext ctx, String funcName) {
+    public static void invalidFunctionReturnExit(ParserRuleContext ctx, String funcName) {
         String msg = "Function " + funcName + " has not returned or exited properly.";
-        errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
     }
 
-    public void functionJunkAfterReturn(WACCParser.SeqStatContext ctx) {
+    public static void functionJunkAfterReturn(WACCParser.SeqStatContext ctx) {
         String msg = "Function Junk exists.";
-        errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
     }
 
-    public void invalidRuleException(ParserRuleContext ctx, String visitorName) {
+    public static void invalidRuleException(ParserRuleContext ctx, String visitorName) {
         String msg = "No matching rule for " + visitorName + ", bug in compiler";
-        errorHandler(ctx, 0, msg);
+        SemanticErrorHandler.errorHandler(ctx, 0, msg);
     }
 
-    public void arrayDepthError(ParserRuleContext ctx, Type type, int indexDepth) {
+    public static void arrayDepthError(ParserRuleContext ctx, Type type, int indexDepth) {
         String msg = "Array declared as " + type.toString() + ", but called with index depth " + indexDepth;
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void returnFromMainError(ParserRuleContext ctx) {
+    public static void returnFromMainError(ParserRuleContext ctx) {
         String msg = "Call return in main function body";
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void invalidPairError(ParserRuleContext ctx) {
+    public static void invalidPairError(ParserRuleContext ctx) {
         String msg = "Calling fst/snd on uninitialised pair expr is not allowed";
-        errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SEMANTIC_ERROR_CODE, msg);
     }
 
-    public void integerRangeError(ParserRuleContext ctx, String intText) {
+    public static void integerRangeError(ParserRuleContext ctx, String intText) {
         String msg = "Integer " + intText + " format not compatible with 32bit int";
-        errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
     }
 
-    public void nullReferenceError(ParserRuleContext ctx) {
+    public static void nullReferenceError(ParserRuleContext ctx) {
         String msg = "Null reference error when using pair";
-        errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
+        SemanticErrorHandler.errorHandler(ctx, SYNTAX_ERROR_CODE, msg);
     }
 
     // todo: only internal error should terminate compiling, other error should continue and parse the rest stat
-    private void errorHandler(ParserRuleContext ctx, int code, String msg) {
+    private static void errorHandler(ParserRuleContext ctx, int code, String msg) {
         int lineNum = 0;
         int linePos = 0;
 
@@ -100,14 +101,11 @@ public class SemanticErrorHandler {
             lineNum = ((ParserRuleContext) ctx).getStart().getLine();
             linePos = ((ParserRuleContext) ctx).getStart().getCharPositionInLine();
         } else {
-            /* internal error */
-            throw new IllegalArgumentException("internal error in errorHandler");
+            throw new IllegalArgumentException("Internal exception in errorHandler!");
         }
 
         System.err.println("line " + lineNum + ":" + linePos + " : " + msg);
         System.exit(code);
     }
-
-
 
 }
