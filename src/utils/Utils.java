@@ -29,6 +29,15 @@ public class Utils {
     }
   }
 
+  public static ExprNode lookUpWithNotFoundException(ParserRuleContext ctx, SymbolTable table, String varName) {
+    ExprNode value = table.lookupAll(varName);
+    if (value == null) {
+      SemanticErrorHandler.symbolNotFound(ctx, varName);
+    }
+
+    return value;
+  }
+
   public static Integer intParse(ParserRuleContext ctx, String intExt) {
     int integer = 0;
     try {

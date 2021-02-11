@@ -59,6 +59,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
                                                                     "/", Binop.DIV,
                                                                     "%", Binop.MOD);
   private static final Map<String, Binop> EqEnumMapping = Map.of("==", Binop.EQUAL, "!=", Binop.INEQUAL);
+  private static final Map<String, Binop> LogicOpEnumMapping = Map.of("&&", Binop.AND, "||", Binop.OR);
   private static final Map<String, Binop> CmpEnumMapping = Map.of(">", Binop.GREATER, ">=", Binop.GREATER_EQUAL,
                                                                   "<", Binop.LESS, "<=", Binop.LESS_EQUAL);
 
@@ -370,11 +371,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitArray_elem(Array_elemContext ctx) {
 
     String arrayIdent = ctx.IDENT().getText();
-    ExprNode array = currSymbolTable.lookupAll(arrayIdent);
-
-    if (array == null) {
-      SemanticErrorHandler.symbolNotFound(ctx, arrayIdent);
-    }
+    ExprNode array = Utils.lookUpWithNotFoundException(ctx, currSymbolTable, arrayIdent);
 
     Utils.typeCheck(ctx, ARRAY_TYPE, array.getType());
 
@@ -395,15 +392,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * return type: BinopNode */
   @Override
   public Node visitAndOrExpr(AndOrExprContext ctx) {
-    String bop = ctx.bop.getText();
-    Binop binop = null;
-    if(bop.equals("&&")) {
-      binop = Binop.AND;
-    } else if(bop.equals("||")) {
-      binop = Binop.OR;
-    } else {
-      /* throw error */
-    }
+    String literal = ctx.bop.getText();
+    Binop binop = LogicOpEnumMapping.get(literal);
 
     ExprNode expr1 = visit(ctx.expr(0)).asExprNode();
     Type expr1Type = expr1.getType();
@@ -458,11 +448,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitIdent(IdentContext ctx) {
     String varName = ctx.IDENT().getText();
-    ExprNode value = currSymbolTable.lookupAll(varName);
-
-    if (value == null) {
-      SemanticErrorHandler.symbolNotFound(ctx, varName);
-    }
+    ExprNode value = Utils.lookUpWithNotFoundException(ctx, currSymbolTable, varName);
 
     return new IdentNode(value.getType(), varName);
   }
@@ -485,10 +471,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (expectedParamNum != 0) {
       if (ctx.arg_list() == null) {
         SemanticErrorHandler.invalidFuncArgCount(ctx, expectedParamNum, 0);
-        return null;
       } else if (expectedParamNum != ctx.arg_list().expr().size()) {
         SemanticErrorHandler.invalidFuncArgCount(ctx, expectedParamNum, ctx.arg_list().expr().size());
-        return null;
       }
 
       /* given argument number is not 0, generate list */
@@ -563,11 +547,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitIdExpr(IdExprContext ctx) {
     String name = ctx.IDENT().getText();
-    ExprNode value = currSymbolTable.lookupAll(name);
-    if (value == null) {
-      SemanticErrorHandler.symbolNotFound(ctx, name);
-    }
-    return value;
+    return Utils.lookUpWithNotFoundException(ctx, currSymbolTable, name);
   }
 
   @Override
@@ -625,14 +605,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     Utils.typeCheck(ctx.expr(1), INT_BASIC_TYPE, expr2Type);
 
     return new BinopNode(expr1, expr2, binop);
-  }
-
-  @Override
-  public Node visitPair_type(Pair_typeContext ctx) {
-    TypeDeclareNode leftChild = visit(ctx.pair_elem_type(0)).asTypeDeclareNode();
-    TypeDeclareNode rightChild = visit(ctx.pair_elem_type(1)).asTypeDeclareNode();
-    Type type = new PairType(leftChild.getType(), rightChild.getType());
-    return new TypeDeclareNode(type);
   }
 
   @Override
@@ -704,5 +676,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitPairElemPairType(PairElemPairTypeContext ctx) {
     return new TypeDeclareNode(new PairType());
+  }
+
+  @Override
+  public Node visitPair_type(Pair_typeContext ctx) {
+    TypeDeclareNode leftChild = visit(ctx.pair_elem_type(0)).asTypeDeclareNode();
+    TypeDeclareNode rightChild = visit(ctx.pair_elem_type(1)).asTypeDeclareNode();
+    Type type = new PairType(leftChild.getType(), rightChild.getType());
+    return new TypeDeclareNode(type);
   }
 }
