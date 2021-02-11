@@ -25,7 +25,7 @@ public class ArrayElemNode extends ExprNode {
     this.index = index;
     this.type = type;
 
-    if (array.asArrayNode().getDepth() < index.size()) {
+    if (array.getType().asArrayType().getDepth() < index.size()) {
       SemanticErrorHandler.arrayDepthError(null, array.getType(), index.size());
     }
   }

@@ -3,9 +3,18 @@ package type;
 public class ArrayType implements Type {
 
     private Type contentType;
+    private int depth;
 
     public ArrayType(Type contentType) {
         this.contentType = contentType;
+
+        Type subType = contentType;
+        int depth = 1;
+        while (subType instanceof ArrayType) {
+            subType = subType.asArrayType().getContentType();
+            depth++;
+        }
+        this.depth = depth;
     }
 
     public ArrayType() {
@@ -22,6 +31,10 @@ public class ArrayType implements Type {
         }
 
         return contentType.equalToType(((ArrayType) other).getContentType());
+    }
+
+    public int getDepth() {
+        return depth;
     }
 
     public Type getContentType() {

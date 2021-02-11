@@ -403,9 +403,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       semanticError |= Utils.typeCheck(index_, INT_BASIC_TYPE, elemType);
       indexList.add(index);
     }
-
-    System.out.println(array.getType());
-
+    
     return new ArrayElemNode(array, indexList, array.getType().asArrayType().getContentType());
   }
 
