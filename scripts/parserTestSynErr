@@ -3,9 +3,11 @@
 INVALID_SYNTAX_ERR="./src/test/examples/invalid/syntaxErr"
 INVALID_PARSER_SYNTAX_ERR_LOG="./log/parse_invalid_syntax_error.log"
 
+> $INVALID_PARSER_SYNTAX_ERR_LOG
+
 for file in $(find $INVALID_SYNTAX_ERR -name "*.wacc")
 do
-  ./compile $file 2> $INVALID_PARSER_SYNTAX_ERR_LOG
+  ./compile $file 2>> $INVALID_PARSER_SYNTAX_ERR_LOG
   ret=$?
   echo $ret
   if [ $ret -ne 100 ]; then

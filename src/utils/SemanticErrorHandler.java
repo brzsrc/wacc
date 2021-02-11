@@ -8,7 +8,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import type.Type;
 
-public class ErrorHandler {
+public class SemanticErrorHandler {
 
     public static final int SYNTAX_ERROR_CODE = 100;
     public static final int SEMANTIC_ERROR_CODE = 200;

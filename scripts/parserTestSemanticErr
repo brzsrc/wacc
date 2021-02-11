@@ -3,9 +3,11 @@
 INVALID_SEMANTIC_ERR="./src/test/examples/invalid/semanticErr"
 INVALID_PARSER_SEMANTIC_ERR_LOG="./log/parse_invalid_semantic_error.log"
 
+> $INVALID_PARSER_SEMANTIC_ERR_LOG
+
 for file in $(find $INVALID_SEMANTIC_ERR -name "*.wacc")
 do
-  ./compile -p $file 2> $INVALID_PARSER_SEMANTIC_ERR_LOG
+  ./compile -p $file 2>> $INVALID_PARSER_SEMANTIC_ERR_LOG
   ret=$?
   echo "exit status with parsing only: " $ret
   if [ $ret -ne 0 ]; then

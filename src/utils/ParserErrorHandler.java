@@ -9,16 +9,26 @@ public class ParserErrorHandler extends DefaultErrorStrategy {
     @Override
     public void reportError(Parser recognizer, RecognitionException e) {
         super.reportError(recognizer, e);
+        System.exit(SYNTAX_ERROR_CODE);
     }
 
     @Override
     public void recover(Parser recognizer, RecognitionException e) {
         super.recover(recognizer, e);
+        recognizer.exitRule();
         System.exit(SYNTAX_ERROR_CODE);
     }
 
     @Override
     public Token recoverInline(Parser recognizer) {
-        return super.recoverInline(recognizer);
+        super.recoverInline(recognizer);
+        recognizer.exitRule();
+        System.exit(SYNTAX_ERROR_CODE);
+        return null;
+    }
+
+    @Override
+    public void sync(Parser recognizer) {
+        return;
     }
 }
