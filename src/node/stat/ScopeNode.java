@@ -29,8 +29,7 @@ public class ScopeNode extends StatNode {
 
 
   private boolean getEndValue() {
-    assert body.size() > 0;
-    return body.get(body.size()-1).leaveAtEnd();
+    return !body.isEmpty() && body.get(body.size() - 1).leaveAtEnd();
   }
 
 }
