@@ -9,29 +9,28 @@ public class ScopeNode extends StatNode {
 
   public ScopeNode(StatNode node) {
     mergeScope(node);
-    setLeaveAtEnd();
+    setLeaveAtEnd(getEndValue());
   }
 
   /* Handle the SeqStat */
   public ScopeNode(StatNode before, StatNode after) {
     mergeScope(before);
     mergeScope(after);
-    setLeaveAtEnd();
+    setLeaveAtEnd(getEndValue());
   }
 
   private void mergeScope(StatNode s) {
-    // todo: instance of skip node does not add
     if (s instanceof ScopeNode) {
       body.addAll(((ScopeNode) s).body);
-    } else {
+    } else if (!(s instanceof SkipNode)) {
       body.add(s);
     }
   }
 
-  @Override
-  protected void setLeaveAtEnd() {
+
+  private boolean getEndValue() {
     assert body.size() > 0;
-    leaveAtEnd = body.get(body.size()-1).leaveAtEnd();
+    return body.get(body.size()-1).leaveAtEnd();
   }
 
 }

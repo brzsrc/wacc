@@ -5,12 +5,12 @@ import utils.SymbolTable;
 
 public abstract class StatNode implements Node {
 
-  protected boolean leaveAtEnd = false;
-  protected SymbolTable scope;
+  private boolean leaveAtEnd = false;
+  private SymbolTable scope;
 
   /* Set leaveAtEnd if needs overwrite */
-  protected void setLeaveAtEnd() {
-    this.leaveAtEnd = false;
+  protected void setLeaveAtEnd(boolean value) {
+    this.leaveAtEnd = value;
   }
 
   public void setScope(SymbolTable scope) {

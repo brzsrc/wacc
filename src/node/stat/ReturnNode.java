@@ -9,7 +9,7 @@ public class ReturnNode extends StatNode {
 
   public ReturnNode(ExprNode value) {
     this.value = value;
-    this.leaveAtEnd = true;
+    setLeaveAtEnd(true);
   }
 
 }

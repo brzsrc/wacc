@@ -86,8 +86,8 @@ public class SemanticErrorHandler {
 
     // todo: only internal error should terminate compiling, other error should continue and parse the rest stat
     private static void errorHandler(ParserRuleContext ctx, int code, String msg) {
-        int lineNum = 0;
-        int linePos = 0;
+        int lineNum;
+        int linePos;
 
         if (ctx == null) {
             System.err.println(msg);
@@ -97,11 +97,9 @@ public class SemanticErrorHandler {
         if (ctx instanceof TerminalNode) {
             lineNum = ((TerminalNode) ctx).getSymbol().getLine();
             linePos = ((TerminalNode) ctx).getSymbol().getCharPositionInLine();
-        } else if (ctx instanceof ParserRuleContext) {
-            lineNum = ((ParserRuleContext) ctx).getStart().getLine();
-            linePos = ((ParserRuleContext) ctx).getStart().getCharPositionInLine();
         } else {
-            throw new IllegalArgumentException("Internal exception in errorHandler!");
+            lineNum = ctx.getStart().getLine();
+            linePos = ctx.getStart().getCharPositionInLine();
         }
 
         System.err.println("line " + lineNum + ":" + linePos + " : " + msg);

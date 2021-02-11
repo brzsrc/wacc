@@ -12,13 +12,13 @@ public class IfNode extends StatNode {
     this.cond = cond;
     this.ifBody = ifBody;
     this.elseBody = elseBody;
-    setLeaveAtEnd();
+    setLeaveAtEnd(getEndValue());
   }
 
-  @Override
-  protected void setLeaveAtEnd() {
+
+  private boolean getEndValue() {
     assert ifBody != null && elseBody != null;
-    leaveAtEnd = ifBody.leaveAtEnd() && elseBody.leaveAtEnd();
+    return ifBody.leaveAtEnd() && elseBody.leaveAtEnd();
   }
 
 }
