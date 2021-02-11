@@ -24,21 +24,22 @@ stat : SKP                               #SkipStat
      | stat SEMICOLON stat               #SeqStat
      ;
 
-assign_lhs : IDENT
-           | array_elem
-           | pair_elem
+assign_lhs : IDENT      #Ident
+           | array_elem #LHSArrayElem // This visitor will be replaced by visitArray_elem()
+           | pair_elem  #LHSPairElem  // This visitor will be replaced by visitors in pair_elem
            ;
 
-assign_rhs : expr
-           | array_liter
-           | NEWPAIR OPEN_PARENTHESES expr  COMMA expr  CLOSE_PARENTHESES | pair_elem
-           | CALL IDENT  OPEN_PARENTHESES arg_list? CLOSE_PARENTHESES
+assign_rhs : expr                                                         #ExprNode     // This visitor will be replaced by the general visit()
+           | array_liter                                                  #ArrayLiteral // This visitor will be replaced by visitArray_liter()
+           | NEWPAIR OPEN_PARENTHESES expr  COMMA expr  CLOSE_PARENTHESES #NewPair
+           | pair_elem                                                    #RHSPairElem  // This visitor will be replaced by visitPair_elem()
+           | CALL IDENT  OPEN_PARENTHESES arg_list? CLOSE_PARENTHESES     #FunctionCall
            ;
 
 // argument list for functions 
 arg_list  : expr (COMMA expr)*;
-pair_elem : FST expr
-          | SND expr
+pair_elem : FST expr #FstExpr
+          | SND expr #SndExpr
           ;
 
 type : base_type  #BaseType
@@ -59,7 +60,7 @@ array_type     : array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 pair_type      : PAIR OPEN_PARENTHESES pair_elem_type  COMMA pair_elem_type  CLOSE_PARENTHESES ;
 pair_elem_type : base_type  #PairElemBaseType   // This visitor will be replaced by base_type visitors
                | array_type #PairElemArrayType  // This visitor will be replaced by array_type visitors
-               | PAIR       #PairElemNewPair
+               | PAIR       #PairElemPairType
                ;
 
 expr : INT_LITER      #IntExpr

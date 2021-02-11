@@ -4,6 +4,8 @@ import java.util.Set;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import antlr.WACCParser.Pair_elemContext;
+import node.expr.ExprNode;
 import type.Type;
 
 public class Utils {
