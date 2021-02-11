@@ -29,6 +29,5 @@ public class ParserErrorHandler extends DefaultErrorStrategy {
 
     @Override
     public void sync(Parser recognizer) {
-        return;
     }
 }

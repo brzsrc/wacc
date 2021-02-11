@@ -9,12 +9,7 @@ public class ExitNode extends StatNode {
 
   public ExitNode(ExprNode value) {
     this.value = value;
-    setLeaveAtEnd();
-  }
-
-  @Override
-  protected void setLeaveAtEnd() {
-    leaveAtEnd = true;
+    setLeaveAtEnd(true);
   }
 
 }
