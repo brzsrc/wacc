@@ -1,12 +1,12 @@
 package utils;
 
 import java.util.HashMap;
-import type.Type;
+
 import node.expr.ExprNode;
 
 public class SymbolTable {
 
-    private final static ErrorHandler errorHandler = new ErrorHandler();
+    private final static SemanticErrorHandler SEMANTIC_ERROR_HANDLER = new SemanticErrorHandler();
     // symbol table only record declaired type, so should map type instead of node?
     // node is determinded at run time, i.e x can be assigned 1 + 2 later, symbol table should't change on that
     private HashMap<String, ExprNode> dictionary;
@@ -19,7 +19,7 @@ public class SymbolTable {
 
     public void add(String name, ExprNode expr) {
         if (dictionary.containsKey(name)) {
-            errorHandler.symbolRedeclared(null, name);
+            SEMANTIC_ERROR_HANDLER.symbolRedeclared(null, name);
         }
         this.dictionary.put(name, expr);
     }
