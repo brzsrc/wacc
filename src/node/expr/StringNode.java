@@ -5,7 +5,12 @@ import type.BasicTypeEnum;
 
 public class StringNode extends ExprNode {
 
-  private int length;
+  /**
+   * Represent a string
+   * Example: "hello, world!"
+   */
+
+  private final int length;
 
   public StringNode(String string) {
     this.length = string.length();
@@ -13,6 +18,6 @@ public class StringNode extends ExprNode {
   }
 
   public int getLength() {
-      return this.length;
+    return this.length;
   }
 }

@@ -2,32 +2,35 @@ package utils;
 
 import org.antlr.v4.runtime.*;
 
+import static utils.Utils.*;
+
 public class ParserErrorHandler extends DefaultErrorStrategy {
 
-    private static final int SYNTAX_ERROR_CODE = 100;
+  /**
+   * ParserErrorHandler will handle syntax errors reported by ANTLR parser by reporting the errors
+   * and then exit with SYNTAX_ERROR_CODE
+   */
 
-    @Override
-    public void reportError(Parser recognizer, RecognitionException e) {
-        super.reportError(recognizer, e);
-        System.exit(SYNTAX_ERROR_CODE);
-    }
+  /* override reportError to properly exit the program after printing syntax error */
+  @Override
+  public void reportError(Parser recognizer, RecognitionException e) {
+    super.reportError(recognizer, e);
+    System.exit(SYNTAX_ERROR_CODE);
+  }
 
-    @Override
-    public void recover(Parser recognizer, RecognitionException e) {
-        super.recover(recognizer, e);
-        recognizer.exitRule();
-        System.exit(SYNTAX_ERROR_CODE);
-    }
+  /* override recoverInLine to properly exit the program after the ANTLR missingSymbol error */
+  @Override
+  public Token recoverInline(Parser recognizer) {
+    super.recoverInline(recognizer);
+    recognizer.exitRule();
+    System.exit(SYNTAX_ERROR_CODE);
+    return null;
+  }
 
-    @Override
-    public Token recoverInline(Parser recognizer) {
-        super.recoverInline(recognizer);
-        recognizer.exitRule();
-        System.exit(SYNTAX_ERROR_CODE);
-        return null;
-    }
-
-    @Override
-    public void sync(Parser recognizer) {
-    }
+  /* override reportUnwantedToken to properly exit the program after the ANTLR extraneousInput error */
+  @Override
+  protected void reportUnwantedToken(Parser recognizer) {
+    super.reportUnwantedToken(recognizer);
+    System.exit(SYNTAX_ERROR_CODE);
+  }
 }

@@ -1,19 +1,23 @@
 package node.expr;
 
 import type.Type;
-import utils.SymbolTable;
 
 public class IdentNode extends ExprNode {
 
-    private String name;
+  /**
+   * Represent an identifier node, including its type and identifier
+   * Example: int x, char c, int[] arr
+   */
 
-    public IdentNode(Type type, String name) {
-        this.type = type;
-        this.name = name;
-    }
+  private final String name;
 
-    public String getName() {
-        return name;
-    }
-    
+  public IdentNode(Type type, String name) {
+    this.type = type;
+    this.name = name;
+  }
+
+  public String getName() {
+    return name;
+  }
+
 }

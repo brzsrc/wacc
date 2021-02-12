@@ -3,7 +3,13 @@ package node.stat;
 import node.expr.ExprNode;
 
 public class ReadNode extends StatNode {
-  private ExprNode readTarget;
+
+  /**
+   * Represent a read statement, with the target being recorded
+   * Example: read x
+   */
+
+  private final ExprNode readTarget;
 
   public ReadNode(ExprNode readTarget) {
     this.readTarget = readTarget;

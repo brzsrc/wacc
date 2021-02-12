@@ -5,7 +5,12 @@ import type.BasicTypeEnum;
 
 public class IntegerNode extends ExprNode {
 
-  private int val;
+  /**
+   * Represent the integer node
+   * Example: 10, 25, 37
+   */
+
+  private final int val;
 
   public IntegerNode(int val) {
     this.val = val;

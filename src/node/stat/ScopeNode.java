@@ -5,6 +5,11 @@ import java.util.List;
 
 public class ScopeNode extends StatNode {
 
+  /**
+   * Represent BEGIN <stat> END scope statement, as well as
+   * <stat> ; <stat> sequential statement
+   */
+
   private final List<StatNode> body = new ArrayList<>();
 
   public ScopeNode(StatNode node) {
@@ -12,7 +17,7 @@ public class ScopeNode extends StatNode {
     setLeaveAtEnd(getEndValue());
   }
 
-  /* Handle the SeqStat */
+  /* Handle the sequential statement */
   public ScopeNode(StatNode before, StatNode after) {
     mergeScope(before);
     mergeScope(after);
@@ -27,9 +32,8 @@ public class ScopeNode extends StatNode {
     }
   }
 
-
+  /* This will help to determine whether there is a return statement at the end of a sequence */
   private boolean getEndValue() {
     return !body.isEmpty() && body.get(body.size() - 1).leaveAtEnd();
   }
-
 }

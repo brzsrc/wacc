@@ -4,6 +4,10 @@ import node.expr.ExprNode;
 
 public class IfNode extends StatNode {
 
+  /**
+   * Represent an if-else statement, with condition and if-body, else-body recorded
+   */
+
   private final ExprNode cond;
   private final StatNode ifBody;
   private final StatNode elseBody;

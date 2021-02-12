@@ -4,9 +4,14 @@ import node.expr.ExprNode;
 
 public class FreeNode extends StatNode {
 
-  private final ExprNode value;
+  /**
+   * Represent a free statement, with <expr> being recorded
+   * Example: free <expr>, free p (where p is a non-null pair)
+   */
 
-  public FreeNode(ExprNode value) {
-    this.value = value;
+  private final ExprNode expr;
+
+  public FreeNode(ExprNode expr) {
+    this.expr = expr;
   }
 }

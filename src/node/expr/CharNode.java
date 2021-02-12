@@ -5,7 +5,12 @@ import type.BasicTypeEnum;
 
 public class CharNode extends ExprNode {
 
-  private char val;
+  /**
+   * Represent a character node
+   * Example: 'a', '!', '?'
+   */
+
+  private final char val;
 
   public CharNode(char c) {
     this.val = c;
