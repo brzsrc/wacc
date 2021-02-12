@@ -22,8 +22,4 @@ public interface Node {
   default StatNode asStatNode() {
     throw new IllegalArgumentException("cast not allowed");
   }
-
-  default ArrayNode asArrayNode() {
-    throw new IllegalArgumentException("cast not allowed");
-  }
 }
