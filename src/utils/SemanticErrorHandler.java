@@ -25,26 +25,29 @@ public class SemanticErrorHandler {
 
   public static void typeMismatch(ParserRuleContext ctx, Type expected, Type actual) {
     String msg =
-        "Expected type " + expected.toString() + ", but the actual type is " + actual.toString();
+        "Incompatible type at '" + ctx.getText() + "'': Expected type " + expected + 
+        ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
 
   public static void typeMismatch(ParserRuleContext ctx, Set<Type> expected, Type actual) {
-    String msg = "Expected types are " + expected.toString() + ", but the actual type is " + actual
-        .toString();
+    String msg = 
+        "Incompatible type at '" + ctx.getText() + "'': Expected types are " + expected + 
+        ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
 
   public static void typeMismatch(ParserRuleContext ctx, String ident, Type expected, Type actual) {
-    String msg = "Expected type " + expected.toString() + " for variable " + ident
-        + ", while the actual type is " + actual.toString();
+    String msg =
+        "Incompatible type at '" + ctx.getText() + "'': Expected type " + expected + 
+        " for variable " + ident + ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
 
   public static void invalidFuncArgCount(ParserRuleContext ctx, int expected, int actual) {
     String msg =
-        "Invalid number of arguments: Expected " + expected + " argument(s), but actual number is "
-            + actual;
+        "Invalid number of arguments: Expected " + expected + " argument(s), but actual count is "
+            + actual + "argument(s)";
     errorHandler(ctx, msg);
     System.exit(SEMANTIC_ERROR_CODE);
   }
@@ -63,13 +66,13 @@ public class SemanticErrorHandler {
 
   public static void arrayDepthError(ParserRuleContext ctx, Type type, int indexDepth) {
     String msg =
-        "Array declared as " + type.toString() + ", but called with index depth " + indexDepth;
+        "Array declared as " + type + ", but called with index depth " + indexDepth;
     errorHandler(ctx, msg);
     System.exit(SEMANTIC_ERROR_CODE);
   }
 
   public static void returnFromMainError(ParserRuleContext ctx) {
-    String msg = "Call return in main function body";
+    String msg = "Call return in main function body is not allowed";
     errorHandler(ctx, msg);
   }
 
@@ -100,7 +103,7 @@ public class SemanticErrorHandler {
   }
 
   public static void functionJunkAfterReturn(WACCParser.SeqStatContext ctx) {
-    String msg = "Statement exits after return statement.";
+    String msg = "Other statements exist after function return statement.";
     errorHandler(ctx, msg);
     System.exit(SYNTAX_ERROR_CODE);
   }
