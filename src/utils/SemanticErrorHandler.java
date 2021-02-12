@@ -40,7 +40,7 @@ public class SemanticErrorHandler {
   public static void typeMismatch(ParserRuleContext ctx, String ident, Type expected, Type actual) {
     String msg =
         "Incompatible type at '" + ctx.getText() + "'': Expected type " + expected + 
-        " for variable " + ident + ", while the actual type is " + actual;
+        " for variable " + ident + ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
 
