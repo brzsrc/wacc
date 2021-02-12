@@ -1,16 +1,21 @@
 package node.expr;
 
 import node.FuncNode;
-import type.Type;
 import utils.SymbolTable;
 
 import java.util.List;
 
 public class FunctionCallNode extends ExprNode {
 
-  private FuncNode function;
-  private List<ExprNode> params;
-  private SymbolTable funcSymbolTable;
+  /**
+   * Represent a function call, with FuncNode and parameter list, as well as its SymbolTable
+   * recorded
+   * Example; int a = call myFunc(), c = call myFunc(something)
+   */
+
+  private final FuncNode function;
+  private final List<ExprNode> params;
+  private final SymbolTable funcSymbolTable;
 
   public FunctionCallNode(FuncNode function, List<ExprNode> params, SymbolTable currScope) {
     this.function = function;

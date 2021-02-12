@@ -2,52 +2,52 @@ package type;
 
 public class ArrayType implements Type {
 
-    private Type contentType;
-    private int depth;
+  private final Type contentType;
+  private final int depth;
 
-    public ArrayType(Type contentType) {
-        this.contentType = contentType;
+  public ArrayType(Type contentType) {
+    this.contentType = contentType;
 
-        Type subType = contentType;
-        int depth = 1;
-        while (subType instanceof ArrayType) {
-            subType = subType.asArrayType().getContentType();
-            depth++;
-        }
-        this.depth = depth;
+    Type subType = contentType;
+    int depth = 1;
+    while (subType instanceof ArrayType) {
+      subType = subType.asArrayType().getContentType();
+      depth++;
+    }
+    this.depth = depth;
+  }
+
+  public ArrayType() {
+    this(null);
+  }
+
+  @Override
+  public boolean equalToType(Type other) {
+    if (other == null) {
+      return true;
+    }
+    if (!(other instanceof ArrayType)) {
+      return false;
     }
 
-    public ArrayType() {
-        this(null);
-	}
+    return contentType.equalToType(((ArrayType) other).getContentType());
+  }
 
-	@Override
-    public boolean equalToType(Type other) {
-        if (other == null) {
-            return true;
-        }
-        if (!(other instanceof ArrayType)) {
-            return false;
-        }
+  public int getDepth() {
+    return depth;
+  }
 
-        return contentType.equalToType(((ArrayType) other).getContentType());
-    }
+  public Type getContentType() {
+    return contentType;
+  }
 
-    public int getDepth() {
-        return depth;
-    }
+  @Override
+  public String toString() {
+    return "Array<" + contentType + ">";
+  }
 
-    public Type getContentType() {
-        return contentType;
-    }
-
-    @Override
-    public String toString() {
-        return "Array<" + contentType + ">";
-    }
-
-    @Override
-    public ArrayType asArrayType() {
-        return this;
-    }
+  @Override
+  public ArrayType asArrayType() {
+    return this;
+  }
 }

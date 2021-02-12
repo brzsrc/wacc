@@ -1,14 +1,15 @@
 package node;
 
-import node.expr.ArrayElemNode;
 import node.expr.ArrayNode;
 import node.expr.ExprNode;
-import node.expr.PairNode;
 import node.stat.StatNode;
-import type.ArrayType;
-import type.PairType;
 
 public interface Node {
+
+  /**
+   * Base interface for ExprNode and StatNode Type casting is explicitly avoided by overriding the
+   * following functions from a concrete class
+   */
 
   default ExprNode asExprNode() {
     throw new IllegalArgumentException("cast not allowed");

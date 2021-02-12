@@ -1,14 +1,18 @@
 package node.stat;
 
 import node.expr.ExprNode;
-import type.Type;
 
 public class ReturnNode extends StatNode {
 
-  private final ExprNode value;
+  /**
+   * Represent the return statement in a non-main function
+   * Example: return x, return 'a', return 1
+   */
 
-  public ReturnNode(ExprNode value) {
-    this.value = value;
+  private final ExprNode expr;
+
+  public ReturnNode(ExprNode expr) {
+    this.expr = expr;
     setLeaveAtEnd(true);
   }
 

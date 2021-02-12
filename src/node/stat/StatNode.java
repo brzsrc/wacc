@@ -5,6 +5,10 @@ import utils.SymbolTable;
 
 public abstract class StatNode implements Node {
 
+  /**
+   * abstract class for statement ndoes. Statement nodes do not have type
+   */
+
   private boolean leaveAtEnd = false;
   private SymbolTable scope;
 

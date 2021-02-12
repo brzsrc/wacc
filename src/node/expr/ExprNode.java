@@ -2,25 +2,25 @@ package node.expr;
 
 import node.Node;
 import type.Type;
-import utils.SymbolTable;
 
 public abstract class ExprNode implements Node {
-    protected Type type;
 
-    public Type getType() {
-        return this.type;
-    }
+  /**
+   * abstract class for expression nodes. Every expression node has a type
+   */
 
-    public void setType(Type type) {
-        this.type = type;
-    }
-    
-    public boolean check() {
-        return false;
-    }
+  protected Type type;
 
-    @Override
-    public ExprNode asExprNode() {
-        return this;
-    }
+  public Type getType() {
+    return this.type;
+  }
+
+  public void setType(Type type) {
+    this.type = type;
+  }
+
+  @Override
+  public ExprNode asExprNode() {
+    return this;
+  }
 }

@@ -6,35 +6,43 @@ import java.util.List;
 
 import type.Type;
 
-// this node is not one statement but one function definition, no need to implement statNode
 public class FuncNode implements Node {
-    private Type returnType;
-    private List<IdentNode> parameters;
-    private StatNode functionBody;
 
-    public FuncNode(Type returnType, List<IdentNode> params) {
-        this(returnType, null, params);
-    }
+  /**
+   * Represent a function declarationm, with returnType, parameters, and function body statement
+   * being recorded
+   *
+   * FuncNode does not need to extend StatNode as it is an organic collection of statement rather
+   * than a simple statement
+   */
 
-    public FuncNode(Type returnType, StatNode functionBody, List<IdentNode> params) {
-        this.returnType = returnType;
-        this.functionBody = functionBody;
-        this.parameters = params;
-    }
+  private final Type returnType;
+  private final List<IdentNode> parameters;
+  private StatNode functionBody;
 
-    public StatNode getFunctionBody() {
-        return functionBody;
-    }
+  public FuncNode(Type returnType, List<IdentNode> params) {
+    this(returnType, null, params);
+  }
 
-    public void setFunctionBody(StatNode functionBody) {
-        this.functionBody = functionBody;
-    }
+  public FuncNode(Type returnType, StatNode functionBody, List<IdentNode> params) {
+    this.returnType = returnType;
+    this.functionBody = functionBody;
+    this.parameters = params;
+  }
 
-    public Type getReturnType() {
-        return returnType;
-    }
+  public StatNode getFunctionBody() {
+    return functionBody;
+  }
 
-    public List<IdentNode> getParamList() {
-        return parameters;
-    }
+  public void setFunctionBody(StatNode functionBody) {
+    this.functionBody = functionBody;
+  }
+
+  public Type getReturnType() {
+    return returnType;
+  }
+
+  public List<IdentNode> getParamList() {
+    return parameters;
+  }
 }

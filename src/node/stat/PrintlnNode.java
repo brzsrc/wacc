@@ -4,9 +4,14 @@ import node.expr.ExprNode;
 
 public class PrintlnNode extends StatNode {
 
-  private final ExprNode value;
+  /**
+   * Represent the println statement, with <expr> being recorded
+   * Example: println <expr>
+   */
 
-  public PrintlnNode(ExprNode value) {
-    this.value = value;
+  private final ExprNode expr;
+
+  public PrintlnNode(ExprNode expr) {
+    this.expr = expr;
   }
 }
