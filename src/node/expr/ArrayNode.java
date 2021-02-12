@@ -26,11 +26,6 @@ public class ArrayNode extends ExprNode {
     return length;
   }
 
-  @Override
-  public ArrayNode asArrayNode() {
-    return this;
-  }
-
   public ExprNode getElem(int index) {
     return this.content.get(index);
   }
