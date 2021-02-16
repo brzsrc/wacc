@@ -123,7 +123,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* visit the function body */
     expectedFunctionReturn = funcNode.getReturnType();
     currSymbolTable = new SymbolTable(currSymbolTable);
-    funcNode.getParamList().forEach(i -> currSymbolTable.add(i.getName(), i));
+    funcNode.getParamList().forEach(i -> semanticError |= currSymbolTable.add(i.getName(), i));
     StatNode functionBody = visit(ctx.stat()).asStatNode();
     functionBody.setScope(currSymbolTable);
     currSymbolTable = currSymbolTable.getParentSymbolTable();
