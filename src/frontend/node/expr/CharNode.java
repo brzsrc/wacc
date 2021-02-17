@@ -21,4 +21,9 @@ public class CharNode extends ExprNode {
     return val;
   }
 
+  @Override
+  public void showNode() {
+    System.out.println(val);
+  }
+
 }
