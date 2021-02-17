@@ -13,7 +13,7 @@ public class ScopeNode extends StatNode {
   private final List<StatNode> body = new ArrayList<>();
 
   public ScopeNode(StatNode node) {
-    mergeScope(node);
+    body.add(node);
     setLeaveAtEnd(getEndValue());
   }
 

@@ -21,4 +21,6 @@ public interface Node {
   default StatNode asStatNode() {
     throw new IllegalArgumentException("cast not allowed");
   }
+
+  void showNode();
 }

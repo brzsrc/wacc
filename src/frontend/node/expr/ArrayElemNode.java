@@ -35,4 +35,15 @@ public class ArrayElemNode extends ExprNode {
       arrayDepthError(null, array.getType(), index.size());
     }
   }
+
+  @Override
+  public void showNode() {
+    array.showNode();
+    for (ExprNode node : index) {
+      System.out.print("[");
+      node.showNode();
+      System.out.print("]");
+    }
+    System.out.println();
+  }
 }

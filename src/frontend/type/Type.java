@@ -11,4 +11,6 @@ public interface Type {
   default ArrayType asArrayType() {
     throw new IllegalArgumentException("cast not allowed");
   }
+
+  void showType();
 }
