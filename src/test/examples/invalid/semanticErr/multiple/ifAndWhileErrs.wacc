@@ -1,4 +1,4 @@
-# boolean typo and if condition type mismatch
+# boolean typo and if condition frontend.type mismatch
 
 # Output:
 # #semantic_error#

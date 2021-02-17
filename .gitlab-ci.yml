@@ -40,13 +40,13 @@ test-parser-semantic-err:
 test-semantics-check-syntax-valid:
   stage: test
   script:
-    - echo "Using valid examples to test SemanticChecker, should NOT generate any semantics error"
+    - echo "Using valid examples to test frontend.SemanticChecker, should NOT generate any semantics error"
     - make
     - ./scripts/semanticCheckerValid
 
 test-semantics-check-semantic-err:
   stage: test
   script:
-    - echo "Using invalid examples with only semantic error to test SemanticChecker, SHOULD generate any semantics error and NOT syntax error"
+    - echo "Using invalid examples with only semantic error to test frontend.SemanticChecker, SHOULD generate any semantics error and NOT syntax error"
     - make
     - ./scripts/semanticCheckerSemanticErr

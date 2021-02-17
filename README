@@ -14,7 +14,7 @@ details below).
   
 > lib <
 
-The lib directory contains the ANTLR library files in antlr-4.9.1-complete.jar. 
+The lib directory contains the ANTLR library files in frontend.antlr-4.9.1-complete.jar.
 You should not need to make any changes in this directory.
   
 > src < 
@@ -48,15 +48,15 @@ Using the provided scripts
 
 This script takes a pair of ANTLR lexer and parser configuration files (set 
 within the script) and creates the corresponding Java classes that you can use
-in your compiler. The Java files are written to the src/antlr directory and 
+in your compiler. The Java files are written to the src/frontend.antlr directory and
 should not be modified by hand. By default this script is set up to generate a
 parse tree and a listerner pattern for traversing this tree, but you can modify
 the compilation options within the script if you want to produce different 
 outputs
 
-Important! - running the antlrBuild script will overwrite the antlr directory in
+Important! - running the antlrBuild script will overwrite the frontend.antlr directory in
              the src directory. We heavily suggest you do not write any of your
-             code within the src/antlr directory
+             code within the src/frontend.antlr directory
 
 > grun <
 
@@ -66,17 +66,17 @@ the TestRig in the project environment. You need to tell it what grammar to use
 what rule to start parsing with and what kind of output you want.
 
 For example:
-  ./grun antlr.Basic prog -tokens
+  ./grun frontend.antlr.Basic prog -tokens
 will run the TestRig using the 'Basic' grammar, starting from the rule for 
 'prog' and outputting the tokens seen by the lexer. To see how the parser groups 
 these tokens you can use the -tree or -gui options instead, such as:
-  ./grun antlr.Basic prog -gui
-In either case you will need to type in your input program and then close the 
+  ./grun frontend.antlr.Basic prog -gui
+In either case you will need to frontend.type in your input program and then close the
 input stream with ctrl-D.
 
 Rather than typing your input programs in by hand, you can pass the TestRig a 
 file to read by piping it in through stdin with
-  ./grun antlr.Basic expr -gui < testfile
+  ./grun frontend.antlr.Basic expr -gui < testfile
 When using the TestRig in this way you won't need to hit ctrl-D to close the 
 input stream as the EOF character in the file does this for you.
 
@@ -90,7 +90,7 @@ script as the access point to your compiler.
 You will need to add the ANTLR jar file to the classpath of your calls to Java
 if you want to be able to use any of the built in ANTLR features. You can do 
 this be setting the -cp option on the command line
-  e.g.  java -cp bin:lib/antlr-4.9.1-complete.jar ...rest of call...
+  e.g.  java -cp bin:lib/frontend.antlr-4.9.1-complete.jar ...rest of call...
 note that the bin: ensures that the bin directory is still part of your java 
 classpath.
 

@@ -1,4 +1,4 @@
-# function parameter type mismatch
+# function parameter frontend.type mismatch
 
 # Output:
 # #semantic_error#

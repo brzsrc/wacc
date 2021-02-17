@@ -1,4 +1,4 @@
-# call free on a non-pair type 
+# call free on a non-pair frontend.type
 
 # Output:
 # #semantic_error#

@@ -1,4 +1,4 @@
-# type mismatch: char <- int
+# frontend.type mismatch: char <- int
 
 # Output:
 # #semantic_error#

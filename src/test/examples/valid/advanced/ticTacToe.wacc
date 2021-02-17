@@ -6,7 +6,7 @@
 # All observed bugs have been fixed.
 #
 # In this program, we are very often need the memory from the heap. 
-# But because a pair is the only data type allocated on the heap, 
+# But because a pair is the only data frontend.type allocated on the heap,
 # we have to use it. We very often need a data structure to store 
 # a set of 3 objects. We will use the format below. 
 # 

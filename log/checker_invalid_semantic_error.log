@@ -1,66 +1,66 @@
 line 13:4 Symbol x is not found in the current scope of the program
 line 12:8 Symbol tru is not found in the current scope of the program
-line 12:10 Expected type BOOLEAN for variable i, while the actual type is INTEGER
-line 13:11 Expected type CHAR for variable b, while the actual type is BOOLEAN
-line 14:11 Expected type INTEGER for variable c, while the actual type is CHAR
-line 13:16 Expected type INTEGER, but the actual type is BOOLEAN
-line 13:29 Expected type INTEGER, but the actual type is BOOLEAN
-line 13:10 Expected type BOOLEAN, but the actual type is INTEGER
-line 13:40 Expected type BOOLEAN, but the actual type is INTEGER
-line 13:10 Expected type BOOLEAN for variable x, while the actual type is INTEGER
+line 12:10 Expected frontend.type BOOLEAN for variable i, while the actual frontend.type is INTEGER
+line 13:11 Expected frontend.type CHAR for variable b, while the actual frontend.type is BOOLEAN
+line 14:11 Expected frontend.type INTEGER for variable c, while the actual frontend.type is CHAR
+line 13:16 Expected frontend.type INTEGER, but the actual frontend.type is BOOLEAN
+line 13:29 Expected frontend.type INTEGER, but the actual frontend.type is BOOLEAN
+line 13:10 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
+line 13:40 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
+line 13:10 Expected frontend.type BOOLEAN for variable x, while the actual frontend.type is INTEGER
 line 13:10 Symbol NUMBER is not found in the current scope of the program
 line 12:14 Calling fst/snd on uninitialised pair expr is not allowed
 line 12:14 Calling fst/snd on uninitialised pair expr is not allowed
-line 14:7 Expected types are [Pair<null, null>, Array<null>], but the actual type is INTEGER
-line 13:7 Expected types are [STRING, CHAR, INTEGER], but the actual type is Pair<INTEGER, INTEGER>
-line 12:5 Expected type BOOLEAN, but the actual type is INTEGER
-line 13:7 Expected types are [CHAR, INTEGER, STRING], but the actual type is BOOLEAN
-line 15:8 Expected type BOOLEAN, but the actual type is INTEGER
+line 14:7 Expected types are [Pair<null, null>, Array<null>], but the actual frontend.type is INTEGER
+line 13:7 Expected types are [STRING, CHAR, INTEGER], but the actual frontend.type is Pair<INTEGER, INTEGER>
+line 12:5 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
+line 13:7 Expected types are [CHAR, INTEGER, STRING], but the actual frontend.type is BOOLEAN
+line 15:8 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
 line 15:9 Invalid number of arguments: Expected 2 argument(s), but actual number is 3
 line 13:4 Symbol x is not found in the current scope of the program
 line 16:2 Symbol f is not found in the current scope of the program
-line 13:13 Expected type BOOLEAN, but the actual type is INTEGER
-line 13:9 Expected type INTEGER, but the actual type is CHAR
+line 13:13 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
+line 13:9 Expected frontend.type INTEGER, but the actual frontend.type is CHAR
 line 15:9 Invalid number of arguments: Expected 2 argument(s), but actual number is 1
 line 11:0 Symbol f has already been declared in the current scope of the program
-line 15:10 Expected type INTEGER for variable b, while the actual type is BOOLEAN
-line 16:17 Expected type INTEGER, but the actual type is BOOLEAN
-line 15:16 Expected type INTEGER, but the actual type is BOOLEAN
-line 15:21 Expected type BOOLEAN, but the actual type is INTEGER
-line 14:14 Expected type INTEGER, but the actual type is CHAR
-line 12:13 Expected type CHAR for variable s, while the actual type is STRING
-line 12:11 Expected type INTEGER for variable b, while the actual type is BOOLEAN
+line 15:10 Expected frontend.type INTEGER for variable b, while the actual frontend.type is BOOLEAN
+line 16:17 Expected frontend.type INTEGER, but the actual frontend.type is BOOLEAN
+line 15:16 Expected frontend.type INTEGER, but the actual frontend.type is BOOLEAN
+line 15:21 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
+line 14:14 Expected frontend.type INTEGER, but the actual frontend.type is CHAR
+line 12:13 Expected frontend.type CHAR for variable s, while the actual frontend.type is STRING
+line 12:11 Expected frontend.type INTEGER for variable b, while the actual frontend.type is BOOLEAN
 Symbol x has already been declared in the current scope of the program
-line 12:11 Expected type BOOLEAN for variable c, while the actual type is CHAR
-line 12:11 Expected type STRING for variable c, while the actual type is CHAR
-line 12:11 Expected type CHAR for variable b, while the actual type is BOOLEAN
-line 12:10 Expected type CHAR for variable i, while the actual type is INTEGER
-line 12:10 Expected type STRING for variable i, while the actual type is INTEGER
+line 12:11 Expected frontend.type BOOLEAN for variable c, while the actual frontend.type is CHAR
+line 12:11 Expected frontend.type STRING for variable c, while the actual frontend.type is CHAR
+line 12:11 Expected frontend.type CHAR for variable b, while the actual frontend.type is BOOLEAN
+line 12:10 Expected frontend.type CHAR for variable i, while the actual frontend.type is INTEGER
+line 12:10 Expected frontend.type STRING for variable i, while the actual frontend.type is INTEGER
 line 15:2 Symbol x is not found in the current scope of the program
 line 12:2 Symbol x is not found in the current scope of the program
 line 13:10 Symbol y is not found in the current scope of the program
-line 12:10 Expected type BOOLEAN for variable i, while the actual type is INTEGER
-line 12:11 Expected type STRING for variable b, while the actual type is BOOLEAN
-line 12:13 Expected type INTEGER for variable s, while the actual type is STRING
+line 12:10 Expected frontend.type BOOLEAN for variable i, while the actual frontend.type is INTEGER
+line 12:11 Expected frontend.type STRING for variable b, while the actual frontend.type is BOOLEAN
+line 12:13 Expected frontend.type INTEGER for variable s, while the actual frontend.type is STRING
 line 14:10 Symbol NUMBER is not found in the current scope of the program
-line 12:13 Expected type BOOLEAN for variable s, while the actual type is STRING
-line 12:11 Expected type INTEGER for variable c, while the actual type is CHAR
-line 12:18 Expected type INTEGER, but the actual type is BOOLEAN
-line 12:11 Expected type BOOLEAN, but the actual type is INTEGER
-line 12:16 Expected type BOOLEAN, but the actual type is INTEGER
-line 12:10 Expected type INTEGER, but the actual type is BOOLEAN
-line 12:17 Expected type INTEGER, but the actual type is BOOLEAN
-line 12:10 Expected type BOOLEAN, but the actual type is INTEGER
-line 12:20 Expected type BOOLEAN, but the actual type is INTEGER
-line 12:10 Expected type BOOLEAN for variable b, while the actual type is INTEGER
-line 16:10 Expected types are [INTEGER, CHAR, STRING], but the actual type is Pair<INTEGER, INTEGER>
-line 16:14 Expected types are [INTEGER, CHAR, STRING], but the actual type is Pair<INTEGER, INTEGER>
-line 14:10 Expected types are [INTEGER, STRING, CHAR], but the actual type is Array<INTEGER>
-line 14:14 Expected types are [INTEGER, STRING, CHAR], but the actual type is Array<INTEGER>
-line 14:2 Expected type Array<null>, but the actual type is STRING
-line 12:7 Expected type INTEGER, but the actual type is CHAR
-line 13:7 Expected type INTEGER, but the actual type is CHAR
+line 12:13 Expected frontend.type BOOLEAN for variable s, while the actual frontend.type is STRING
+line 12:11 Expected frontend.type INTEGER for variable c, while the actual frontend.type is CHAR
+line 12:18 Expected frontend.type INTEGER, but the actual frontend.type is BOOLEAN
+line 12:11 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
+line 12:16 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
+line 12:10 Expected frontend.type INTEGER, but the actual frontend.type is BOOLEAN
+line 12:17 Expected frontend.type INTEGER, but the actual frontend.type is BOOLEAN
+line 12:10 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
+line 12:20 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER
+line 12:10 Expected frontend.type BOOLEAN for variable b, while the actual frontend.type is INTEGER
+line 16:10 Expected types are [INTEGER, CHAR, STRING], but the actual frontend.type is Pair<INTEGER, INTEGER>
+line 16:14 Expected types are [INTEGER, CHAR, STRING], but the actual frontend.type is Pair<INTEGER, INTEGER>
+line 14:10 Expected types are [INTEGER, STRING, CHAR], but the actual frontend.type is Array<INTEGER>
+line 14:14 Expected types are [INTEGER, STRING, CHAR], but the actual frontend.type is Array<INTEGER>
+line 14:2 Expected frontend.type Array<null>, but the actual frontend.type is STRING
+line 12:7 Expected frontend.type INTEGER, but the actual frontend.type is CHAR
+line 13:7 Expected frontend.type INTEGER, but the actual frontend.type is CHAR
 line 12:2 Call return in main function body
 line 12:8 Symbol tru is not found in the current scope of the program
 line 12:8 Symbol fals is not found in the current scope of the program
-line 12:8 Expected type BOOLEAN, but the actual type is INTEGER
+line 12:8 Expected frontend.type BOOLEAN, but the actual frontend.type is INTEGER

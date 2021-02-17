@@ -1,4 +1,4 @@
-# This program implements floating-point type using integers.
+# This program implements floating-point frontend.type using integers.
 # The details about how it is done can found here: 
 # http://www.cse.iitd.ernet.in/~sbansal/csl373/pintos/doc/pintos_7.html#SEC135
 # 
@@ -34,7 +34,7 @@ begin
 	end
 	
 	# The implementation of the following functions are translated from the URI above.
-	# Arguments start with 'x' have type fixed-point. Those start with 'n' have type integer.
+	# Arguments start with 'x' have frontend.type fixed-point. Those start with 'n' have frontend.type integer.
 	
 	int intToFixedPoint(int n) is
 		int ff = call f() ;

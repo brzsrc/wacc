@@ -1,4 +1,4 @@
-# long expression with multiple type mismatches
+# long expression with multiple frontend.type mismatches
 
 # Output:
 # #semantic_error#

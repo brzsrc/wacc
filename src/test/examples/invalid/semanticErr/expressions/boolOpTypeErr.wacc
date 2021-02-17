@@ -1,4 +1,4 @@
-# expresission type mismatch int->bool
+# expresission frontend.type mismatch int->bool
 
 # Output:
 # #semantic_error#

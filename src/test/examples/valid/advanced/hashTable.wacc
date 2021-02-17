@@ -1,8 +1,8 @@
 # This program is interactive. We implement a hash table containing integers and we play with it.
 # 
-# A hash table is represented by an array of node lists. Each node in a node list is represented 
-# by pair(int, pair). The first element of the pair is the integer at that node, the second element 
-# is the pointer to the next node (or null if no more node). 
+# A hash table is represented by an array of frontend.node lists. Each frontend.node in a frontend.node list is represented
+# by pair(int, pair). The first element of the pair is the integer at that frontend.node, the second element
+# is the pointer to the next frontend.node (or null if no more frontend.node).
 # 
 # Integers those mapped to the same index are stored on the list (in any order) in that index.
 
@@ -24,16 +24,16 @@ begin
 	# Returns true if and only if the given hash table contains x.
 	bool contain(pair(int, pair)[] table, int x) is
 		int index = call calculateIndex(table, x) ;
-		pair(int, pair) node = call findNode(table[index], x) ;
-		return node != null
+		pair(int, pair) frontend.node = call findNode(table[index], x) ;
+		return frontend.node != null
 	end
 	
 	# Insert the given x into the hash table if it does not already contain x.
 	# Returns true if and only if the table does not already contain x.
 	bool insertIfNotContain(pair(int, pair)[] table, int x) is
 		int index = call calculateIndex(table, x) ;
-		pair(int, pair) node = call findNode(table[index], x) ;
-		if node != null then
+		pair(int, pair) frontend.node = call findNode(table[index], x) ;
+		if frontend.node != null then
 			# Already contain it. Do nothing.
 			return false
 		else
@@ -48,13 +48,13 @@ begin
 	# Otherwise, do nothing and returns false.
 	bool remove(pair(int, pair)[] table, int x) is
 		int index = call calculateIndex(table, x) ;
-		pair(int, pair) node = call findNode(table[index], x) ;
-		if node == null then
+		pair(int, pair) frontend.node = call findNode(table[index], x) ;
+		if frontend.node == null then
 			# Not found x. Just return false.
 			return false
 		else
-			# Found x, have to remove the node.
-			table[index] = call removeNode(table[index], node) ;
+			# Found x, have to remove the frontend.node.
+			table[index] = call removeNode(table[index], frontend.node) ;
 			return true
 		fi
 	end
@@ -109,8 +109,8 @@ begin
 	end
 	
 	# A helper function.
-	# Given a head of a chain of nodes, returns the first node containing the value x.
-	# Returns null if no such node.
+	# Given a head of a chain of nodes, returns the first frontend.node containing the value x.
+	# Returns null if no such frontend.node.
 	pair(int, pair) findNode(pair(int, pair) head, int x) is
 		while head != null do
 			int y = fst head ;
@@ -124,7 +124,7 @@ begin
 	end
 
 	# A helper function.
-	# Given a list of nodes and a node to remove, remove that node from the 
+	# Given a list of nodes and a frontend.node to remove, remove that frontend.node from the
 	# list and return the new list.
 	pair(int, pair) removeNode(pair(int, pair) head, pair(int, pair) toRemove) is
 		if head == null then
@@ -135,13 +135,13 @@ begin
 				# Save the new head.
 				head = snd head ;
 				
-				# Deallocate the memory of the old node.
+				# Deallocate the memory of the old frontend.node.
 				free toRemove ;
 				
 				# Return the new head.
 				return head
 			else
-				# Not this node, recursive.
+				# Not this frontend.node, recursive.
 				pair(int, pair) tail = snd head ;
 				snd head = call removeNode(tail, toRemove) ;
 				return head
@@ -161,7 +161,7 @@ begin
 	end
 
 	# A helper function.
-	# Given a list of nodes, print each integer in the node followed by a space. Returns true.
+	# Given a list of nodes, print each integer in the frontend.node followed by a space. Returns true.
 	bool printAllNodes(pair(int, pair) head) is
     while head != null do
 			int x = fst head ;
