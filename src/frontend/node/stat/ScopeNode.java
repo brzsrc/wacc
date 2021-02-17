@@ -36,4 +36,20 @@ public class ScopeNode extends StatNode {
   private boolean getEndValue() {
     return !body.isEmpty() && body.get(body.size() - 1).leaveAtEnd();
   }
+
+  @Override
+  public void showNode(int leadingSpace) {
+    /* { */
+    appendLeadingSpace(leadingSpace);
+    System.out.println("{");
+
+    /* stat body */
+    for (StatNode node : body) {
+      node.showNode(leadingSpace + INDENT_SIZE);
+    }
+
+    /* } */
+    appendLeadingSpace(leadingSpace);
+    System.out.println("}");
+  }
 }

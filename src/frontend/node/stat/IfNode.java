@@ -25,4 +25,27 @@ public class IfNode extends StatNode {
     return ifBody.leaveAtEnd() && elseBody.leaveAtEnd();
   }
 
+  @Override
+  public void showNode(int leadingSpace) {
+    /* if EXPR : */
+    appendLeadingSpace(leadingSpace);
+    System.out.print("if ");
+    cond.showNode(0);
+    System.out.print(" :");
+
+    /* show if body */
+    ifBody.showNode(leadingSpace + INDENT_SIZE);
+
+    /* else */
+    appendLeadingSpace(leadingSpace);
+    System.out.print("else");
+    System.out.println();
+
+    /* show else body */
+    elseBody.showNode(leadingSpace + INDENT_SIZE);
+
+    /*\n */
+    appendLeadingSpace(leadingSpace);
+    System.out.println();
+  }
 }

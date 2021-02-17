@@ -14,4 +14,12 @@ public class FreeNode extends StatNode {
   public FreeNode(ExprNode expr) {
     this.expr = expr;
   }
+
+  @Override
+  public void showNode(int leadingSpace) {
+    appendLeadingSpace(leadingSpace);
+    System.out.print("free ");
+    expr.showNode(0);
+    System.out.println();
+  }
 }

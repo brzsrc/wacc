@@ -17,4 +17,12 @@ public class AssignNode extends StatNode {
     this.rhs = rhs;
   }
 
+  @Override
+  public void showNode(int leadingSpace) {
+    appendLeadingSpace(leadingSpace);
+    lhs.showNode(0);
+    System.out.print(" = ");
+    rhs.showNode(0);
+    System.out.println();
+  }
 }

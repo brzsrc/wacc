@@ -16,4 +16,13 @@ public class DeclareNode extends StatNode {
     this.identifier = identifier;
     this.rhs = rhs;
   }
+
+  @Override
+  public void showNode(int leadingSpace) {
+    appendLeadingSpace(leadingSpace);
+    rhs.getType().showType();
+    System.out.print(" " + identifier + " = ");
+    rhs.showNode(0);
+    System.out.println();
+  }
 }

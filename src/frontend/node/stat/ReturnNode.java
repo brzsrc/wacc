@@ -16,4 +16,11 @@ public class ReturnNode extends StatNode {
     setLeaveAtEnd(true);
   }
 
+  @Override
+  public void showNode(int leadingSpace) {
+    appendLeadingSpace(leadingSpace);
+    System.out.print("return ");
+    expr.showNode(0);
+    System.out.println();
+  }
 }

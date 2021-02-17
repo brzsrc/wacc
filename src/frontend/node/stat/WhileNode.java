@@ -16,4 +16,16 @@ public class WhileNode extends StatNode {
     this.body = body;
   }
 
+  @Override
+  public void showNode(int leadingSpace) {
+    /* while COND : */
+    appendLeadingSpace(leadingSpace);
+    System.out.print("while ");
+    cond.showNode(0);
+    System.out.print(" :");
+
+    /* body */
+    body.showNode(leadingSpace + INDENT_SIZE);
+
+  }
 }

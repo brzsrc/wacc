@@ -19,4 +19,11 @@ public class ReadNode extends StatNode {
     return readTarget;
   }
 
+  @Override
+  public void showNode(int leadingSpace) {
+    appendLeadingSpace(leadingSpace);
+    System.out.print("read ");
+    readTarget.showNode(0);
+    System.out.println();
+  }
 }

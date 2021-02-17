@@ -11,6 +11,7 @@ public abstract class StatNode implements Node {
 
   private boolean leaveAtEnd = false;
   private SymbolTable scope;
+  protected final int INDENT_SIZE = 2;
 
   /* Set leaveAtEnd if needs overwrite */
   protected void setLeaveAtEnd(boolean value) {
@@ -29,5 +30,11 @@ public abstract class StatNode implements Node {
   @Override
   public StatNode asStatNode() {
     return this;
+  }
+
+  protected void appendLeadingSpace(int leadingSpace) {
+    for (int i = 0; i < leadingSpace; i++) {
+      System.out.print(" ");
+    }
   }
 }

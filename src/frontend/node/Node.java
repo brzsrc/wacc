@@ -22,5 +22,5 @@ public interface Node {
     throw new IllegalArgumentException("cast not allowed");
   }
 
-  void showNode();
+  void showNode(int leadingSpace);
 }

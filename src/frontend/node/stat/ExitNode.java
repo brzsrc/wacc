@@ -16,4 +16,11 @@ public class ExitNode extends StatNode {
     setLeaveAtEnd(true);
   }
 
+  @Override
+  public void showNode(int leadingSpace) {
+    appendLeadingSpace(leadingSpace);
+    System.out.print("exit ");
+    value.showNode(0);
+    System.out.println();
+  }
 }

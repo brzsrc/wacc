@@ -14,4 +14,12 @@ public class PrintNode extends StatNode {
   public PrintNode(ExprNode expr) {
     this.expr = expr;
   }
+
+  @Override
+  public void showNode(int leadingSpace) {
+    appendLeadingSpace(leadingSpace);
+    System.out.print("print ");
+    expr.showNode(0);
+    System.out.println();
+  }
 }
