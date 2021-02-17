@@ -1,10 +1,4 @@
 line 12:22 mismatched input '+' expecting {'end', ';'}
-line 13:10 extraneous input 'fst' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
-line 13:10 extraneous input 'snd' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
-line 15:2 mismatched input 'fi' expecting {'else', ';'}
-line 17:0 missing 'fi' at 'end'
-line 13:2 mismatched input 'else' expecting {'then', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
-line 12:6 missing '=' at 'true'
 line 11:0 missing 'begin' at 'bgn'
 line 12:11 token recognition error at: ''\H'
 line 12:14 token recognition error at: ''\ne'
@@ -18,7 +12,10 @@ line 11:10 mismatched input 'end' expecting '='
 line 12:11 token recognition error at: ''"'
 line 12:13 token recognition error at: ''\ne'
 line 14:0 missing 'end' at '<EOF>'
-line 12:4 Statement exits after return statement.
+line 13:0 mismatched input 'end' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+line 12:22 mismatched input '"World!"' expecting INT_LITER
+line 12:10 extraneous input '*' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'fst', 'snd', 'null', 'newpair', 'call', '(', '[', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+line 12:4 Other statements exist after function return statement.
 line 12:6 missing '=' at '('
 line 10:0 Function r2 has not returned or exited properly.
 line 10:0 Function f has not returned or exited properly.
@@ -35,20 +32,23 @@ line 11:0 missing 'begin' at 'int'
 line 12:21 mismatched input ')' expecting {'int', 'bool', 'char', 'string', 'pair'}
 line 12:3 missing '=' at '('
 line 12:12 extraneous input '*' expecting IDENT
+line 15:2 mismatched input 'fi' expecting {'else', ';'}
+line 17:0 missing 'fi' at 'end'
+line 13:2 mismatched input 'else' expecting {'then', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+line 12:6 missing '=' at 'true'
+line 13:10 extraneous input 'fst' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
+line 13:10 extraneous input 'snd' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
 line 12:10 extraneous input '[' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
-line 12:13 extraneous input '0' expecting 'end'
-line 13:6 no viable alternative at input 'int='
-line 12:13 mismatched input '0' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
-line 12:10 Integer 2200000000 format not compatible with 32bit int
-line 12:11 extraneous input 'A4' expecting 'end'
-line 13:0 mismatched input 'end' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'null', '(', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
-line 12:22 mismatched input '"World!"' expecting INT_LITER
-line 12:10 extraneous input '*' expecting {BOOL_LITER, CHAR_LITER, STR_LITER, 'fst', 'snd', 'null', 'newpair', 'call', '(', '[', '+', '-', '!', 'len', 'ord', 'chr', INT_LITER, IDENT}
 line 13:2 extraneous input 'skip' expecting 'end'
 line 11:6 mismatched input ';' expecting {'int', 'bool', 'char', 'string', 'fst', 'snd', 'pair', 'begin', 'skip', 'read', 'free', 'return', 'exit', 'print', 'println', 'if', 'while', IDENT}
 line 11:14 extraneous input ';' expecting <EOF>
 line 11:12 mismatched input 'end' expecting {'int', 'bool', 'char', 'string', 'fst', 'snd', 'pair', 'begin', 'skip', 'read', 'free', 'return', 'exit', 'print', 'println', 'if', 'while', IDENT}
 line 12:7 extraneous input ';' expecting {'int', 'bool', 'char', 'string', 'fst', 'snd', 'pair', 'begin', 'skip', 'read', 'free', 'return', 'exit', 'print', 'println', 'if', 'while', IDENT}
+line 12:13 extraneous input '0' expecting 'end'
+line 13:6 no viable alternative at input 'int='
+line 12:13 mismatched input '0' expecting {'end', ';', '+', '-', '*', '/', '%', '>', '>=', '<', '<=', '==', '!=', '&&', '||'}
+line 12:10 Integer 2200000000 format not compatible with 32bit int
+line 12:11 extraneous input 'A4' expecting 'end'
 line 13:4 missing 'do' at 'skip'
 line 12:7 missing '=' at 'false'
 line 12:14 missing 'do' at 'doo'

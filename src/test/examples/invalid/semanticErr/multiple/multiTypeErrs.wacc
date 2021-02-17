@@ -1,4 +1,4 @@
-# multiple frontend.type mismatches: int <- bool, bool <- char, char <- int
+# multiple type mismatches: int <- bool, bool <- char, char <- int
 
 # Output:
 # #semantic_error#

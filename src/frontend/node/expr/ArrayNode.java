@@ -8,7 +8,7 @@ import java.util.List;
 public class ArrayNode extends ExprNode {
 
   /**
-   * Represent an array. Notice that the `content` will store nodes with correct frontend.type, not
+   * Represent an array. Notice that the `content` will store nodes with correct type, not
    * ArrayElemNode
    * Example: [1, 2, 3, 4, 5]
    */

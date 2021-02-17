@@ -5,7 +5,7 @@ import frontend.type.Type;
 public class PairElemNode extends ExprNode {
 
   /**
-   * Represent a pair_elem frontend.node, with the <expr> and fst/snd recorded
+   * Represent a pair_elem node, with the <expr> and fst/snd recorded
    * Example: fst <expr>, snd <expr>
    */
 

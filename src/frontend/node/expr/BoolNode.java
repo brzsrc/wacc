@@ -6,7 +6,7 @@ import frontend.type.BasicTypeEnum;
 public class BoolNode extends ExprNode {
 
   /**
-   * Represent a boolean frontend.node
+   * Represent a boolean node
    * Example: true, false
    */
 

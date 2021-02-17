@@ -5,12 +5,12 @@ import frontend.type.PairType;
 public class PairNode extends ExprNode {
 
   /**
-   * Represent a pair. Notice that subpair frontend.type coercing will be handler in frontend.type system as follows:
-   *  - The concrete types of subpairs will be stored in the frontend.node system.
-   *  - However, the subpair types will be set to null in the frontend.type system in order to implement frontend.type coercing.
-   *  - e.g. pair(int, pair(char, bool)) will have frontend.type Pair<INTEGER, Pair<null, null>>, but the CharNode
+   * Represent a pair. Notice that subpair type coercing will be handler in type system as follows:
+   *  - The concrete types of subpairs will be stored in the node system.
+   *  - However, the subpair types will be set to null in the type system in order to implement type coercing.
+   *  - e.g. pair(int, pair(char, bool)) will have type Pair<INTEGER, Pair<null, null>>, but the CharNode
    *    and BoolNode will still be stored as ExprNode in fst and snd of the sub-PairNode.
-   *  - In the frontend.type system, a null pair will be represented as `Pair<null, null>`, whereas a pair with
+   *  - In the type system, a null pair will be represented as `Pair<null, null>`, whereas a pair with
    *    two subpairs will be represented as `Pair<Pair<null, null>, Pair<null, null>>`
    *
    * Example: newpair(5, 'a'), null

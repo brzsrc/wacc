@@ -1,4 +1,4 @@
-# frontend.type mismatch: string <- bool
+# type mismatch: string <- bool
 
 # Output:
 # #semantic_error#

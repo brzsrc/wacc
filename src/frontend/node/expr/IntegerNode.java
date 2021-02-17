@@ -6,7 +6,7 @@ import frontend.type.BasicTypeEnum;
 public class IntegerNode extends ExprNode {
 
   /**
-   * Represent the integer frontend.node
+   * Represent the integer node
    * Example: 10, 25, 37
    */
 

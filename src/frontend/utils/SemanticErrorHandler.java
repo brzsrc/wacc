@@ -12,7 +12,7 @@ import static frontend.utils.Utils.*;
 public class SemanticErrorHandler {
 
   /**
-   * SemanticErrorHandler will check all possible semantic/syntax errors during the frontend.SemanticChecker
+   * SemanticErrorHandler will check all possible semantic/syntax errors during the SemanticChecker
    * visit. Notice that some error handler functions will not exit with status directly in order to
    * support checking of multiple errors in the same program.
    */
@@ -24,22 +24,22 @@ public class SemanticErrorHandler {
 
   public static void typeMismatch(ParserRuleContext ctx, Type expected, Type actual) {
     String msg =
-        "Incompatible frontend.type at '" + ctx.getText() + "'': Expected frontend.type " + expected +
-        ", but the actual frontend.type is " + actual;
+        "Incompatible type at '" + ctx.getText() + "'': Expected type " + expected +
+        ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
 
   public static void typeMismatch(ParserRuleContext ctx, Set<Type> expected, Type actual) {
     String msg = 
-        "Incompatible frontend.type at '" + ctx.getText() + "'': Expected types are " + expected +
-        ", but the actual frontend.type is " + actual;
+        "Incompatible type at '" + ctx.getText() + "'': Expected types are " + expected +
+        ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
 
   public static void typeMismatch(ParserRuleContext ctx, String ident, Type expected, Type actual) {
     String msg =
-        "Incompatible frontend.type at '" + ctx.getText() + "'': Expected frontend.type " + expected +
-        " for variable " + ident + ", but the actual frontend.type is " + actual;
+        "Incompatible type at '" + ctx.getText() + "'': Expected type " + expected +
+        " for variable " + ident + ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
 
@@ -119,7 +119,7 @@ public class SemanticErrorHandler {
     int charPos;
 
         /* when ctx is null, it indicates that there is a funcJunk error or symbolRedeclare error
-           in frontend.SemanticChecker */
+           in SemanticChecker */
     if (ctx == null) {
       System.err.println(msg);
       return;

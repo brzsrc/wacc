@@ -3,15 +3,15 @@
 # the content in the binary search tree so that we have a sorted list of 
 # integer.
 # 
-# We represent a frontend.node in the binary search tree using two pair elements. The
-# first element has a frontend.type <int, pair>, the int is the integer stored in the
-# frontend.node, the pair is the pointer to the second pair element. The second pair
-# element has a frontend.type <pair, pair> which is the pointer to the two children
+# We represent a node in the binary search tree using two pair elements. The
+# first element has a type <int, pair>, the int is the integer stored in the
+# node, the pair is the pointer to the second pair element. The second pair
+# element has a type <pair, pair> which is the pointer to the two children
 # nodes in the binary search tree.
 
 begin
 
-  # Create a new frontend.node of a binary search tree having the given integer value
+  # Create a new node of a binary search tree having the given integer value
   # and points to the two given pairs.
   pair(int, pair) createNewNode(int value, pair(int, pair) left, pair(int, pair) right) is
     pair(pair, pair) p = newpair(left, right) ;

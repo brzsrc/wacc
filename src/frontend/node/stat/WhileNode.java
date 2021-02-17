@@ -5,7 +5,7 @@ import frontend.node.expr.ExprNode;
 public class WhileNode extends StatNode {
 
   /**
-   * Represent a while-loop frontend.node, with condition and body recorded
+   * Represent a while-loop node, with condition and body recorded
    */
 
   private final ExprNode cond;

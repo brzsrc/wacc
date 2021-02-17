@@ -6,7 +6,7 @@ import frontend.type.Type;
 public abstract class ExprNode implements Node {
 
   /**
-   * abstract class for expression nodes. Every expression frontend.node has a frontend.type
+   * abstract class for expression nodes. Every expression node has a type
    */
 
   protected Type type;

@@ -20,7 +20,7 @@ public class Utils {
    * Utils class contains static variables and helper functions used in SemanticCheck
    */
 
-  /* Type classes to represent BasicType, ArrayType, and PairType, used in frontend.type comparisons throughout the frontend.SemanticChecker */
+  /* Type classes to represent BasicType, ArrayType, and PairType, used in type comparisons throughout the SemanticChecker */
   public static final Type INT_BASIC_TYPE = new BasicType(BasicTypeEnum.INTEGER);
   public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOLEAN);
   public static final Type CHAR_BASIC_TYPE = new BasicType(BasicTypeEnum.CHAR);

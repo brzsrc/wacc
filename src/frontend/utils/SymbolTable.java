@@ -7,7 +7,7 @@ import frontend.node.expr.ExprNode;
 public class SymbolTable {
 
   /**
-   * SymbolTable will record an identifier String and an ExprNode as the frontend.node representing the value
+   * SymbolTable will record an identifier String and an ExprNode as the node representing the value
    * of that identifier in the current scope. It will also contain a copy of its parent SymbolTable.
    * The parent of the root SymbolTable will be set to null.
    */

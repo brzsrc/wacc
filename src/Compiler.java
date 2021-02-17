@@ -1,4 +1,3 @@
-import frontend.SemanticChecker;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,6 +13,7 @@ import frontend.antlr.*;
 import frontend.antlr.WACCParser.ProgramContext;
 import frontend.node.Node;
 import frontend.utils.ParserErrorHandler;
+import frontend.SemanticChecker;
 
 public class Compiler {
 

@@ -6,7 +6,7 @@ import frontend.utils.SymbolTable;
 public abstract class StatNode implements Node {
 
   /**
-   * abstract class for statement ndoes. Statement nodes do not have frontend.type
+   * abstract class for statement ndoes. Statement nodes do not have type
    */
 
   private boolean leaveAtEnd = false;

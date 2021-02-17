@@ -6,7 +6,7 @@ import frontend.type.BasicTypeEnum;
 public class CharNode extends ExprNode {
 
   /**
-   * Represent a character frontend.node
+   * Represent a character node
    * Example: 'a', '!', '?'
    */
 

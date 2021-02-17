@@ -6,8 +6,8 @@ import frontend.type.BasicTypeEnum;
 public class BinopNode extends ExprNode {
 
   /**
-   * Represent a binary operation frontend.node with a left and right expression a binary operation will
-   * either have frontend.type int or bool
+   * Represent a binary operation node with a left and right expression a binary operation will
+   * either have type int or bool
    *
    * Example: 1 + 2, 3 * 4, 5 + (6 * 2)
    */

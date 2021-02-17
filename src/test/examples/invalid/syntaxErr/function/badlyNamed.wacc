@@ -1,4 +1,4 @@
-# function return frontend.type and name are conflated
+# function return type and name are conflated
 
 # Output:
 # #syntax_error#

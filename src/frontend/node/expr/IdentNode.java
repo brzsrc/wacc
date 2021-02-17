@@ -5,7 +5,7 @@ import frontend.type.Type;
 public class IdentNode extends ExprNode {
 
   /**
-   * Represent an identifier frontend.node, including its frontend.type and identifier
+   * Represent an identifier node, including its type and identifier
    * Example: int x, char c, int[] arr
    */
 
