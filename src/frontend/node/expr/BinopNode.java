@@ -61,4 +61,12 @@ public class BinopNode extends ExprNode {
     this.operator = operator;
   }
 
+  @Override
+  public void showNode() {
+    System.out.print(operator.toString()); 
+    expr1.showNode();
+    expr2.showNode();
+    System.out.println();
+  }
+
 }

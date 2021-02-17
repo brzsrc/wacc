@@ -17,4 +17,9 @@ public class BoolNode extends ExprNode {
     this.type = new BasicType(BasicTypeEnum.BOOLEAN);
   }
 
+  @Override
+  public void showNode() {
+    System.out.println(val);
+  }
+
 }

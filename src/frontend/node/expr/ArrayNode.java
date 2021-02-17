@@ -39,4 +39,12 @@ public class ArrayNode extends ExprNode {
     this.length = content.size();
   }
 
+  @Override
+  public void showNode() {
+    for(int i = 0; i < length; i++) {
+      content.get(i).showNode();
+    }
+    System.out.println();
+  }
+
 }
