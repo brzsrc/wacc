@@ -16,18 +16,20 @@ public class FuncNode implements Node {
    * than a simple statement
    */
 
+  private final String functionName;
   private final Type returnType;
   private final List<IdentNode> parameters;
-  private StatNode functionBody;
+  private final StatNode functionBody;
 
-  public FuncNode(Type returnType, List<IdentNode> params) {
-    this(returnType, null, params);
+  public FuncNode(String functionName, Type returnType, List<IdentNode> params) {
+    this(functionName, returnType, null, params);
   }
 
-  public FuncNode(Type returnType, StatNode functionBody, List<IdentNode> params) {
+  public FuncNode(String functionName, Type returnType, StatNode functionBody, List<IdentNode> params) {
     this.returnType = returnType;
     this.functionBody = functionBody;
     this.parameters = params;
+    this.functionName = functionName;
   }
 
   public StatNode getFunctionBody() {

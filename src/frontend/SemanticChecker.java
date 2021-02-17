@@ -83,7 +83,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         }
       }
 
-      globalFuncTable.put(funcName, new FuncNode(returnType, param_list));
+      globalFuncTable.put(funcName, new FuncNode(funcName, returnType, param_list));
     }
 
     /* then iterate through a list of function declarations to visit the function body */
