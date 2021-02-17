@@ -9,10 +9,11 @@ import java.util.List;
 
 import org.antlr.v4.runtime.*;
 
-import antlr.*;
-import antlr.WACCParser.ProgramContext;
-import node.Node;
-import utils.ParserErrorHandler;
+import frontend.antlr.*;
+import frontend.antlr.WACCParser.ProgramContext;
+import frontend.node.Node;
+import frontend.utils.ParserErrorHandler;
+import frontend.SemanticChecker;
 
 public class Compiler {
 
