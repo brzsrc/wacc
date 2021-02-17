@@ -17,6 +17,10 @@ VALID_EXAMPLES=("./src/test/examples/valid/advanced"
 VALID_CHECKER_EXAMPLES_LOG="./log/checker_valid_error.log"
 > $VALID_CHECKER_EXAMPLES_LOG
 
+# counters to represent the total number of test files to be processed
+TOTAL_COUNT=$(find ${VALID_EXAMPLES[@]} -name "*.wacc" | wc -l)
+COUNTER=0
+
 for folder in ${VALID_EXAMPLES[@]}; do
   for file in $(find $folder -name "*.wacc") 
   do 
