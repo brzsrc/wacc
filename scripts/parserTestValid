@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 VALID_EXAMPLES=("./src/test/examples/valid/advanced"
                 "./src/test/examples/valid/array"
@@ -38,7 +38,8 @@ for folder in ${VALID_EXAMPLES[@]}; do
       exit 1
     fi
     (( COUNTER += 1 ))
-    echo "$COUNTER / $(($TOTAL_COUNT)) finished\n"
+    echo "$COUNTER / $(($TOTAL_COUNT)) finished"
+    echo ""
   done
 
   echo "========================================================================================"

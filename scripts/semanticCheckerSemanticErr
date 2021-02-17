@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 INVALID_SEMANTIC_ERR=("./src/test/examples/invalid/semanticErr/exit"
                       "./src/test/examples/invalid/semanticErr/expressions"
@@ -38,7 +38,8 @@ for folder in ${INVALID_SEMANTIC_ERR[@]}; do
       exit 1
     fi
     (( COUNTER += 1 ))
-    echo "$COUNTER / $(($TOTAL_COUNT)) finished\n"
+    echo "$COUNTER / $(($TOTAL_COUNT)) finished"
+    echo ""
   done
 
   echo "========================================================================================"

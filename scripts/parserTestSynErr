@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 INVALID_SYNTAX_ERR=("./src/test/examples/invalid/syntaxErr/array"
                     "./src/test/examples/invalid/syntaxErr/basic"
@@ -34,7 +34,8 @@ for folder in ${INVALID_SYNTAX_ERR[@]}; do
       exit 1
     fi
     (( COUNTER += 1 ))
-    echo "$COUNTER / $(($TOTAL_COUNT)) finished\n"
+    echo "$COUNTER / $(($TOTAL_COUNT)) finished"
+    echo ""
   done
 
   echo "========================================================================================"
