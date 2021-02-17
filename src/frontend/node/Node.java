@@ -9,6 +9,7 @@ public interface Node {
    * Base interface for ExprNode and StatNode Type casting is explicitly avoided by overriding the
    * following functions from a concrete class
    */
+  int INDENT_SIZE = 2;
 
   default ExprNode asExprNode() {
     throw new IllegalArgumentException("cast not allowed");

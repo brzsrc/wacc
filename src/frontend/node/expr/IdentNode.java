@@ -20,4 +20,8 @@ public class IdentNode extends ExprNode {
     return name;
   }
 
+  @Override
+  public void showNode(int leadingSpace) {
+    System.out.print(name);
+  }
 }

@@ -37,13 +37,12 @@ public class ArrayElemNode extends ExprNode {
   }
 
   @Override
-  public void showNode() {
-    array.showNode();
+  public void showNode(int indent) {
+    array.showNode(0);
     for (ExprNode node : index) {
       System.out.print("[");
-      node.showNode();
+      node.showNode(0);
       System.out.print("]");
     }
-    System.out.println();
   }
 }

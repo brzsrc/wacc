@@ -35,4 +35,10 @@ public class UnopNode extends ExprNode {
     }
   }
 
+  @Override
+  public void showNode(int leadingSpace) {
+    System.out.print(operator);
+    expr.showNode(0);
+  }
+
 }

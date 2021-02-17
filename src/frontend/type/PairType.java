@@ -1,5 +1,7 @@
 package frontend.type;
 
+import frontend.node.expr.ExprNode;
+
 public class PairType implements Type {
 
   private final Type fstType;
@@ -60,4 +62,20 @@ public class PairType implements Type {
     return "Pair<" + fstType + ", " + sndType + ">";
   }
 
+  @Override
+  public void showType() {
+    System.out.print("pair<");
+    showChild(fstType);
+    System.out.print(", ");
+    showChild(sndType);
+    System.out.print(">");
+  }
+
+  private void showChild(Type child) {
+    if (child == null) {
+      System.out.print("null");
+    } else {
+      child.showType();
+    }
+  }
 }

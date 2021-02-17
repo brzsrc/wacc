@@ -17,4 +17,10 @@ public class PairElemNode extends ExprNode {
     this.type = type;
     this.isFist = isFirst;
   }
+
+  @Override
+  public void showNode(int leadingSpace) {
+    System.out.print(isFist ? "fst " : "snd ");
+    pair.showNode(0);
+  }
 }

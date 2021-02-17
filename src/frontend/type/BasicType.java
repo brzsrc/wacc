@@ -20,6 +20,8 @@ public class BasicType implements Type {
     return basicTypeEnum.equals(((BasicType) other).getTypeEnum());
   }
 
+
+
   public BasicTypeEnum getTypeEnum() {
     return basicTypeEnum;
   }
@@ -27,5 +29,10 @@ public class BasicType implements Type {
   @Override
   public String toString() {
     return basicTypeEnum.toString();
+  }
+
+  @Override
+  public void showType() {
+    System.out.print(basicTypeEnum);
   }
 }

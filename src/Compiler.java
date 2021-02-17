@@ -45,14 +45,15 @@ public class Compiler {
       // Start parsing using the `program` rule defined in antlr_config/WACCParser.g4
       ProgramContext tree = parser.program();
 
+      Node program;
       // If the `--parse_only` flag is specified, then we do not run semantic analysis
       if (!cmd_ops.contains("--parse_only")) {
         SemanticChecker semanticChecker = new SemanticChecker();
-        Node program = semanticChecker.visitProgram(tree);
-      }
+        program = semanticChecker.visitProgram(tree);
 
-      if (cmd_ops.contains("--print_ast")) {
-        System.out.println(tree.toStringTree(parser));
+        if (cmd_ops.contains("--print_ast")) {
+          program.showNode(0);
+        }
       }
     } catch (FileNotFoundException e) {
       System.out.println("ERROR in Compile.java: the given file '" + args[0] + "' is not found.");

@@ -31,15 +31,14 @@ public class IfNode extends StatNode {
     appendLeadingSpace(leadingSpace);
     System.out.print("if ");
     cond.showNode(0);
-    System.out.print(" :");
+    System.out.println(" :");
 
     /* show if body */
     ifBody.showNode(leadingSpace + INDENT_SIZE);
 
     /* else */
     appendLeadingSpace(leadingSpace);
-    System.out.print("else");
-    System.out.println();
+    System.out.println("else");
 
     /* show else body */
     elseBody.showNode(leadingSpace + INDENT_SIZE);

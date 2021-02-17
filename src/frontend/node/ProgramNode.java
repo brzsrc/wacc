@@ -19,8 +19,10 @@ public class ProgramNode implements Node {
   }
 
   @Override
-  public void showNode() {
-    // TODO Auto-generated method stub
-
+  public void showNode(int leadingSpace) {
+    for(FuncNode func : functions.values()) {
+      func.showNode(0);
+    }
+    body.showNode(0);
   }
 }

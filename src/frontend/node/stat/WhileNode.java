@@ -22,7 +22,7 @@ public class WhileNode extends StatNode {
     appendLeadingSpace(leadingSpace);
     System.out.print("while ");
     cond.showNode(0);
-    System.out.print(" :");
+    System.out.println(" :");
 
     /* body */
     body.showNode(leadingSpace + INDENT_SIZE);

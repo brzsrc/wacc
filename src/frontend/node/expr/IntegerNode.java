@@ -16,4 +16,9 @@ public class IntegerNode extends ExprNode {
     this.val = val;
     this.type = new BasicType(BasicTypeEnum.INTEGER);
   }
+
+  @Override
+  public void showNode(int leadingSpace) {
+    System.out.print(val);
+  }
 }

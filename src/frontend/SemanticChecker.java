@@ -170,7 +170,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     StatNode elseBody = visit(ctx.stat(1)).asStatNode();
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
-    StatNode node = new IfNode(condition, new ScopeNode(ifBody), new ScopeNode(elseBody));
+    StatNode node = new IfNode(condition, ifBody, elseBody);
 
     node.setScope(currSymbolTable);
 
@@ -189,7 +189,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     StatNode body = visit(ctx.stat()).asStatNode();
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
-    StatNode node = new WhileNode(visit(ctx.expr()).asExprNode(), new ScopeNode(body));
+    StatNode node = new WhileNode(condition, body);
     node.setScope(currSymbolTable);
 
     return node;
@@ -521,7 +521,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitIdExpr(IdExprContext ctx) {
     String name = ctx.IDENT().getText();
-    return lookUpWithNotFoundException(ctx, currSymbolTable, name);
+    ExprNode value = lookUpWithNotFoundException(ctx, currSymbolTable, name);
+    return new IdentNode(value.getType(), name);
   }
 
   @Override

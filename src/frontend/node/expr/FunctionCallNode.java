@@ -24,4 +24,14 @@ public class FunctionCallNode extends ExprNode {
     this.type = function.getReturnType();
   }
 
+  @Override
+  public void showNode(int indent) {
+    System.out.print(function.getFunctionName());
+    System.out.print("(");
+    for (ExprNode node : params) {
+      node.showNode(0);
+      System.out.print(", ");
+    }
+    System.out.print(")");
+  }
 }

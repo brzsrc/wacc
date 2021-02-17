@@ -22,8 +22,12 @@ public class CharNode extends ExprNode {
   }
 
   @Override
-  public void showNode() {
-    System.out.println(val);
+  public void showNode(int indent) {
+    if (val == '\0') {
+      System.out.print("\\0");
+      return;
+    }
+    System.out.print(val);
   }
 
 }

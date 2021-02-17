@@ -1,10 +1,13 @@
 package frontend.node;
 
+import com.sun.jdi.IntegerType;
 import frontend.node.expr.IdentNode;
 import frontend.node.stat.StatNode;
 import java.util.List;
 
 import frontend.type.Type;
+
+import javax.print.DocFlavor;
 
 public class FuncNode implements Node {
 
@@ -46,5 +49,22 @@ public class FuncNode implements Node {
 
   public List<IdentNode> getParamList() {
     return parameters;
+  }
+
+  public String getFunctionName() {
+    return functionName;
+  }
+
+  @Override
+  public void showNode(int leadingSpace) {
+    returnType.showType();
+    System.out.print(" " + functionName + "(");
+    for(IdentNode node : parameters) {
+      node.showNode(0);
+      System.out.print(" ");
+    }
+    System.out.println(") :");
+    functionBody.showNode(INDENT_SIZE);
+    System.out.println();
   }
 }

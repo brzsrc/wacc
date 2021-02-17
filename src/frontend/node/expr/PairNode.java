@@ -47,4 +47,20 @@ public class PairNode extends ExprNode {
     this.snd = snd;
   }
 
+  @Override
+  public void showNode(int leadingSpace) {
+    System.out.print("pair<");
+    showChild(fst);
+    System.out.print(", ");
+    showChild(snd);
+    System.out.print(">");
+  }
+
+  private void showChild(ExprNode child) {
+    if (child == null) {
+      System.out.print("null");
+    } else {
+      child.showNode(0);
+    }
+  }
 }

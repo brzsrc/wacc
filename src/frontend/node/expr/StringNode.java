@@ -10,14 +10,19 @@ public class StringNode extends ExprNode {
    * Example: "hello, world!"
    */
 
-  private final int length;
+  private final String string;
 
   public StringNode(String string) {
-    this.length = string.length();
+    this.string = string;
     this.type = new BasicType(BasicTypeEnum.STRING);
   }
 
   public int getLength() {
-    return this.length;
+    return this.string.length();
+  }
+
+  @Override
+  public void showNode(int leadingSpace) {
+    System.out.print(string);
   }
 }

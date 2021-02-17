@@ -5,6 +5,8 @@ import frontend.type.BasicTypeEnum;
 
 public class BinopNode extends ExprNode {
 
+
+
   /**
    * Represent a binary operation node with a left and right expression a binary operation will
    * either have type int or bool
@@ -62,11 +64,10 @@ public class BinopNode extends ExprNode {
   }
 
   @Override
-  public void showNode() {
-    System.out.print(operator.toString()); 
-    expr1.showNode();
-    expr2.showNode();
-    System.out.println();
+  public void showNode(int indent) {
+    expr1.showNode(0);
+    System.out.print(" " + operator + " ");
+    expr2.showNode(0);
   }
 
 }

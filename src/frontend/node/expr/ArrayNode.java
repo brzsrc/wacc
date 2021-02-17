@@ -40,11 +40,13 @@ public class ArrayNode extends ExprNode {
   }
 
   @Override
-  public void showNode() {
-    for(int i = 0; i < length; i++) {
-      content.get(i).showNode();
+  public void showNode(int indent) {
+    System.out.print("[");
+    for(ExprNode node : content) {
+      node.showNode(0);
+      System.out.print(", ");
     }
-    System.out.println();
+    System.out.print("]");
   }
 
 }

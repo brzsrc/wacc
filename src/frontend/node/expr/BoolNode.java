@@ -18,8 +18,8 @@ public class BoolNode extends ExprNode {
   }
 
   @Override
-  public void showNode() {
-    System.out.println(val);
+  public void showNode(int indent) {
+    System.out.print(val);
   }
 
 }

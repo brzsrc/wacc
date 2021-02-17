@@ -50,4 +50,10 @@ public class ArrayType implements Type {
   public ArrayType asArrayType() {
     return this;
   }
+
+  @Override
+  public void showType() {
+    contentType.showType();
+    System.out.print("[]");
+  }
 }

@@ -26,4 +26,9 @@ public class TypeDeclareNode implements Node {
   public TypeDeclareNode asTypeDeclareNode() {
     return this;
   }
+
+  @Override
+  public void showNode(int leadingSpace) {
+    throw new UnsupportedOperationException("TypeDeclareNode should not be in IR");
+  }
 }
