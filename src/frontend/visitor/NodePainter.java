@@ -7,7 +7,7 @@ import frontend.node.stat.*;
 public class NodePainter implements NodeVisitor {
 
   private final int INDENT_SIZE = 2;
-  private int leadingSpace;
+  private int leadingSpace = 0;
 
   private void appendLeadingSpace() {
     for (int i = 0; i < leadingSpace; i++) {
@@ -154,17 +154,19 @@ public class NodePainter implements NodeVisitor {
     visit(node.getCond());
     System.out.println(" :");
 
-    leadingSpace += INDENT_SIZE;
-
     /* show if body */
+    leadingSpace += INDENT_SIZE;
     visit(node.getIfBody());
+    leadingSpace -= INDENT_SIZE;
 
     /* else */
     appendLeadingSpace();
     System.out.println("else");
 
     /* show else body */
+    leadingSpace += INDENT_SIZE;
     visit(node.getElseBody());
+    leadingSpace -= INDENT_SIZE;
 
     /*\n */
     appendLeadingSpace();
@@ -214,6 +216,7 @@ public class NodePainter implements NodeVisitor {
     for (StatNode s : node.getBody()) {
       visit(s);
     }
+    leadingSpace -= INDENT_SIZE;
 
     /* } */
     appendLeadingSpace();
@@ -237,6 +240,7 @@ public class NodePainter implements NodeVisitor {
     /* body */
     leadingSpace += INDENT_SIZE;
     visit(node.getBody());
+    leadingSpace -= INDENT_SIZE;
 
   }
 
@@ -249,20 +253,20 @@ public class NodePainter implements NodeVisitor {
       System.out.print(" ");
     }
     System.out.println(") :");
-    leadingSpace = INDENT_SIZE;
-    /* May let the function body be directly a ScopeNode */
+
+    leadingSpace += INDENT_SIZE;
     visit(node.getFunctionBody());
+    leadingSpace -= INDENT_SIZE;
+
     System.out.println();
   }
 
   @Override
   public void visitProgramNode(ProgramNode node) {
     for(FuncNode func : node.getFunctions().values()) {
-      leadingSpace = 0;
       visitFuncNode(func);
     }
-    leadingSpace = 0;
-    /* May let the main body be directly a ScopeNode */
+
     visit(node.getBody());
   }
 }
