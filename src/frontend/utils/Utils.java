@@ -1,5 +1,8 @@
 package frontend.utils;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,35 +32,46 @@ public class Utils {
   public static final Type PAIR_TYPE = new PairType();
 
   /* a list of allowed types in read, free, cmp statement */
-  public static final Set<Type> readStatAllowedTypes = Set
-      .of(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE);
-  public static final Set<Type> freeStatAllowedTypes = Set.of(ARRAY_TYPE, PAIR_TYPE);
-  public static final Set<Type> cmpStatAllowedTypes = Set
-      .of(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE);
+  public static final Set<Type> readStatAllowedTypes = new HashSet<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
+  public static final Set<Type> freeStatAllowedTypes = new HashSet<>(Arrays.asList(ARRAY_TYPE, PAIR_TYPE));
+  public static final Set<Type> cmpStatAllowedTypes = new HashSet<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
 
   /* mapping from string literals to internal representations of UnopEnum and Type */
-  public static final Map<String, Unop> unopEnumMapping = Map.of("-", Unop.MINUS,
-      "chr", Unop.CHR,
-      "!", Unop.NOT,
-      "len", Unop.LEN,
-      "ord", Unop.ORD);
-  public static final Map<String, Type> unopTypeMapping = Map.of("-", INT_BASIC_TYPE,
-      "chr", INT_BASIC_TYPE,
-      "!", BOOL_BASIC_TYPE,
-      "len", ARRAY_TYPE,
-      "ord", CHAR_BASIC_TYPE);
-  public static final Map<String, Binop> binopEnumMapping = Map.of("+", Binop.PLUS,
-      "-", Binop.MINUS,
-      "*", Binop.MUL,
-      "/", Binop.DIV,
-      "%", Binop.MOD);
-  public static final Map<String, Binop> EqEnumMapping = Map
-      .of("==", Binop.EQUAL, "!=", Binop.INEQUAL);
-  public static final Map<String, Binop> LogicOpEnumMapping = Map
-      .of("&&", Binop.AND, "||", Binop.OR);
-  public static final Map<String, Binop> CmpEnumMapping = Map
-      .of(">", Binop.GREATER, ">=", Binop.GREATER_EQUAL,
-          "<", Binop.LESS, "<=", Binop.LESS_EQUAL);
+  public static final Map<String, Unop> unopEnumMapping = new HashMap<String, Unop>(){{
+    put("-", Unop.MINUS);
+    put("chr", Unop.CHR);
+    put("!", Unop.NOT);
+    put("len", Unop.LEN);
+    put("ord", Unop.ORD);
+  }};
+  public static final Map<String, Type> unopTypeMapping = new HashMap<String, Type>(){{
+    put("-", INT_BASIC_TYPE);
+    put("chr", INT_BASIC_TYPE);
+    put("!", BOOL_BASIC_TYPE);
+    put("len", ARRAY_TYPE);
+    put("ord", CHAR_BASIC_TYPE);
+  }};
+  public static final Map<String, Binop> binopEnumMapping = new HashMap<String, Binop>(){{
+    put("+", Binop.PLUS);
+    put("-", Binop.MINUS);
+    put("*", Binop.MUL);
+    put("/", Binop.DIV);
+    put("%", Binop.MOD);
+  }};
+  public static final Map<String, Binop> EqEnumMapping = new HashMap<String, Binop>(){{
+    put("==", Binop.EQUAL);
+    put("!=", Binop.INEQUAL);
+  }};
+  public static final Map<String, Binop> LogicOpEnumMapping = new HashMap<String, Binop>(){{
+    put("&&", Binop.AND);
+    put("||", Binop.OR);
+  }};
+  public static final Map<String, Binop> CmpEnumMapping = new HashMap<String, Binop>(){{
+    put(">", Binop.GREATER);
+    put(">=", Binop.GREATER_EQUAL);
+    put("<", Binop.LESS);
+    put("<=", Binop.LESS_EQUAL);
+  }};
 
   /* error code used in ErrorHandlers */
   public static final int SYNTAX_ERROR_CODE = 100;

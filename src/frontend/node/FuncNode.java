@@ -1,13 +1,9 @@
 package frontend.node;
 
-import com.sun.jdi.IntegerType;
 import frontend.node.expr.IdentNode;
 import frontend.node.stat.StatNode;
-import java.util.List;
-
 import frontend.type.Type;
-
-import javax.print.DocFlavor;
+import java.util.List;
 
 public class FuncNode implements Node {
 
