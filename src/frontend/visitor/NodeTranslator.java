@@ -47,7 +47,7 @@ public class NodeTranslator implements NodeVisitor {
   }
 
   @Override
-  public void VisitPairElemNode(PairElemNode node) {
+  public void visitPairElemNode(PairElemNode node) {
 
   }
 
@@ -132,7 +132,7 @@ public class NodeTranslator implements NodeVisitor {
   }
 
   @Override
-  public void VisitProgramNode(ProgramNode node) {
+  public void visitProgramNode(ProgramNode node) {
 
   }
 }

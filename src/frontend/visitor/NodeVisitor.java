@@ -26,7 +26,7 @@ public interface NodeVisitor {
 
   void visitIntegerNode(IntegerNode node);
 
-  void VisitPairElemNode(PairElemNode node);
+  void visitPairElemNode(PairElemNode node);
 
   void visitPairNode(PairNode node);
 
@@ -60,6 +60,6 @@ public interface NodeVisitor {
 
   void visitFuncNode(FuncNode node);
 
-  void VisitProgramNode(ProgramNode node);
+  void visitProgramNode(ProgramNode node);
 
 }

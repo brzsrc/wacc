@@ -78,7 +78,7 @@ public class NodePainter implements NodeVisitor {
   }
 
   @Override
-  public void VisitPairElemNode(PairElemNode node) {
+  public void visitPairElemNode(PairElemNode node) {
     System.out.print(node.isFist() ? "fst " : "snd ");
     visit(node.getPair());
   }
@@ -256,7 +256,7 @@ public class NodePainter implements NodeVisitor {
   }
 
   @Override
-  public void VisitProgramNode(ProgramNode node) {
+  public void visitProgramNode(ProgramNode node) {
     for(FuncNode func : node.getFunctions().values()) {
       leadingSpace = 0;
       visitFuncNode(func);

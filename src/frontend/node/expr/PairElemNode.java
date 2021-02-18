@@ -29,6 +29,6 @@ public class PairElemNode extends ExprNode {
 
   @Override
   public void accept(NodeVisitor visitor) {
-    visitor.VisitPairElemNode(this);
+    visitor.visitPairElemNode(this);
   }
 }
