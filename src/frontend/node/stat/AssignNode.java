@@ -1,6 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
+import frontend.visitor.NodeVisitor;
 
 public class AssignNode extends StatNode {
 
@@ -17,12 +18,16 @@ public class AssignNode extends StatNode {
     this.rhs = rhs;
   }
 
+  public ExprNode getLhs() {
+    return lhs;
+  }
+
+  public ExprNode getRhs() {
+    return rhs;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    appendLeadingSpace(leadingSpace);
-    lhs.showNode(0);
-    System.out.print(" = ");
-    rhs.showNode(0);
-    System.out.println();
+  public void accept(NodeVisitor visitor) {
+    visitor.visitAssignNode(this);
   }
 }

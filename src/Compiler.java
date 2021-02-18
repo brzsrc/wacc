@@ -1,3 +1,4 @@
+import frontend.visitor.NodePainter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -52,7 +53,8 @@ public class Compiler {
         program = semanticChecker.visitProgram(tree);
 
         if (cmd_ops.contains("--print_ast")) {
-          program.showNode(0);
+          NodePainter painter = new NodePainter();
+          painter.visit(program);
         }
       }
     } catch (FileNotFoundException e) {

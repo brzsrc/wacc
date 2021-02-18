@@ -1,6 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
+import frontend.visitor.NodeVisitor;
 
 public class FreeNode extends StatNode {
 
@@ -15,11 +16,12 @@ public class FreeNode extends StatNode {
     this.expr = expr;
   }
 
+  public ExprNode getExpr() {
+    return expr;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    appendLeadingSpace(leadingSpace);
-    System.out.print("free ");
-    expr.showNode(0);
-    System.out.println();
+  public void accept(NodeVisitor visitor) {
+    visitor.visitFreeNode(this);
   }
 }

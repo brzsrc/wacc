@@ -2,6 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
+import frontend.visitor.NodeVisitor;
 
 public class BoolNode extends ExprNode {
 
@@ -17,9 +18,13 @@ public class BoolNode extends ExprNode {
     this.type = new BasicType(BasicTypeEnum.BOOLEAN);
   }
 
+  public boolean getVal() {
+    return val;
+  }
+
   @Override
-  public void showNode(int indent) {
-    System.out.print(val);
+  public void accept(NodeVisitor visitor) {
+    visitor.visitBoolNode(this);
   }
 
 }

@@ -2,6 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.Type;
 
+import frontend.visitor.NodeVisitor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,13 +37,16 @@ public class ArrayElemNode extends ExprNode {
     }
   }
 
+  public ExprNode getArray() {
+    return array;
+  }
+
+  public List<ExprNode> getIndex() {
+    return index;
+  }
+
   @Override
-  public void showNode(int indent) {
-    array.showNode(0);
-    for (ExprNode node : index) {
-      System.out.print("[");
-      node.showNode(0);
-      System.out.print("]");
-    }
+  public void accept(NodeVisitor visitor) {
+    visitor.visitArrayElemNode(this);
   }
 }

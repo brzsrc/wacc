@@ -1,9 +1,12 @@
 package frontend.node.stat;
 
+import frontend.visitor.NodeVisitor;
+
 public class SkipNode extends StatNode {
+
   @Override
-  public void showNode(int leadingSpace) {
-    /* do nothing */
+  public void accept(NodeVisitor visitor) {
+    visitor.visitSkipNode(this);
   }
   /**
    * Represent a SKIP statement

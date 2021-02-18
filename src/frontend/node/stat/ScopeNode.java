@@ -1,5 +1,6 @@
 package frontend.node.stat;
 
+import frontend.visitor.NodeVisitor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,19 +38,12 @@ public class ScopeNode extends StatNode {
     return !body.isEmpty() && body.get(body.size() - 1).leaveAtEnd();
   }
 
+  public List<StatNode> getBody() {
+    return body;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    /* { */
-    appendLeadingSpace(leadingSpace);
-    System.out.println("{");
-
-    /* stat body */
-    for (StatNode node : body) {
-      node.showNode(leadingSpace + INDENT_SIZE);
-    }
-
-    /* } */
-    appendLeadingSpace(leadingSpace);
-    System.out.println("}");
+  public void accept(NodeVisitor visitor) {
+    visitor.visitScopeNode(this);
   }
 }

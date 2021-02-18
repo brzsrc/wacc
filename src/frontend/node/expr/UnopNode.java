@@ -2,6 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
+import frontend.visitor.NodeVisitor;
 
 public class UnopNode extends ExprNode {
 
@@ -35,10 +36,17 @@ public class UnopNode extends ExprNode {
     }
   }
 
+  public Unop getOperator() {
+    return operator;
+  }
+
+  public ExprNode getExpr() {
+    return expr;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    System.out.print(operator);
-    expr.showNode(0);
+  public void accept(NodeVisitor visitor) {
+    visitor.visitUnopNode(this);
   }
 
 }

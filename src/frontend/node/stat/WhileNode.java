@@ -1,6 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
+import frontend.visitor.NodeVisitor;
 
 public class WhileNode extends StatNode {
 
@@ -16,16 +17,16 @@ public class WhileNode extends StatNode {
     this.body = body;
   }
 
+  public ExprNode getCond() {
+    return cond;
+  }
+
+  public StatNode getBody() {
+    return body;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    /* while COND : */
-    appendLeadingSpace(leadingSpace);
-    System.out.print("while ");
-    cond.showNode(0);
-    System.out.println(" :");
-
-    /* body */
-    body.showNode(leadingSpace + INDENT_SIZE);
-
+  public void accept(NodeVisitor visitor) {
+    visitor.visitWhileNode(this);
   }
 }

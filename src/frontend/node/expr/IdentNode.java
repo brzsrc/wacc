@@ -1,6 +1,7 @@
 package frontend.node.expr;
 
 import frontend.type.Type;
+import frontend.visitor.NodeVisitor;
 
 public class IdentNode extends ExprNode {
 
@@ -21,7 +22,7 @@ public class IdentNode extends ExprNode {
   }
 
   @Override
-  public void showNode(int leadingSpace) {
-    System.out.print(name);
+  public void accept(NodeVisitor visitor) {
+    visitor.visitIdentNode(this);
   }
 }
