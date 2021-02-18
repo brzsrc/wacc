@@ -2,6 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
+import frontend.visitor.NodeVisitor;
 
 public class BinopNode extends ExprNode {
 
@@ -64,10 +65,8 @@ public class BinopNode extends ExprNode {
   }
 
   @Override
-  public void showNode(int indent) {
-    expr1.showNode(0);
-    System.out.print(" " + operator + " ");
-    expr2.showNode(0);
+  public void accept(NodeVisitor visitor) {
+    visitor.visitBinopNode(this);
   }
 
 }

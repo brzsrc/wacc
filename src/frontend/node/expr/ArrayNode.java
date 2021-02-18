@@ -3,6 +3,7 @@ package frontend.node.expr;
 import frontend.type.ArrayType;
 import frontend.type.Type;
 
+import frontend.visitor.NodeVisitor;
 import java.util.List;
 
 public class ArrayNode extends ExprNode {
@@ -39,14 +40,13 @@ public class ArrayNode extends ExprNode {
     this.length = content.size();
   }
 
+  public List<ExprNode> getContent() {
+    return content;
+  }
+
   @Override
-  public void showNode(int indent) {
-    System.out.print("[");
-    for(ExprNode node : content) {
-      node.showNode(0);
-      System.out.print(", ");
-    }
-    System.out.print("]");
+  public void accept(NodeVisitor visitor) {
+    visitor.visitArrayNode(this);
   }
 
 }

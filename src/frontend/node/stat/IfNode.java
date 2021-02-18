@@ -1,6 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
+import frontend.visitor.NodeVisitor;
 
 public class IfNode extends StatNode {
 
@@ -25,26 +26,20 @@ public class IfNode extends StatNode {
     return ifBody.leaveAtEnd() && elseBody.leaveAtEnd();
   }
 
+  public ExprNode getCond() {
+    return cond;
+  }
+
+  public StatNode getIfBody() {
+    return ifBody;
+  }
+
+  public StatNode getElseBody() {
+    return elseBody;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    /* if EXPR : */
-    appendLeadingSpace(leadingSpace);
-    System.out.print("if ");
-    cond.showNode(0);
-    System.out.println(" :");
-
-    /* show if body */
-    ifBody.showNode(leadingSpace + INDENT_SIZE);
-
-    /* else */
-    appendLeadingSpace(leadingSpace);
-    System.out.println("else");
-
-    /* show else body */
-    elseBody.showNode(leadingSpace + INDENT_SIZE);
-
-    /*\n */
-    appendLeadingSpace(leadingSpace);
-    System.out.println();
+  public void accept(NodeVisitor visitor) {
+    visitor.visitIfNode(this);
   }
 }

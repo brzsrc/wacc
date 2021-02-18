@@ -2,6 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
+import frontend.visitor.NodeVisitor;
 
 public class StringNode extends ExprNode {
 
@@ -21,8 +22,12 @@ public class StringNode extends ExprNode {
     return this.string.length();
   }
 
+  public String getString() {
+    return string;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    System.out.print(string);
+  public void accept(NodeVisitor visitor) {
+    visitor.visitStringNode(this);
   }
 }

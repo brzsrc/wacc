@@ -3,6 +3,7 @@ package frontend.node.expr;
 import frontend.node.FuncNode;
 import frontend.utils.SymbolTable;
 
+import frontend.visitor.NodeVisitor;
 import java.util.List;
 
 public class FunctionCallNode extends ExprNode {
@@ -24,14 +25,16 @@ public class FunctionCallNode extends ExprNode {
     this.type = function.getReturnType();
   }
 
+  public FuncNode getFunction() {
+    return function;
+  }
+
+  public List<ExprNode> getParams() {
+    return params;
+  }
+
   @Override
-  public void showNode(int indent) {
-    System.out.print(function.getFunctionName());
-    System.out.print("(");
-    for (ExprNode node : params) {
-      node.showNode(0);
-      System.out.print(", ");
-    }
-    System.out.print(")");
+  public void accept(NodeVisitor visitor) {
+    visitor.visitFunctionCallNode(this);
   }
 }

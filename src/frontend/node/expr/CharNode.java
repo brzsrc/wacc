@@ -2,6 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
+import frontend.visitor.NodeVisitor;
 
 public class CharNode extends ExprNode {
 
@@ -22,12 +23,8 @@ public class CharNode extends ExprNode {
   }
 
   @Override
-  public void showNode(int indent) {
-    if (val == '\0') {
-      System.out.print("\\0");
-      return;
-    }
-    System.out.print(val);
+  public void accept(NodeVisitor visitor) {
+    visitor.visitCharNode(this);
   }
 
 }

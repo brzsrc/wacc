@@ -1,5 +1,6 @@
 package frontend.node;
 
+import frontend.visitor.NodeVisitor;
 import java.util.Map;
 
 import frontend.node.stat.StatNode;
@@ -18,11 +19,16 @@ public class ProgramNode implements Node {
     this.body = body;
   }
 
+  public Map<String, FuncNode> getFunctions() {
+    return functions;
+  }
+
+  public StatNode getBody() {
+    return body;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    for(FuncNode func : functions.values()) {
-      func.showNode(0);
-    }
-    body.showNode(0);
+  public void accept(NodeVisitor visitor) {
+    visitor.VisitProgramNode(this);
   }
 }
