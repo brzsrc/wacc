@@ -4,62 +4,63 @@ import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
 
-public interface NodeVisitor {
+public interface NodeVisitor<T> {
 
-  default void visit(Node node) {
+  default T visit(Node node) {
     node.accept(this);
+    return null;
   }
 
-  void visitArrayElemNode(ArrayElemNode node);
+  T visitArrayElemNode(ArrayElemNode node);
 
-  void visitArrayNode(ArrayNode node);
+  T visitArrayNode(ArrayNode node);
 
-  void visitBinopNode(BinopNode node);
+  T visitBinopNode(BinopNode node);
 
-  void visitBoolNode(BoolNode node);
+  T visitBoolNode(BoolNode node);
 
-  void visitCharNode(CharNode node);
+  T visitCharNode(CharNode node);
 
-  void visitFunctionCallNode(FunctionCallNode node);
+  T visitFunctionCallNode(FunctionCallNode node);
 
-  void visitIdentNode(IdentNode node);
+  T visitIdentNode(IdentNode node);
 
-  void visitIntegerNode(IntegerNode node);
+  T visitIntegerNode(IntegerNode node);
 
-  void visitPairElemNode(PairElemNode node);
+  T visitPairElemNode(PairElemNode node);
 
-  void visitPairNode(PairNode node);
+  T visitPairNode(PairNode node);
 
-  void visitStringNode(StringNode node);
+  T visitStringNode(StringNode node);
 
-  void visitUnopNode(UnopNode node);
+  T visitUnopNode(UnopNode node);
 
-  void visitAssignNode(AssignNode node);
+  T visitAssignNode(AssignNode node);
 
-  void visitDeclareNode(DeclareNode node);
+  T visitDeclareNode(DeclareNode node);
 
-  void visitExitNode(ExitNode node);
+  T visitExitNode(ExitNode node);
 
-  void visitFreeNode(FreeNode node);
+  T visitFreeNode(FreeNode node);
 
-  void visitIfNode(IfNode node);
+  T visitIfNode(IfNode node);
 
-  void visitPrintlnNode(PrintlnNode node);
+  T visitPrintlnNode(PrintlnNode node);
 
-  void visitPrintNode(PrintNode node);
+  T visitPrintNode(PrintNode node);
 
-  void visitReadNode(ReadNode node);
+  T visitReadNode(ReadNode node);
 
-  void visitReturnNode(ReturnNode node);
+  T visitReturnNode(ReturnNode node);
 
-  void visitScopeNode(ScopeNode node);
+  T visitScopeNode(ScopeNode node);
 
-  void visitSkipNode(SkipNode node);
+  T visitSkipNode(SkipNode node);
 
-  void visitWhileNode(WhileNode node);
+  T visitWhileNode(WhileNode node);
 
-  void visitFuncNode(FuncNode node);
+  T visitFuncNode(FuncNode node);
 
-  void visitProgramNode(ProgramNode node);
+  T visitProgramNode(ProgramNode node);
 
 }

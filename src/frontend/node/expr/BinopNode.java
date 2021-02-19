@@ -1,8 +1,13 @@
 package frontend.node.expr;
 
+import backend.instructions.Instruction;
+import com.sun.source.util.Plugin;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import frontend.visitor.NodeVisitor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class BinopNode extends ExprNode {
 

@@ -1,138 +1,166 @@
 package frontend.visitor;
 
+import backend.instructions.Instruction;
+import backend.instructions.Mov;
+import backend.instructions.Operand2.Immediate;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
 
-public class NodeTranslator implements NodeVisitor {
+import java.util.ArrayList;
+import java.util.List;
+
+import static backend.instructions.SudoRegister.getCurrAvailableReg;
+import static backend.instructions.SudoRegister.peakLastReg;
+
+public class NodeTranslator implements NodeVisitor<List<Instruction>> {
+
+  public static final int TRUE = 1;
+  public static final int FALSE = 0;
 
   @Override
-  public void visitArrayElemNode(ArrayElemNode node) {
-
+  public List<Instruction> visitArrayElemNode(ArrayElemNode node) {
+    // todo: after discussing how to implement heap/stack allocation
+    return null;
   }
 
   @Override
-  public void visitArrayNode(ArrayNode node) {
-
+  public List<Instruction> visitArrayNode(ArrayNode node) {
+    // todo: after discussing how to implement heap/stack allocation
+    return null;
   }
 
   @Override
-  public void visitBinopNode(BinopNode node) {
+  public List<Instruction> visitBinopNode(BinopNode node) {
+    List<Instruction> expr1Instr = visit(node.getExpr1());
+    long resultReg1 = peakLastReg();
+    List<Instruction> expr2Instr = visit(node.getExpr2());
+    long resultReg2 = peakLastReg();
 
+    /* generate corrisponding command for each binop command */
+    // todo: how did mark say about not using switch? use map to map a binop.enum to a command?
+
+    return null;
   }
 
   @Override
-  public void visitBoolNode(BoolNode node) {
-
+  public List<Instruction> visitBoolNode(BoolNode node) {
+    List<Instruction> result = new ArrayList<>();
+    result.add(new Mov(getCurrAvailableReg(), new Immediate(node.getVal() ? TRUE : FALSE)));
+    return result;
   }
 
   @Override
-  public void visitCharNode(CharNode node) {
-
+  public List<Instruction> visitCharNode(CharNode node) {
+    List<Instruction> result = new ArrayList<>();
+    result.add(new Mov(getCurrAvailableReg(), new Immediate(node.getAsciiValue())));
+    return result;
   }
 
   @Override
-  public void visitFunctionCallNode(FunctionCallNode node) {
-
+  public List<Instruction> visitFunctionCallNode(FunctionCallNode node) {
+    return null;
   }
 
   @Override
-  public void visitIdentNode(IdentNode node) {
-
+  public List<Instruction> visitIdentNode(IdentNode node) {
+    return null;
   }
 
   @Override
-  public void visitIntegerNode(IntegerNode node) {
-
+  public List<Instruction> visitIntegerNode(IntegerNode node) {
+    // todo: same as visitCharNode
+    return null;
   }
 
   @Override
-  public void visitPairElemNode(PairElemNode node) {
-
+  public List<Instruction> visitPairElemNode(PairElemNode node) {
+    return null;
   }
 
   @Override
-  public void visitPairNode(PairNode node) {
-
+  public List<Instruction> visitPairNode(PairNode node) {
+    return null;
   }
 
   @Override
-  public void visitStringNode(StringNode node) {
-
+  public List<Instruction> visitStringNode(StringNode node) {
+    return null;
   }
 
   @Override
-  public void visitUnopNode(UnopNode node) {
-
+  public List<Instruction> visitUnopNode(UnopNode node) {
+    // todo: same as binop
+    return null;
   }
 
   @Override
-  public void visitAssignNode(AssignNode node) {
-
+  public List<Instruction> visitAssignNode(AssignNode node) {
+    return null;
   }
 
   @Override
-  public void visitDeclareNode(DeclareNode node) {
-
+  public List<Instruction> visitDeclareNode(DeclareNode node) {
+    return null;
   }
 
   @Override
-  public void visitExitNode(ExitNode node) {
-
+  public List<Instruction> visitExitNode(ExitNode node) {
+    return null;
   }
 
   @Override
-  public void visitFreeNode(FreeNode node) {
-
+  public List<Instruction> visitFreeNode(FreeNode node) {
+    return null;
   }
 
   @Override
-  public void visitIfNode(IfNode node) {
-
+  public List<Instruction> visitIfNode(IfNode node) {
+    return null;
   }
 
   @Override
-  public void visitPrintlnNode(PrintlnNode node) {
-
+  public List<Instruction> visitPrintlnNode(PrintlnNode node) {
+    return null;
   }
 
   @Override
-  public void visitPrintNode(PrintNode node) {
-
+  public List<Instruction> visitPrintNode(PrintNode node) {
+    return null;
   }
 
   @Override
-  public void visitReadNode(ReadNode node) {
-
+  public List<Instruction> visitReadNode(ReadNode node) {
+    return null;
   }
 
   @Override
-  public void visitReturnNode(ReturnNode node) {
-
+  public List<Instruction> visitReturnNode(ReturnNode node) {
+    return null;
   }
 
   @Override
-  public void visitScopeNode(ScopeNode node) {
-
+  public List<Instruction> visitScopeNode(ScopeNode node) {
+    return null;
   }
 
   @Override
-  public void visitSkipNode(SkipNode node) {
-
+  public List<Instruction> visitSkipNode(SkipNode node) {
+    return null;
   }
 
   @Override
-  public void visitWhileNode(WhileNode node) {
-
+  public List<Instruction> visitWhileNode(WhileNode node) {
+    return null;
   }
 
   @Override
-  public void visitFuncNode(FuncNode node) {
-
+  public List<Instruction> visitFuncNode(FuncNode node) {
+    return null;
   }
 
   @Override
-  public void visitProgramNode(ProgramNode node) {
-
+  public List<Instruction> visitProgramNode(ProgramNode node) {
+    return null;
   }
 }
