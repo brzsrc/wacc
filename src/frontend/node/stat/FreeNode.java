@@ -21,7 +21,7 @@ public class FreeNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitFreeNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitFreeNode(this);
   }
 }

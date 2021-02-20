@@ -27,7 +27,7 @@ public class DeclareNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitDeclareNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitDeclareNode(this);
   }
 }

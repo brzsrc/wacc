@@ -94,7 +94,7 @@ public class Utils {
   }
 
   public static boolean typeCheck(ParserRuleContext ctx, Type expected, Type actual) {
-    if (!actual.equalToType(expected)) {
+    if (!expected.equalToType(actual)) {
       SemanticErrorHandler.typeMismatch(ctx, expected, actual);
       return true;
     }
@@ -104,7 +104,7 @@ public class Utils {
 
   public static boolean typeCheck(ParserRuleContext ctx, String varName, Type expected,
       Type actual) {
-    if (!actual.equalToType(expected)) {
+    if (!expected.equalToType(actual)) {
       SemanticErrorHandler.typeMismatch(ctx, varName, expected, actual);
       return true;
     }

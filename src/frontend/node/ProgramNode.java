@@ -28,7 +28,7 @@ public class ProgramNode implements Node {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitProgramNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitProgramNode(this);
   }
 }

@@ -22,7 +22,7 @@ public class ReturnNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitReturnNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitReturnNode(this);
   }
 }

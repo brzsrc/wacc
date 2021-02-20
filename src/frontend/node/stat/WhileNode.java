@@ -26,7 +26,7 @@ public class WhileNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitWhileNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitWhileNode(this);
   }
 }

@@ -21,7 +21,7 @@ public class PrintlnNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitPrintlnNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitPrintlnNode(this);
   }
 }

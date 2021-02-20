@@ -43,7 +43,7 @@ public class ScopeNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitScopeNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitScopeNode(this);
   }
 }

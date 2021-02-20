@@ -1,6 +1,7 @@
 package backend.instructions;
 
-import backend.instructions.Instruction;
+public class Add extends Instruction {
 
-public class Add implements Instruction {
+  public Add() {
+  }
 }

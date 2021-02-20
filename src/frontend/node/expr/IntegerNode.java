@@ -23,7 +23,7 @@ public class IntegerNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitIntegerNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitIntegerNode(this);
   }
 }

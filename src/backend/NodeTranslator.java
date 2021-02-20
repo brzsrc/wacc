@@ -1,17 +1,19 @@
-package frontend.visitor;
+package backend;
 
 import backend.instructions.Instruction;
 import backend.instructions.Mov;
-import backend.instructions.Operand2.Immediate;
+import backend.instructions.Operand.Immediate;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
+import frontend.visitor.NodeVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static backend.instructions.SudoRegister.getCurrAvailableReg;
-import static backend.instructions.SudoRegister.peakLastReg;
+import static backend.instructions.Operand.Immediate.BitNum;
+import static backend.instructions.Operand.SudoRegister.getCurrAvailableReg;
+import static backend.instructions.Operand.SudoRegister.peakLastReg;
 
 public class NodeTranslator implements NodeVisitor<List<Instruction>> {
 
@@ -27,6 +29,7 @@ public class NodeTranslator implements NodeVisitor<List<Instruction>> {
   @Override
   public List<Instruction> visitArrayNode(ArrayNode node) {
     // todo: after discussing how to implement heap/stack allocation
+    
     return null;
   }
 
@@ -46,14 +49,14 @@ public class NodeTranslator implements NodeVisitor<List<Instruction>> {
   @Override
   public List<Instruction> visitBoolNode(BoolNode node) {
     List<Instruction> result = new ArrayList<>();
-    result.add(new Mov(getCurrAvailableReg(), new Immediate(node.getVal() ? TRUE : FALSE)));
+    result.add(new Mov(getCurrAvailableReg(), new Immediate(node.getVal() ? TRUE : FALSE, BitNum.SHIFT32)));
     return result;
   }
 
   @Override
   public List<Instruction> visitCharNode(CharNode node) {
     List<Instruction> result = new ArrayList<>();
-    result.add(new Mov(getCurrAvailableReg(), new Immediate(node.getAsciiValue())));
+    result.add(new Mov(getCurrAvailableReg(), new Immediate(node.getAsciiValue(), BitNum.SHIFT32)));
     return result;
   }
 

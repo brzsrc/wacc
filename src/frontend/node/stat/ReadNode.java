@@ -21,7 +21,7 @@ public class ReadNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitReadNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitReadNode(this);
   }
 }

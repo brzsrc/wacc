@@ -27,7 +27,7 @@ public class AssignNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitAssignNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitAssignNode(this);
   }
 }

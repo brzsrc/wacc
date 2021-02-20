@@ -43,9 +43,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* used only in function declare step, to check function has the correct return type */
   private Type expectedFunctionReturn;
 
-  /* recording the current type of variable that has been declared, used in visit array declaration */
-  private Type currDeclareType;
-
   /* record whether a skipable semantic error is found in visiting to support checking of multiple errors */
   private boolean semanticError;
 
@@ -55,7 +52,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     globalFuncTable = new HashMap<>();
     isMainFunction = false;
     expectedFunctionReturn = null;
-    currDeclareType = null;
   }
 
   @Override
@@ -287,7 +283,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode expr = visit(ctx.assign_rhs()).asExprNode();
     String varName = ctx.IDENT().getText();
     Type varType = visit(ctx.type()).asTypeDeclareNode().getType();
-    currDeclareType = varType;
 
     if (expr != null) {
       Type exprType = expr.getType();
@@ -388,7 +383,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitArray_liter(Array_literContext ctx) {
     int length = ctx.expr().size();
     if (length == 0) {
-      return new ArrayNode(currDeclareType, new ArrayList<>(), length);
+      return new ArrayNode(null, new ArrayList<>(), length);
     }
     ExprNode firstExpr = visit(ctx.expr(0)).asExprNode();
     Type firstContentType = firstExpr.getType();

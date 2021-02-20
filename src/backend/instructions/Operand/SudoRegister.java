@@ -1,10 +1,6 @@
-package backend.instructions;
+package backend.instructions.Operand;
 
-import backend.instructions.Operand2.Operand2;
-
-/* sudo register could be an instance of Operand2, as stated in ARM table 1-14
- * or it could also be included in other operand formats, so not put in Operand/ directory */
-public class SudoRegister implements Operand2 {
+public class SudoRegister implements Operand {
   long registerNum;
 
   private static long currAvailableReg = 0;

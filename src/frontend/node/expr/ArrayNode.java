@@ -45,8 +45,8 @@ public class ArrayNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitArrayNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitArrayNode(this);
   }
 
 }

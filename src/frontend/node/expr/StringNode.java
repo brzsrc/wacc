@@ -27,7 +27,7 @@ public class StringNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitStringNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitStringNode(this);
   }
 }

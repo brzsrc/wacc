@@ -53,7 +53,7 @@ public class FuncNode implements Node {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitFuncNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitFuncNode(this);
   }
 }

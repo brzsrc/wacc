@@ -1,13 +1,8 @@
 package frontend.node.expr;
 
-import backend.instructions.Instruction;
-import com.sun.source.util.Plugin;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import frontend.visitor.NodeVisitor;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class BinopNode extends ExprNode {
 
@@ -70,8 +65,8 @@ public class BinopNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitBinopNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitBinopNode(this);
   }
 
 }

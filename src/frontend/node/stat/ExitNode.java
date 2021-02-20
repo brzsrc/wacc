@@ -22,7 +22,7 @@ public class ExitNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitExitNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitExitNode(this);
   }
 }

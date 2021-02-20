@@ -56,4 +56,9 @@ public class ArrayType implements Type {
     contentType.showType();
     System.out.print("[]");
   }
+
+  @Override
+  public int getSize() {
+    throw new IllegalArgumentException("shouldn't call getSize on array type, call getSize on arrayNode instead");
+  }
 }

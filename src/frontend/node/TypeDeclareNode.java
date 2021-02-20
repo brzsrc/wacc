@@ -29,7 +29,7 @@ public class TypeDeclareNode implements Node {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
+  public <T> T accept(NodeVisitor<T> visitor) {
     throw new UnsupportedOperationException("TypeDeclareNode should not be in IR");
   }
 }

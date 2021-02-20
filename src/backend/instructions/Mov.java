@@ -1,11 +1,15 @@
 package backend.instructions;
 
-import backend.instructions.Operand2.Operand2;
+import backend.instructions.Operand.Operand;
+import backend.instructions.Operand.SudoRegister;
 
-public class Mov extends Instruction<Operand2, Void> {
+public class Mov extends Instruction {
 
-  public Mov(SudoRegister Rd, Operand2 operand2) {
+  private final SudoRegister Rd;
+  private final Operand operand;
+
+  public Mov(SudoRegister Rd, Operand operand) {
     this.Rd = Rd;
-    this.fstExpr = operand2;
+    this.operand = operand;
   }
 }

@@ -34,7 +34,7 @@ public class FunctionCallNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitFunctionCallNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitFunctionCallNode(this);
   }
 }

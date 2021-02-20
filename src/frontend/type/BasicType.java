@@ -35,4 +35,17 @@ public class BasicType implements Type {
   public void showType() {
     System.out.print(basicTypeEnum);
   }
+
+  @Override
+  public int getSize() {
+    switch (basicTypeEnum) {
+      case CHAR:
+      case BOOLEAN:
+        return BYTE_SIZE;
+      case INTEGER:
+        return WORD_SIZE;
+      default:
+        throw new IllegalArgumentException("calling getSize on string type, call getSize on StringNode instead");
+    }
+  }
 }

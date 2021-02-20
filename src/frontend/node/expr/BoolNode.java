@@ -23,8 +23,8 @@ public class BoolNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitBoolNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitBoolNode(this);
   }
 
 }

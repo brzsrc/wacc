@@ -78,4 +78,9 @@ public class PairType implements Type {
       child.showType();
     }
   }
+
+  @Override
+  public int getSize() {
+    return WORD_SIZE;
+  }
 }
