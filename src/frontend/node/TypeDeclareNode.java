@@ -1,6 +1,7 @@
 package frontend.node;
 
 import frontend.type.Type;
+import frontend.visitor.NodeVisitor;
 
 public class TypeDeclareNode implements Node {
 
@@ -28,7 +29,7 @@ public class TypeDeclareNode implements Node {
   }
 
   @Override
-  public void showNode(int leadingSpace) {
+  public void accept(NodeVisitor visitor) {
     throw new UnsupportedOperationException("TypeDeclareNode should not be in IR");
   }
 }

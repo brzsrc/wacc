@@ -2,6 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
+import frontend.visitor.NodeVisitor;
 
 public class IntegerNode extends ExprNode {
 
@@ -17,8 +18,12 @@ public class IntegerNode extends ExprNode {
     this.type = new BasicType(BasicTypeEnum.INTEGER);
   }
 
+  public int getVal() {
+    return val;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    System.out.print(val);
+  public void accept(NodeVisitor visitor) {
+    visitor.visitIntegerNode(this);
   }
 }

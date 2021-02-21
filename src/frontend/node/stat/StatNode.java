@@ -31,9 +31,4 @@ public abstract class StatNode implements Node {
     return this;
   }
 
-  protected void appendLeadingSpace(int leadingSpace) {
-    for (int i = 0; i < leadingSpace; i++) {
-      System.out.print(" ");
-    }
-  }
 }

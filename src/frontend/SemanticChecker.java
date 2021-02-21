@@ -111,9 +111,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       System.out.println("error found");
       System.exit(SEMANTIC_ERROR_CODE);
     }
-    if (!(body instanceof ScopeNode)) {
-      return new ProgramNode(globalFuncTable, new ScopeNode(body));
-    }
+
     return new ProgramNode(globalFuncTable, body);
   }
 

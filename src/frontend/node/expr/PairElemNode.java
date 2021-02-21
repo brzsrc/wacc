@@ -1,6 +1,7 @@
 package frontend.node.expr;
 
 import frontend.type.Type;
+import frontend.visitor.NodeVisitor;
 
 public class PairElemNode extends ExprNode {
 
@@ -18,9 +19,16 @@ public class PairElemNode extends ExprNode {
     this.isFist = isFirst;
   }
 
+  public boolean isFist() {
+    return isFist;
+  }
+
+  public ExprNode getPair() {
+    return pair;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    System.out.print(isFist ? "fst " : "snd ");
-    pair.showNode(0);
+  public void accept(NodeVisitor visitor) {
+    visitor.visitPairElemNode(this);
   }
 }

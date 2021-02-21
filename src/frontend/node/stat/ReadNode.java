@@ -1,6 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
+import frontend.visitor.NodeVisitor;
 
 public class ReadNode extends StatNode {
 
@@ -20,10 +21,7 @@ public class ReadNode extends StatNode {
   }
 
   @Override
-  public void showNode(int leadingSpace) {
-    appendLeadingSpace(leadingSpace);
-    System.out.print("read ");
-    readTarget.showNode(0);
-    System.out.println();
+  public void accept(NodeVisitor visitor) {
+    visitor.visitReadNode(this);
   }
 }

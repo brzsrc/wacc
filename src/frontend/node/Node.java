@@ -2,6 +2,7 @@ package frontend.node;
 
 import frontend.node.expr.ExprNode;
 import frontend.node.stat.StatNode;
+import frontend.visitor.NodeVisitor;
 
 public interface Node {
 
@@ -9,7 +10,6 @@ public interface Node {
    * Base interface for ExprNode and StatNode Type casting is explicitly avoided by overriding the
    * following functions from a concrete class
    */
-  int INDENT_SIZE = 2;
 
   default ExprNode asExprNode() {
     throw new IllegalArgumentException("cast not allowed");
@@ -23,5 +23,5 @@ public interface Node {
     throw new IllegalArgumentException("cast not allowed");
   }
 
-  void showNode(int leadingSpace);
+  void accept(NodeVisitor visitor);
 }

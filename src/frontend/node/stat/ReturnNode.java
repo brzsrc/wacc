@@ -1,6 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
+import frontend.visitor.NodeVisitor;
 
 public class ReturnNode extends StatNode {
 
@@ -16,11 +17,12 @@ public class ReturnNode extends StatNode {
     setLeaveAtEnd(true);
   }
 
+  public ExprNode getExpr() {
+    return expr;
+  }
+
   @Override
-  public void showNode(int leadingSpace) {
-    appendLeadingSpace(leadingSpace);
-    System.out.print("return ");
-    expr.showNode(0);
-    System.out.println();
+  public void accept(NodeVisitor visitor) {
+    visitor.visitReturnNode(this);
   }
 }
