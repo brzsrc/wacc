@@ -23,7 +23,7 @@ public class ArrayType implements Type {
 
   @Override
   public boolean equalToType(Type other) {
-    if (other == null) {
+    if (other == null || contentType == null) {
       return true;
     }
     if (!(other instanceof ArrayType)) {
