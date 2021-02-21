@@ -1,4 +1,4 @@
-package backend.utils;
+package utils.backend;
 
 /* internal labeling of registers. ST stands for Stack Pointer, 
    SLR stands for Subroutine Link Register, PC stands for Program Counter, 
@@ -8,32 +8,12 @@ enum ARMRegisterLabel {
 }
 
 /* class for concrete representation of registerse, as opposed to PseudoRegister class */
-public class ARMConcreteRegister {
+public class ARMConcreteRegister extends Register<ARMRegisterLabel> {
 
     public static final int MAX_ARM_REGISTER = 16;
-    private ARMRegisterLabel label;
 
     public ARMConcreteRegister(ARMRegisterLabel label) {
         this.label = label;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof ARMConcreteRegister) {
-            ARMConcreteRegister that = (ARMConcreteRegister) obj;
-            return this.label.equals(that.label);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return label.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return label.name();
     }
 }
 

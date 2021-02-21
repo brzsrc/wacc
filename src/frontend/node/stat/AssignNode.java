@@ -1,7 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class AssignNode extends StatNode {
 

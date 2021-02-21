@@ -2,7 +2,7 @@ package frontend.node;
 
 import frontend.node.expr.ExprNode;
 import frontend.node.stat.StatNode;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public interface Node {
 

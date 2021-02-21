@@ -2,12 +2,10 @@ package frontend.node.expr;
 
 import frontend.type.Type;
 
-import frontend.visitor.NodeVisitor;
-import java.util.ArrayList;
+import utils.NodeVisitor;
 import java.util.List;
 
-import static frontend.type.Type.WORD_SIZE;
-import static frontend.utils.SemanticErrorHandler.arrayDepthError;
+import static utils.frontend.SemanticErrorHandler.arrayDepthError;
 
 public class ArrayElemNode extends ExprNode {
 

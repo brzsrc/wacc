@@ -1,6 +1,6 @@
 package frontend.node.stat;
 
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 import java.util.ArrayList;
 import java.util.List;
 

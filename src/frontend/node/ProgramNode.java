@@ -1,6 +1,6 @@
 package frontend.node;
 
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 import java.util.Map;
 
 import frontend.node.stat.StatNode;

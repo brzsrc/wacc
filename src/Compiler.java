@@ -1,4 +1,4 @@
-import frontend.visitor.NodePainter;
+import frontend.ASTPrinter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -13,7 +13,7 @@ import org.antlr.v4.runtime.*;
 import frontend.antlr.*;
 import frontend.antlr.WACCParser.ProgramContext;
 import frontend.node.Node;
-import frontend.utils.ParserErrorHandler;
+import utils.frontend.ParserErrorHandler;
 import frontend.SemanticChecker;
 
 public class Compiler {
@@ -53,7 +53,7 @@ public class Compiler {
         program = semanticChecker.visitProgram(tree);
 
         if (cmd_ops.contains("--print_ast")) {
-          NodePainter painter = new NodePainter();
+          ASTPrinter painter = new ASTPrinter();
           painter.visit(program);
         }
       }

@@ -1,7 +1,7 @@
 package frontend.node;
 
 import frontend.type.Type;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class TypeDeclareNode implements Node {
 

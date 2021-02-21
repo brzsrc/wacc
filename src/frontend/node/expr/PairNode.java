@@ -1,7 +1,7 @@
 package frontend.node.expr;
 
 import frontend.type.PairType;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class PairNode extends ExprNode {
 

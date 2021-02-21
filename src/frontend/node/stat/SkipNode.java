@@ -1,6 +1,6 @@
 package frontend.node.stat;
 
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class SkipNode extends StatNode {
 

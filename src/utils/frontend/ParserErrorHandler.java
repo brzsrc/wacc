@@ -1,8 +1,8 @@
-package frontend.utils;
+package utils.frontend;
 
 import org.antlr.v4.runtime.*;
 
-import static frontend.utils.Utils.*;
+import static utils.frontend.Utils.*;
 
 public class ParserErrorHandler extends DefaultErrorStrategy {
 

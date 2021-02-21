@@ -1,9 +1,9 @@
 package frontend.node.expr;
 
 import frontend.node.FuncNode;
-import frontend.utils.SymbolTable;
+import utils.frontend.SymbolTable;
 
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 import java.util.List;
 
 public class FunctionCallNode extends ExprNode {

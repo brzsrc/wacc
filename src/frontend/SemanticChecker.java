@@ -18,10 +18,10 @@ import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 
 import frontend.type.*;
-import frontend.utils.SymbolTable;
+import utils.frontend.SymbolTable;
 
-import static frontend.utils.SemanticErrorHandler.*;
-import static frontend.utils.Utils.*;
+import static utils.frontend.SemanticErrorHandler.*;
+import static utils.frontend.Utils.*;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 

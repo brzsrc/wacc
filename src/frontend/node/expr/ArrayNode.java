@@ -3,7 +3,7 @@ package frontend.node.expr;
 import frontend.type.ArrayType;
 import frontend.type.Type;
 
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 import java.util.List;
 
 public class ArrayNode extends ExprNode {

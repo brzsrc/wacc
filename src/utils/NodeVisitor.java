@@ -1,4 +1,4 @@
-package frontend.visitor;
+package utils;
 
 import frontend.node.*;
 import frontend.node.expr.*;

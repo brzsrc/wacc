@@ -2,7 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class IntegerNode extends ExprNode {
 

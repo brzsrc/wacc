@@ -1,15 +1,21 @@
 package backend.instructions;
 
 import backend.instructions.Operand.Operand;
-import backend.instructions.Operand.SudoRegister;
+import backend.instructions.Operand.Operand2;
+import utils.backend.PseudoRegister;
 
 public class Mov extends Instruction {
 
-  private final SudoRegister Rd;
-  private final Operand operand;
+  private final PseudoRegister Rd;
+  private final Operand2 operand2;
 
-  public Mov(SudoRegister Rd, Operand operand) {
+  public Mov(PseudoRegister Rd, Operand2 operand2) {
     this.Rd = Rd;
-    this.operand = operand;
+    this.operand2 = operand2;
+  }
+
+  @Override
+  public String assemble() {
+    return "MOV " + Rd + ", " + operand2;
   }
 }

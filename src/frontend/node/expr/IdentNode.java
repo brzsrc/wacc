@@ -1,7 +1,7 @@
 package frontend.node.expr;
 
 import frontend.type.Type;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class IdentNode extends ExprNode {
 

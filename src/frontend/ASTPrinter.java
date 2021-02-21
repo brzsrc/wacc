@@ -1,10 +1,11 @@
-package frontend.visitor;
+package frontend;
 
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
+import utils.NodeVisitor;
 
-public class NodePainter implements NodeVisitor<Void> {
+public class ASTPrinter implements NodeVisitor<Void> {
 
   private final int INDENT_SIZE = 2;
   private int leadingSpace = 0;

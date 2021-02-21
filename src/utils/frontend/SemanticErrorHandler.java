@@ -1,4 +1,4 @@
-package frontend.utils;
+package utils.frontend;
 
 import java.util.Set;
 
@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import frontend.type.Type;
 
-import static frontend.utils.Utils.*;
+import static utils.frontend.Utils.*;
 
 public class SemanticErrorHandler {
 
