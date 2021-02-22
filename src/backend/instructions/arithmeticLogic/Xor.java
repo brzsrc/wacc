@@ -13,6 +13,6 @@ public class Xor extends ArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "XOR " + Rd + ", " + Rn + ", " + operand2;;
+    return "XOR " + Rd + ", " + Rn + ", " + operand2;
   }
 }
