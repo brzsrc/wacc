@@ -1,13 +1,19 @@
 package backend.instructions.memory;
 
 import backend.instructions.Instruction;
+import java.util.List;
+import utils.backend.Register;
 
 public class Push extends Instruction {
 
-  /* TODO: finish this class */
+  private List<Register> reglist;
+
+  public Push(List<Register> reglist) {
+    this.reglist = reglist;
+  }
 
   @Override
   public String assemble() {
-    return null;
+    return "PUSH {" + reglist + "}";
   }
 }

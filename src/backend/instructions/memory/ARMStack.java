@@ -1,6 +1,8 @@
 package backend.instructions.memory;
 
 import backend.instructions.Instruction;
+import java.util.List;
+import utils.backend.Register;
 
 public class ARMStack implements Stack {
 
@@ -13,13 +15,13 @@ public class ARMStack implements Stack {
   }
 
   @Override
-  public Instruction push() {
-    return new Push();
+  public Instruction push(List<Register> reglist) {
+    return new Push(reglist);
   }
 
   @Override
-  public Instruction pop() {
-    return new Pop();
+  public Instruction pop(List<Register> reglist) {
+    return new Pop(reglist);
   }
 
   @Override
