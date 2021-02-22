@@ -3,7 +3,7 @@ package frontend.node.expr;
 import frontend.type.ArrayType;
 import frontend.type.Type;
 
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 import java.util.List;
 
 public class ArrayNode extends ExprNode {
@@ -45,8 +45,8 @@ public class ArrayNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitArrayNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitArrayNode(this);
   }
 
 }

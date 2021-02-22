@@ -3,7 +3,7 @@ package frontend.node;
 import frontend.node.expr.IdentNode;
 import frontend.node.stat.StatNode;
 import frontend.type.Type;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 import java.util.List;
 
 public class FuncNode implements Node {
@@ -53,7 +53,7 @@ public class FuncNode implements Node {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitFuncNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitFuncNode(this);
   }
 }

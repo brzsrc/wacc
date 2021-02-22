@@ -1,7 +1,7 @@
 package frontend.node.expr;
 
 import frontend.type.Type;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class PairElemNode extends ExprNode {
 
@@ -28,7 +28,7 @@ public class PairElemNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitPairElemNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitPairElemNode(this);
   }
 }

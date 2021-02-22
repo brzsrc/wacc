@@ -1,10 +1,11 @@
-package frontend.visitor;
+package frontend;
 
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
+import utils.NodeVisitor;
 
-public class NodePainter implements NodeVisitor {
+public class ASTPrinter implements NodeVisitor<Void> {
 
   private final int INDENT_SIZE = 2;
   private int leadingSpace = 0;
@@ -16,48 +17,58 @@ public class NodePainter implements NodeVisitor {
   }
 
   @Override
-  public void visitArrayElemNode(ArrayElemNode node) {
+  public Void visitArrayElemNode(ArrayElemNode node) {
     visit(node.getArray());
     for (ExprNode e : node.getIndex()) {
       System.out.print("[");
       visit(e);
       System.out.print("]");
     }
+    return null;
   }
 
   @Override
-  public void visitArrayNode(ArrayNode node) {
+  public Void visitArrayNode(ArrayNode node) {
     System.out.print("[");
     for(ExprNode e : node.getContent()) {
       visit(e);
       System.out.print(", ");
     }
     System.out.print("]");
+
+    return null;
   }
 
   @Override
-  public void visitBinopNode(BinopNode node) {
+  public Void visitBinopNode(BinopNode node) {
     visit(node.getExpr1());
     System.out.print(" " + node.getOperator() + " ");
     visit(node.getExpr2());
+
+    return null;
   }
 
   @Override
-  public void visitBoolNode(BoolNode node) {
+  public Void visitBoolNode(BoolNode node) {
     System.out.print(node.getVal());
+
+    return null;
+
   }
 
   @Override
-  public void visitCharNode(CharNode node) {
+  public Void visitCharNode(CharNode node) {
     if (node.getAsciiValue() == '\0') {
       System.out.print("\\0");
-      return;
+      return null;
     }
     System.out.print(node.getAsciiValue());
+    return null;
+
   }
 
   @Override
-  public void visitFunctionCallNode(FunctionCallNode node) {
+  public Void visitFunctionCallNode(FunctionCallNode node) {
     System.out.print(node.getFunction().getFunctionName());
     System.out.print("(");
     for (ExprNode e : node.getParams()) {
@@ -65,89 +76,112 @@ public class NodePainter implements NodeVisitor {
       System.out.print(", ");
     }
     System.out.print(")");
+    return null;
+
   }
 
   @Override
-  public void visitIdentNode(IdentNode node) {
+  public Void visitIdentNode(IdentNode node) {
     System.out.print(node.getName());
+    return null;
   }
 
   @Override
-  public void visitIntegerNode(IntegerNode node) {
+  public Void visitIntegerNode(IntegerNode node) {
     System.out.print(node.getVal());
+    return null;
+
   }
 
   @Override
-  public void visitPairElemNode(PairElemNode node) {
+  public Void visitPairElemNode(PairElemNode node) {
     System.out.print(node.isFist() ? "fst " : "snd ");
     visit(node.getPair());
+    return null;
+
   }
 
   @Override
-  public void visitPairNode(PairNode node) {
+  public Void visitPairNode(PairNode node) {
     System.out.print("pair<");
     visitPairChild(node.getFst());
     System.out.print(", ");
     visitPairChild(node.getSnd());
     System.out.print(">");
+    return null;
+
   }
 
   /* Pair Visitor Helper */
-  private void visitPairChild(ExprNode child) {
+  private Void visitPairChild(ExprNode child) {
     if (child == null) {
       System.out.print("null");
     } else {
       visit(child);
     }
+    return null;
+
   }
 
   @Override
-  public void visitStringNode(StringNode node) {
+  public Void visitStringNode(StringNode node) {
     System.out.print(node.getString());
+    return null;
+
   }
 
   @Override
-  public void visitUnopNode(UnopNode node) {
+  public Void visitUnopNode(UnopNode node) {
     System.out.print(node.getOperator());
     visit(node.getExpr());
+    return null;
+
   }
 
   @Override
-  public void visitAssignNode(AssignNode node) {
+  public Void visitAssignNode(AssignNode node) {
     appendLeadingSpace();
     visit(node.getLhs());
     System.out.print(" = ");
     visit(node.getRhs());
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitDeclareNode(DeclareNode node) {
+  public Void visitDeclareNode(DeclareNode node) {
     appendLeadingSpace();
     node.getRhs().getType().showType();
     System.out.print(" " + node.getIdentifier() + " = ");
     visit(node.getRhs());
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitExitNode(ExitNode node) {
+  public Void visitExitNode(ExitNode node) {
     appendLeadingSpace();
     System.out.print("exit ");
     visit(node.getValue());
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitFreeNode(FreeNode node) {
+  public Void visitFreeNode(FreeNode node) {
     appendLeadingSpace();
     System.out.print("free ");
     visit(node.getExpr());
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitIfNode(IfNode node) {
+  public Void visitIfNode(IfNode node) {
     /* if EXPR : */
     appendLeadingSpace();
     System.out.print("if ");
@@ -171,42 +205,52 @@ public class NodePainter implements NodeVisitor {
     /*\n */
     appendLeadingSpace();
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitPrintlnNode(PrintlnNode node) {
+  public Void visitPrintlnNode(PrintlnNode node) {
     appendLeadingSpace();
     System.out.print("println ");
     visit(node.getExpr());
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitPrintNode(PrintNode node) {
+  public Void visitPrintNode(PrintNode node) {
     appendLeadingSpace();
     System.out.print("print ");
     visit(node.getExpr());
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitReadNode(ReadNode node) {
+  public Void visitReadNode(ReadNode node) {
     appendLeadingSpace();
     System.out.print("read ");
     visit(node.getInputExpr());
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitReturnNode(ReturnNode node) {
+  public Void visitReturnNode(ReturnNode node) {
     appendLeadingSpace();
     System.out.print("return ");
     visit(node.getExpr());
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitScopeNode(ScopeNode node) {
+  public Void visitScopeNode(ScopeNode node) {
     /* { */
     appendLeadingSpace();
     System.out.println("{");
@@ -222,15 +266,19 @@ public class NodePainter implements NodeVisitor {
     appendLeadingSpace();
     System.out.println("}");
 
+    return null;
+
   }
 
   @Override
-  public void visitSkipNode(SkipNode node) {
+  public Void visitSkipNode(SkipNode node) {
     /* do nothing */
+    return null;
+
   }
 
   @Override
-  public void visitWhileNode(WhileNode node) {
+  public Void visitWhileNode(WhileNode node) {
     /* while COND : */
     appendLeadingSpace();
     System.out.print("while ");
@@ -242,10 +290,12 @@ public class NodePainter implements NodeVisitor {
     visit(node.getBody());
     leadingSpace -= INDENT_SIZE;
 
+    return null;
+
   }
 
   @Override
-  public void visitFuncNode(FuncNode node) {
+  public Void visitFuncNode(FuncNode node) {
     node.getReturnType().showType();
     System.out.print(" " + node.getFunctionName() + "(");
     for(IdentNode i : node.getParamList()) {
@@ -259,14 +309,18 @@ public class NodePainter implements NodeVisitor {
     leadingSpace -= INDENT_SIZE;
 
     System.out.println();
+    return null;
+
   }
 
   @Override
-  public void visitProgramNode(ProgramNode node) {
+  public Void visitProgramNode(ProgramNode node) {
     for(FuncNode func : node.getFunctions().values()) {
       visitFuncNode(func);
     }
 
     visit(node.getBody());
+    return null;
+
   }
 }

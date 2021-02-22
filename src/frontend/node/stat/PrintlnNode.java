@@ -1,7 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class PrintlnNode extends StatNode {
 
@@ -21,7 +21,7 @@ public class PrintlnNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitPrintlnNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitPrintlnNode(this);
   }
 }

@@ -2,7 +2,7 @@ package frontend.node;
 
 import frontend.node.expr.ExprNode;
 import frontend.node.stat.StatNode;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public interface Node {
 
@@ -23,5 +23,5 @@ public interface Node {
     throw new IllegalArgumentException("cast not allowed");
   }
 
-  void accept(NodeVisitor visitor);
+  <T> T accept(NodeVisitor<T> visitor);
 }

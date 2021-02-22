@@ -1,7 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class IfNode extends StatNode {
 
@@ -39,7 +39,7 @@ public class IfNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitIfNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitIfNode(this);
   }
 }

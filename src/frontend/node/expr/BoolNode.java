@@ -2,7 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class BoolNode extends ExprNode {
 
@@ -23,8 +23,8 @@ public class BoolNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitBoolNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitBoolNode(this);
   }
 
 }

@@ -1,9 +1,9 @@
 package frontend.node.expr;
 
 import frontend.node.FuncNode;
-import frontend.utils.SymbolTable;
+import utils.frontend.SymbolTable;
 
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 import java.util.List;
 
 public class FunctionCallNode extends ExprNode {
@@ -34,7 +34,7 @@ public class FunctionCallNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitFunctionCallNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitFunctionCallNode(this);
   }
 }

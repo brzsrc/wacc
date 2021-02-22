@@ -2,9 +2,10 @@
 
 ROOT_DIR    := ../..
 
-ANTLR_DIR	:= $(ROOT_DIR)/antlr_config
+ANTLR_DIR	        := $(ROOT_DIR)/antlr_config
 SOURCE_FRONTEND_DIR	:= $(ROOT_DIR)/src/frontend
 OUTPUT_FRONTEND_DIR	:= $(ROOT_DIR)/bin/frontend
+UTILS_DIR           := $(ROOT_DIR)/src/utils
 
 # Tools
 
@@ -24,7 +25,7 @@ all: frontend
 # runs the antlr build script then attempts to compile all .java files within src/frontend
 frontend:
 	cd $(ANTLR_DIR) && ./$(ANTLR) 
-	$(FIND) $(SOURCE_FRONTEND_DIR) -name '*.java' > $@
+	$(FIND) $(SOURCE_FRONTEND_DIR) $(UTILS_DIR) -name '*.java' > $@
 	$(MKDIR) $(OUTPUT_FRONTEND_DIR)
 	$(JAVAC) $(JFLAGS) @$@
 	$(RM) frontend

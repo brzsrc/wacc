@@ -1,5 +1,7 @@
 package frontend.type;
 
+import static utils.Utils.POINTER_SIZE;
+
 public class ArrayType implements Type {
 
   private final Type contentType;
@@ -23,7 +25,7 @@ public class ArrayType implements Type {
 
   @Override
   public boolean equalToType(Type other) {
-    if (other == null) {
+    if (other == null || contentType == null) {
       return true;
     }
     if (!(other instanceof ArrayType)) {
@@ -55,5 +57,10 @@ public class ArrayType implements Type {
   public void showType() {
     contentType.showType();
     System.out.print("[]");
+  }
+
+  @Override
+  public int getSize() {
+    return POINTER_SIZE;
   }
 }

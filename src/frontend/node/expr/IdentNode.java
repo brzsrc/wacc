@@ -1,7 +1,7 @@
 package frontend.node.expr;
 
 import frontend.type.Type;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class IdentNode extends ExprNode {
 
@@ -22,7 +22,7 @@ public class IdentNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitIdentNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitIdentNode(this);
   }
 }

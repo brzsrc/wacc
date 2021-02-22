@@ -2,11 +2,10 @@ package frontend.node.expr;
 
 import frontend.type.Type;
 
-import frontend.visitor.NodeVisitor;
-import java.util.ArrayList;
+import utils.NodeVisitor;
 import java.util.List;
 
-import static frontend.utils.SemanticErrorHandler.arrayDepthError;
+import static utils.frontend.SemanticErrorHandler.arrayDepthError;
 
 public class ArrayElemNode extends ExprNode {
 
@@ -19,20 +18,16 @@ public class ArrayElemNode extends ExprNode {
   private final ExprNode array;
   /* a list of indices needed in multilevel indexing. e.g. a[3][4][5] */
   private final List<ExprNode> index;
-
-  public ArrayElemNode(ExprNode array, ExprNode index, Type type) {
-    this.array = array;
-    this.index = new ArrayList<>();
-    this.index.add(index);
-    this.type = type;
-  }
+  private final int arrayDepth, indexDepth;
 
   public ArrayElemNode(ExprNode array, List<ExprNode> index, Type type) {
     this.array = array;
     this.index = index;
     this.type = type;
+    this.arrayDepth = array.getType().asArrayType().getDepth();
+    this.indexDepth = index.size();
 
-    if (array.getType().asArrayType().getDepth() < index.size()) {
+    if (arrayDepth < indexDepth) {
       arrayDepthError(null, array.getType(), index.size());
     }
   }
@@ -46,7 +41,8 @@ public class ArrayElemNode extends ExprNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitArrayElemNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitArrayElemNode(this);
   }
+
 }

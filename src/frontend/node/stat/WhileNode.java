@@ -1,7 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.expr.ExprNode;
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 
 public class WhileNode extends StatNode {
 
@@ -26,7 +26,7 @@ public class WhileNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitWhileNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitWhileNode(this);
   }
 }

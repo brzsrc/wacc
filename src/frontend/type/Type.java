@@ -13,4 +13,6 @@ public interface Type {
   }
 
   void showType();
+
+  int getSize();
 }

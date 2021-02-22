@@ -1,6 +1,6 @@
 package frontend.node.stat;
 
-import frontend.visitor.NodeVisitor;
+import utils.NodeVisitor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class ScopeNode extends StatNode {
   }
 
   @Override
-  public void accept(NodeVisitor visitor) {
-    visitor.visitScopeNode(this);
+  public <T> T accept(NodeVisitor<T> visitor) {
+    return visitor.visitScopeNode(this);
   }
 }

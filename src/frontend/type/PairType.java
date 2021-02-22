@@ -2,6 +2,8 @@ package frontend.type;
 
 import frontend.node.expr.ExprNode;
 
+import static utils.Utils.*;
+
 public class PairType implements Type {
 
   private final Type fstType;
@@ -77,5 +79,10 @@ public class PairType implements Type {
     } else {
       child.showType();
     }
+  }
+
+  @Override
+  public int getSize() {
+    return POINTER_SIZE;
   }
 }
