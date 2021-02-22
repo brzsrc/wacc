@@ -1,10 +1,15 @@
 package backend.instructions;
 
-public class BL extends Instruction {
-  private String label;
+import utils.backend.Cond;
+
+public class BL extends B {
 
   public BL(String label) {
-    this.label = label;
+    super(label);
+  }
+
+  public BL(Cond cond, String label) {
+    super(cond, label);
   }
 
   @Override
