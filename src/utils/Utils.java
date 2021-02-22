@@ -1,4 +1,4 @@
-package utils.frontend;
+package utils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,6 +16,8 @@ import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import frontend.type.PairType;
 import frontend.type.Type;
+import utils.frontend.SemanticErrorHandler;
+import utils.frontend.SymbolTable;
 
 public class Utils {
 
@@ -77,6 +79,12 @@ public class Utils {
   public static final int SYNTAX_ERROR_CODE = 100;
   public static final int SEMANTIC_ERROR_CODE = 200;
   public static final int INTERNAL_ERROR_CODE = 300;
+
+  /* word, byte size in unit: byte */
+  public static final int WORD_SIZE = 4, BYTE_SIZE = 1, POINTER_SIZE = WORD_SIZE;
+
+  public static final int TRUE = 1;
+  public static final int FALSE = 0;
 
   /* adding a private constructor to override the default public constructor in order to 
      indicate Utils class cannot be instantiated */

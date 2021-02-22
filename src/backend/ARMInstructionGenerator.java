@@ -3,8 +3,8 @@ package backend;
 import backend.instructions.BL;
 import backend.instructions.Instruction;
 import backend.instructions.Mov;
-import backend.instructions.Operand.Immediate;
-import backend.instructions.Operand.Operand2;
+import backend.instructions.operand.Immediate;
+import backend.instructions.operand.Operand2;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
@@ -12,21 +12,19 @@ import utils.NodeVisitor;
 import utils.backend.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static backend.instructions.Operand.Immediate.BitNum;
-import static utils.backend.Utils.POINTER_SIZE;
+import static backend.instructions.operand.Immediate.BitNum;
+import static utils.Utils.*;
 
-public class NodeTranslator implements NodeVisitor<Register> {
+public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
-  public static final int TRUE = 1;
-  public static final int FALSE = 0;
+  /* the pseudo-register allocator used to generate an infinite supply of registeres */
   private static PseudoRegisterAllocator pseudoRegisterAllocator;
+  /* a list of instructions represent the entire program */
   private static List<Instruction> instructions;
 
-  public NodeTranslator() {
+  public ARMInstructionGenerator() {
     pseudoRegisterAllocator = new PseudoRegisterAllocator();
     instructions = new ArrayList<>();
   }

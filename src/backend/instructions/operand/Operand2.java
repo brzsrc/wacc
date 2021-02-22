@@ -1,9 +1,9 @@
-package backend.instructions.Operand;
+package backend.instructions.operand;
 
 import utils.backend.PseudoRegister;
 
 /* operand specified as Table 1-14 in ARM spec */
-public class Operand2 implements Operand {
+public class Operand2 {
 
     enum Operand2Operator { LSL, LSR, ASR, ROR, RRX }
 

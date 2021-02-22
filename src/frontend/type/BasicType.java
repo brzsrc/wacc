@@ -1,6 +1,6 @@
 package frontend.type;
 
-import static utils.backend.Utils.*;
+import static utils.Utils.*;
 
 public class BasicType implements Type {
 

@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import frontend.type.Type;
 
-import static utils.frontend.Utils.*;
+import static utils.Utils.*;
 
 public class SemanticErrorHandler {
 

@@ -1,8 +1,6 @@
 package backend.instructions;
 
-import backend.instructions.Operand.Operand;
-import backend.instructions.Operand.Operand2;
-import utils.backend.PseudoRegister;
+import backend.instructions.operand.Operand2;
 import utils.backend.Register;
 
 public class Mov extends Instruction {

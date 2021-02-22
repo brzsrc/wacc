@@ -21,7 +21,7 @@ import frontend.type.*;
 import utils.frontend.SymbolTable;
 
 import static utils.frontend.SemanticErrorHandler.*;
-import static utils.frontend.Utils.*;
+import static utils.Utils.*;
 
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 

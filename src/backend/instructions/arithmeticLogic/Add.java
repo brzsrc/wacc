@@ -1,12 +1,9 @@
-package backend.instructions;
+package backend.instructions.arithmeticLogic;
 
-import backend.instructions.Operand.*;
+import backend.instructions.operand.*;
 import utils.backend.PseudoRegister;
 
-public class Add extends Instruction {
-
-  private PseudoRegister Rd, Rn;
-  private Operand2 operand2;
+public class Add extends ArithmeticLogic {
 
   public Add(PseudoRegister rd, PseudoRegister rn, Operand2 operand2) {
     Rd = rd;

@@ -1,6 +1,6 @@
 package frontend.type;
 
-import static utils.backend.Utils.POINTER_SIZE;
+import static utils.Utils.POINTER_SIZE;
 
 public class ArrayType implements Type {
 

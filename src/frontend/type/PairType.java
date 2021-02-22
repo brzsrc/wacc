@@ -2,8 +2,7 @@ package frontend.type;
 
 import frontend.node.expr.ExprNode;
 
-import static utils.backend.Utils.POINTER_SIZE;
-import static utils.backend.Utils.WORD_SIZE;
+import static utils.Utils.*;
 
 public class PairType implements Type {
 

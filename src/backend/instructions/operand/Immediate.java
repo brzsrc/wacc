@@ -1,4 +1,4 @@
-package backend.instructions.Operand;
+package backend.instructions.operand;
 
 public class Immediate {
 
