@@ -1,5 +1,7 @@
 package frontend.type;
 
+import static utils.backend.Utils.POINTER_SIZE;
+
 public class ArrayType implements Type {
 
   private final Type contentType;
@@ -59,6 +61,6 @@ public class ArrayType implements Type {
 
   @Override
   public int getSize() {
-    throw new IllegalArgumentException("shouldn't call getSize on array type, call getSize on arrayNode instead");
+    return POINTER_SIZE;
   }
 }

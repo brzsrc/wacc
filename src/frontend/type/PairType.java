@@ -2,6 +2,9 @@ package frontend.type;
 
 import frontend.node.expr.ExprNode;
 
+import static utils.backend.Utils.POINTER_SIZE;
+import static utils.backend.Utils.WORD_SIZE;
+
 public class PairType implements Type {
 
   private final Type fstType;
@@ -81,6 +84,6 @@ public class PairType implements Type {
 
   @Override
   public int getSize() {
-    return WORD_SIZE;
+    return POINTER_SIZE;
   }
 }

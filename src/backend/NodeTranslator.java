@@ -1,5 +1,6 @@
 package backend;
 
+import backend.instructions.BL;
 import backend.instructions.Instruction;
 import backend.instructions.Mov;
 import backend.instructions.Operand.Immediate;
@@ -8,8 +9,7 @@ import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
 import utils.NodeVisitor;
-import utils.backend.PseudoRegister;
-import utils.backend.PseudoRegisterAllocator;
+import utils.backend.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,8 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 import static backend.instructions.Operand.Immediate.BitNum;
+import static utils.backend.Utils.POINTER_SIZE;
 
-public class NodeTranslator implements NodeVisitor<PseudoRegister> {
+public class NodeTranslator implements NodeVisitor<Register> {
 
   public static final int TRUE = 1;
   public static final int FALSE = 0;
@@ -31,27 +32,43 @@ public class NodeTranslator implements NodeVisitor<PseudoRegister> {
   }
 
   @Override
-  public PseudoRegister visitArrayElemNode(ArrayElemNode node) {
-    // todo: after discussing how to implement heap/stack allocation
+  public Register visitArrayElemNode(ArrayElemNode node) {
+    /* 1 generate index out off bound checker function, error message */
+
+    /* 2 put result in register */
+
     return null;
   }
 
   @Override
-  public PseudoRegister visitArrayNode(ArrayNode node) {
-    // todo: after discussing how to implement heap/stack allocation
-
+  public Register visitArrayNode(ArrayNode node) {
     /* 1 generate size of array and put into r0 */
+    int size;
+    if (node.getType() == null) {
+      size = 0;
+    } else {
+      size = node.getElem(0).getType().getSize() * node.getLength();
+    }
+    size += POINTER_SIZE;
+
+    /* has to use absolute register, not virtual register */
+    // todo: need to check at register allocation that r0, r4 is not in use, store if occupied
+    instructions.add(
+            new Mov(
+                    new ARMConcreteRegister(ARMRegisterLabel.R0),
+                    new Operand2(new Immediate(size, BitNum.SHIFT32))));
 
     /* 2 call malloc, get result from r4 */
+    // todo: does the malloc require more register than r0, r4 ?
+    instructions.add(new BL("malloc"));
 
-
-    return null;
+    return new ARMConcreteRegister(ARMRegisterLabel.R4);
   }
 
   @Override
-  public PseudoRegister visitBinopNode(BinopNode node) {
-    PseudoRegister reg1 = visit(node.getExpr1());
-    PseudoRegister reg2 = visit(node.getExpr2());
+  public Register visitBinopNode(BinopNode node) {
+    Register reg1 = visit(node.getExpr1());
+    Register reg2 = visit(node.getExpr2());
 
     /* generate corrisponding command for each binop command */
     // todo: how did mark say about not using switch? use map to map a binop.enum to a command?
@@ -60,7 +77,7 @@ public class NodeTranslator implements NodeVisitor<PseudoRegister> {
   }
 
   @Override
-  public PseudoRegister visitBoolNode(BoolNode node) {
+  public Register visitBoolNode(BoolNode node) {
     PseudoRegister reg = pseudoRegisterAllocator.get();
     Immediate immed = new Immediate(node.getVal() ? TRUE : FALSE, BitNum.SHIFT32);
     Operand2 operand2 = new Operand2(immed);
@@ -69,7 +86,7 @@ public class NodeTranslator implements NodeVisitor<PseudoRegister> {
   }
 
   @Override
-  public PseudoRegister visitCharNode(CharNode node) {
+  public Register visitCharNode(CharNode node) {
     PseudoRegister reg = pseudoRegisterAllocator.get();
     Immediate immed = new Immediate(node.getAsciiValue(), BitNum.SHIFT32);
     Operand2 operand2 = new Operand2(immed);
@@ -78,12 +95,14 @@ public class NodeTranslator implements NodeVisitor<PseudoRegister> {
   }
 
   @Override
-  public PseudoRegister visitFunctionCallNode(FunctionCallNode node) {
+  public Register visitFunctionCallNode(FunctionCallNode node) {
+    /* 1 compute parameters, add into identmap
+    *    each parameter's name define as */
     return null;
   }
 
   @Override
-  public PseudoRegister visitIdentNode(IdentNode node) {
+  public Register visitIdentNode(IdentNode node) {
     String identName = node.getName();
     /* if ident appear for the first time, return a new sudo reg */
     // if (identMap.containsKey(identName)) {
@@ -94,99 +113,99 @@ public class NodeTranslator implements NodeVisitor<PseudoRegister> {
   }
 
   @Override
-  public PseudoRegister visitIntegerNode(IntegerNode node) {
+  public Register visitIntegerNode(IntegerNode node) {
     // todo: same as visitCharNode
     return null;
   }
 
   @Override
-  public PseudoRegister visitPairElemNode(PairElemNode node) {
+  public Register visitPairElemNode(PairElemNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitPairNode(PairNode node) {
+  public Register visitPairNode(PairNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitStringNode(StringNode node) {
+  public Register visitStringNode(StringNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitUnopNode(UnopNode node) {
+  public Register visitUnopNode(UnopNode node) {
     // todo: same as binop
     return null;
   }
 
   @Override
-  public PseudoRegister visitAssignNode(AssignNode node) {
+  public Register visitAssignNode(AssignNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitDeclareNode(DeclareNode node) {
+  public Register visitDeclareNode(DeclareNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitExitNode(ExitNode node) {
+  public Register visitExitNode(ExitNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitFreeNode(FreeNode node) {
+  public Register visitFreeNode(FreeNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitIfNode(IfNode node) {
+  public Register visitIfNode(IfNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitPrintlnNode(PrintlnNode node) {
+  public Register visitPrintlnNode(PrintlnNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitPrintNode(PrintNode node) {
+  public Register visitPrintNode(PrintNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitReadNode(ReadNode node) {
+  public Register visitReadNode(ReadNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitReturnNode(ReturnNode node) {
+  public Register visitReturnNode(ReturnNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitScopeNode(ScopeNode node) {
+  public Register visitScopeNode(ScopeNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitSkipNode(SkipNode node) {
+  public Register visitSkipNode(SkipNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitWhileNode(WhileNode node) {
+  public Register visitWhileNode(WhileNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitFuncNode(FuncNode node) {
+  public Register visitFuncNode(FuncNode node) {
     return null;
   }
 
   @Override
-  public PseudoRegister visitProgramNode(ProgramNode node) {
+  public Register visitProgramNode(ProgramNode node) {
     return null;
   }
 }

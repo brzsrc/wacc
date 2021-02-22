@@ -1,6 +1,6 @@
 package backend.instructions.Operand;
 
-public class Immediate implements Operand {
+public class Immediate {
 
   public enum BitNum {SHIFT10, CONST8, SHIFT32}
 
