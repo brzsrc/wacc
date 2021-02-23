@@ -1,6 +1,7 @@
 package utils.frontend;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import frontend.node.expr.ExprNode;
 
@@ -14,10 +15,15 @@ public class SymbolTable {
 
   private final HashMap<String, ExprNode> dictionary;
   private final SymbolTable parentSymbolTable;
+  private final Map<String, Integer> backendIdentMap;
 
+  /* =========================================
+  *  frontend construction, check functions
+  *  ========================================= */
   public SymbolTable(SymbolTable parentSymbolTable) {
     this.dictionary = new HashMap<>();
     this.parentSymbolTable = parentSymbolTable;
+    this.backendIdentMap = new HashMap<>();
   }
 
   public boolean add(String name, ExprNode expr) {
@@ -48,4 +54,12 @@ public class SymbolTable {
     return parentSymbolTable;
   }
 
+  /* ==========================================
+  *  backend functions
+  *  ========================================== */
+
+  public int getStackOffset(String ident) {
+    // todo: get offset of ident relative to current stack pointer
+    return 0;
+  }
 }

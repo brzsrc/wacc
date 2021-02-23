@@ -112,10 +112,17 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
   @Override
   public Register visitFunctionCallNode(FunctionCallNode node) {
-    /* TODO: write function call together maybe, sx119 */
+    // todo: sx119
+    /* 1 compute parameters, all parameter in stack
+    *    also add into function's identmap */
+    for (ExprNode expr : node.getParams()) {
+      visit(expr);
+      // todo: use STR to store in stack, no need to change symbol table
+    }
 
-    /* 1 compute parameters, add into identmap
-    *    each parameter's name define as */
+    /* 2 call function with B instruction */
+
+    /* 3 get result, put in register */
     return null;
   }
 
@@ -229,6 +236,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
   @Override
   public Register visitScopeNode(ScopeNode node) {
+    // todo: sx119: reserve space for idents in stack
     List<StatNode> list = node.getBody();
 
     for (StatNode elem : list) {
