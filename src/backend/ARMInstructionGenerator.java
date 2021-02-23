@@ -3,8 +3,8 @@ package backend;
 import backend.instructions.BL;
 import backend.instructions.Instruction;
 import backend.instructions.Mov;
-import backend.instructions.Operand.Immediate;
-import backend.instructions.Operand.Operand2;
+import backend.instructions.operand.Immediate;
+import backend.instructions.operand.Operand2;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
@@ -12,22 +12,29 @@ import utils.NodeVisitor;
 import utils.backend.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import static backend.instructions.Operand.Immediate.BitNum;
+import static backend.instructions.operand.Immediate.BitNum;
 import static utils.Utils.*;
 
 public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
   /* the pseudo-register allocator used to generate an infinite supply of registers */
-  private static PseudoRegisterAllocator pseudoRegisterAllocator;
+  private static PseudoRegisterAllocator pseudoRegAllocator;
+  /* the ARM conrete register allocator */
+  private static ARMConcreteRegisterAllocator armRegAllocator;
   /* a list of instructions represent the entire program */
   private static List<Instruction> instructions;
-  /* TODO: add the mapping between register and ident */
+  /* the mapping between register and ident */
+  private static Map<String, Register> identRegMap;
 
   public ARMInstructionGenerator() {
-    pseudoRegisterAllocator = new PseudoRegisterAllocator();
+    pseudoRegAllocator = new PseudoRegisterAllocator();
+    armRegAllocator = new ARMConcreteRegisterAllocator();
     instructions = new ArrayList<>();
+    identRegMap = new HashMap<>();
   }
 
   @Override
@@ -80,7 +87,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
   @Override
   public Register visitBoolNode(BoolNode node) {
-    ARMConcreteRegister reg = ARMConcreteRegisterAllocator.get();
+    ARMConcreteRegister reg = armRegAllocator.allocate();
     Immediate immed = new Immediate(node.getVal() ? TRUE : FALSE, BitNum.SHIFT32);
     Operand2 operand2 = new Operand2(immed);
     // instructions.add(new Mov(reg, operand2));
@@ -89,7 +96,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
   @Override
   public Register visitCharNode(CharNode node) {
-    ARMConcreteRegister reg = ARMConcreteRegisterAllocator.get();
+    ARMConcreteRegister reg = armRegAllocator.allocate();
     Immediate immed = new Immediate(node.getAsciiValue(), BitNum.SHIFT32);
     Operand2 operand2 = new Operand2(immed);
     // instructions.add(new Mov(reg, operand2));
