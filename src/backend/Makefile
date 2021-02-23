@@ -4,10 +4,11 @@ ROOT_DIR    := ../..
 
 SOURCE_BACKEND_DIR	:= $(ROOT_DIR)/src/backend
 OUTPUT_BACKEND_DIR	:= $(ROOT_DIR)/bin/backend
-UTILS_DIR           := $(ROOT_DIR)/src/utils
+UTILS_DIR           := $(ROOT_DIR)/src/utils/backend $(ROOT_DIR)/src/utils/NodeVisitor.java
 
 # Notice that in order to `make backend`, frontend must be `make`d
-SOURCE_FRONTEND_DIR :=$(ROOT_DIR)/src/frontend
+SOURCE_FRONTEND_DIR := $(ROOT_DIR)/src/frontend
+BIN_FRONTEND_DIR    := $(ROOT_DIR)/bin/frontend
 
 # Tools
 FIND	:= find
@@ -16,7 +17,7 @@ MKDIR	:= mkdir -p
 JAVA	:= java
 JAVAC	:= javac
 
-JFLAGS	:= -sourcepath $(SOURCE_BACKEND_DIR):$(SOURCE_FRONTEND_DIR) -d $(OUTPUT_BACKEND_DIR)
+JFLAGS	:= -sourcepath $(SOURCE_BACKEND_DIR) -d $(OUTPUT_BACKEND_DIR) -cp $(BIN_FRONTEND_DIR)
 
 all: backend
 
