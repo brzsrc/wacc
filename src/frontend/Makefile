@@ -5,7 +5,7 @@ ROOT_DIR    := ../..
 ANTLR_DIR	        := $(ROOT_DIR)/antlr_config
 SOURCE_FRONTEND_DIR	:= $(ROOT_DIR)/src/frontend
 OUTPUT_FRONTEND_DIR	:= $(ROOT_DIR)/bin/frontend
-UTILS_DIR           := $(ROOT_DIR)/src/utils
+UTILS_DIR           := $(ROOT_DIR)/src/utils/frontend $(ROOT_DIR)/src/utils/*.java
 
 # Tools
 
