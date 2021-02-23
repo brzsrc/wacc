@@ -1,8 +1,6 @@
 package backend;
 
-import backend.instructions.BL;
-import backend.instructions.Instruction;
-import backend.instructions.Mov;
+import backend.instructions.*;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
 import frontend.node.*;
@@ -29,12 +27,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   private static List<Instruction> instructions;
   /* the mapping between register and ident */
   private static Map<String, Register> identRegMap;
+  /* call getLabel on labelGenerator to get label in format LabelN */
+  private LabelGenerator labelGenerator;
 
   public ARMInstructionGenerator() {
     pseudoRegAllocator = new PseudoRegisterAllocator();
     armRegAllocator = new ARMConcreteRegisterAllocator();
     instructions = new ArrayList<>();
     identRegMap = new HashMap<>();
+    labelGenerator = new LabelGenerator();
   }
 
   @Override
@@ -179,7 +180,26 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
   @Override
   public Register visitIfNode(IfNode node) {
-    /* TODO: sx119 */
+    Label ifLabel = labelGenerator.getLabel();
+    Label elseLabel = labelGenerator.getLabel();
+    Label exitLabel = labelGenerator.getLabel();
+
+    /* 1 condition check, branch */
+    visit(node.getCond());
+    instructions.add(new B(Cond.EQ, ifLabel.toString()));
+
+    /* 2 ifBody translate */
+    instructions.add(ifLabel);
+    visit(node.getIfBody());
+    instructions.add(new B(Cond.NULL, exitLabel.toString()));
+
+    /* 3 elseBody translate */
+    instructions.add(elseLabel);
+    visit(node.getElseBody());
+
+    /* 4 end of if statement */
+    instructions.add(exitLabel);
+
     return null;
   }
 
@@ -209,7 +229,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
   @Override
   public Register visitScopeNode(ScopeNode node) {
-    /* TODO: sx119 */
+    List<StatNode> list = node.getBody();
+
+    for (StatNode elem : list) {
+      visit(elem);
+    }
     return null;
   }
 
@@ -220,7 +244,25 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
   @Override
   public Register visitWhileNode(WhileNode node) {
-    /* TODO: sx119 */
+    /* 1 unconditional jump to end of loop, where conditional branch exists */
+    Label testLabel = labelGenerator.getLabel();
+    instructions.add(new B(Cond.NULL, testLabel.toString()));
+
+    /* 2 get a label, mark the start of the loop */
+    Label startLabel = labelGenerator.getLabel();
+    instructions.add(startLabel);
+
+    /* 3 loop body */
+    visit(node.getBody());
+
+    /* 4 start of condition test */
+    instructions.add(testLabel);
+    /*   translate cond expr */
+    visit(node.getCond());
+
+    /* 5 conditional branch jump to the start of loop */
+    new B(Cond.EQ, startLabel.toString());
+
     return null;
   }
 
