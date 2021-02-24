@@ -1,4 +1,4 @@
-package backend.instructions.addressingMode3;
+package backend.instructions.addressing.addressingMode3;
 
 import backend.instructions.operand.Immediate;
 

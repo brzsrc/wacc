@@ -1,6 +1,6 @@
-package backend.instructions.addressingMode3;
+package backend.instructions.addressing.addressingMode3;
 
-public abstract class AddressingMode3 {
+public abstract class AddressingMode3 extends Addressing {
 
   private AddressingMode mode;
   private boolean isMinus;

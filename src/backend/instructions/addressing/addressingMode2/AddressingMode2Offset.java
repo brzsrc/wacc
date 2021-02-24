@@ -1,6 +1,6 @@
-package backend.instructions.addressingMode2;
+package backend.instructions.addressing.addressingMode2;
 
-public class AddressingMode2 {
+public class AddressingMode2 extends Addressing {
 
     enum AddrMode2Operator { LSL, LSR, ASR, ROR, RRX }
 
