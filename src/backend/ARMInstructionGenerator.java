@@ -1,6 +1,7 @@
 package backend;
 
 import backend.instructions.*;
+import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
 import frontend.node.*;
@@ -27,6 +28,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   private static List<Instruction> instructions;
   /* the mapping between register and ident */
   private static Map<String, Register> identRegMap;
+  /* the mapping between stack address and ident */
+  private static Map<String, Integer> identStackMap;
   /* call getLabel on labelGenerator to get label in format LabelN */
   private LabelGenerator labelGenerator;
 
@@ -35,15 +38,21 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
     armRegAllocator = new ARMConcreteRegisterAllocator();
     instructions = new ArrayList<>();
     identRegMap = new HashMap<>();
+    identStackMap = new HashMap<>();
     labelGenerator = new LabelGenerator();
   }
 
   @Override
   public Register visitArrayElemNode(ArrayElemNode node) {
-    /* TODO: xz1919 */
-    /* 1 generate index out off bound checker function, error message */
+    List<Instruction> ins = new ArrayList<>();
 
-    /* 2 put result in register */
+    /* get the address of this array and store it in an available register */
+    Register reg = armRegAllocator.allocate();
+    Operand2 operand2 = new Operand2(new Immediate(identStackMap.get(node.getName()), BitNum.CONST8));
+    ins.add(new Add(reg, armRegAllocator.get(ARMRegisterLabel.SP), operand2));
+
+    /* load the index to an available register */
+    // ins.add(new );
 
     return null;
   }

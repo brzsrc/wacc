@@ -360,7 +360,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       indexList.add(index);
     }
 
-    return new ArrayElemNode(array, indexList, array.getType().asArrayType().getContentType());
+    return new ArrayElemNode(array, indexList, array.getType().asArrayType().getContentType(), arrayIdent);
   }
 
   @Override

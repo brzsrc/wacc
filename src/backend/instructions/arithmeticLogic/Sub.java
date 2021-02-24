@@ -1,12 +1,11 @@
 package backend.instructions.arithmeticLogic;
 
-import backend.instructions.Instruction;
 import backend.instructions.operand.Operand2;
-import utils.backend.PseudoRegister;
+import utils.backend.Register;
 
 public class Sub extends ArithmeticLogic {
 
-  public Sub(PseudoRegister rd, PseudoRegister rn, Operand2 operand2) {
+  public Sub(Register rd, Register rn, Operand2 operand2) {
     super(rd, rn, operand2);
   }
 
