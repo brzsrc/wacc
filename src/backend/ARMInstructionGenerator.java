@@ -38,7 +38,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   /* the mapping between stack address and ident */
   private static Map<String, Integer> identStackMap;
   /* call getLabel on labelGenerator to get label in format LabelN */
-  private LabelGenerator labelGenerator;
 
   public ARMInstructionGenerator() {
     pseudoRegAllocator = new PseudoRegisterAllocator();
@@ -46,7 +45,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions = new ArrayList<>();
     identRegMap = new HashMap<>();
     identStackMap = new HashMap<>();
-    labelGenerator = new LabelGenerator();
   }
 
   @Override
@@ -242,9 +240,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitIfNode(IfNode node) {
-    Label ifLabel = labelGenerator.getLabel();
-    Label elseLabel = labelGenerator.getLabel();
-    Label exitLabel = labelGenerator.getLabel();
+    Label ifLabel = Label.getBlockLabel();
+    Label elseLabel = Label.getBlockLabel();
+    Label exitLabel = Label.getBlockLabel();
 
     /* 1 condition check, branch */
     visit(node.getCond());
@@ -308,11 +306,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitWhileNode(WhileNode node) {
     /* 1 unconditional jump to end of loop, where conditional branch exists */
-    Label testLabel = labelGenerator.getLabel();
+    Label testLabel = Label.getBlockLabel();
     instructions.add(new B(Cond.NULL, testLabel.toString()));
 
     /* 2 get a label, mark the start of the loop */
-    Label startLabel = labelGenerator.getLabel();
+    Label startLabel = Label.getBlockLabel();
     instructions.add(startLabel);
 
     /* 3 loop body */
