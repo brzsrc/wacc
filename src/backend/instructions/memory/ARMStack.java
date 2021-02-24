@@ -1,27 +1,42 @@
 package backend.instructions.memory;
 
-import backend.instructions.Instruction;
-import java.util.List;
-import utils.backend.Register;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ARMStack implements Stack {
 
-  private int stackPointer;
   /* TODO: find the correct value of MAX_ARM_STACK_SIZE */
   public static final int MAX_ARM_STACK_SIZE = 65536;
 
+  /* actually this is the current offset value from the start position */
+  private int stackPointer;
+  /* store the mapping between identifier and their position on the stack */
+  private Map<String, Integer> identStackMap; 
+
   public ARMStack() {
     this.stackPointer = 0;
+    this.identStackMap = new HashMap<>();
   }
 
   @Override
-  public Instruction push(List<Register> reglist) {
-    return new Push(reglist);
+  public int push(String ident) {
+    /* TODO: using isFull() to handle stack overflow */
+    identStackMap.put(ident, stackPointer);
+    int temp = stackPointer;
+    stackPointer += 4;
+    return temp;
   }
 
   @Override
-  public Instruction pop(List<Register> reglist) {
-    return new Pop(reglist);
+  public int pop(String ident) {
+    identStackMap.remove(ident);
+    stackPointer -= 4;
+    return stackPointer;
+  }
+
+  @Override
+  public int lookUp(String ident) {
+    return identStackMap.get(ident);
   }
 
   @Override

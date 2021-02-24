@@ -5,6 +5,7 @@ import backend.instructions.addressing.ImmediateAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
+import backend.instructions.memory.ARMStack;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
 import backend.instructions.operand.Operand2.Operand2Operator;
@@ -34,7 +35,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   /* a list of instructions represent the entire program */
   private static List<Instruction> instructions;
   /* the mapping between register and ident */
-  private static Map<String, Register> identRegMap;
+  private static ARMStack stack;
   /* the mapping between stack address and ident */
   private static Map<String, Integer> identStackMap;
   /* call getLabel on labelGenerator to get label in format LabelN */
@@ -44,7 +45,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     pseudoRegAllocator = new PseudoRegisterAllocator();
     armRegAllocator = new ARMConcreteRegisterAllocator();
     instructions = new ArrayList<>();
-    identRegMap = new HashMap<>();
+    stack = new ARMStack();
     identStackMap = new HashMap<>();
     labelGenerator = new LabelGenerator();
   }
@@ -117,7 +118,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new STR(sizeReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
 
     /* TODO: STR the array pointer onto the stack and update the `identStackMap` */
-    // instructions.add(new STR(addrReg, new AddressingMode2(mode, Rn)));
+    // int addr = stack.push();
+    instructions.add(new STR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg, new Immediate(addr, BitNum.CONST8))));
     /* update identStackMap but may need a better structure */
 
     armRegAllocator.free();
