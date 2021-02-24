@@ -48,6 +48,10 @@ public class ArrayElemNode extends ExprNode {
     return index;
   }
 
+  public int getDepth() {
+    return indexDepth;
+  }
+
   @Override
   public <T> T accept(NodeVisitor<T> visitor) {
     return visitor.visitArrayElemNode(this);

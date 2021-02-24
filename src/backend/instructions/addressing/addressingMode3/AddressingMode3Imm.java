@@ -2,7 +2,7 @@ package backend.instructions.addressing.addressingMode3;
 
 import backend.instructions.operand.Immediate;
 
-public class AddressingMode3Imm extends AddressingMode3{
+public class AddressingMode3Imm extends AddressingMode3 {
   /* Immediate offset [<Rn>,  #+/-<immed_8>]
        Pre-indexed    [<Rn>,  #+/-<immed_8>]!
        Post-indexed   [<Rn>], #+/-<immed_8>

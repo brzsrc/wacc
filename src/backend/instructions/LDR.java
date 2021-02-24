@@ -1,10 +1,11 @@
 package backend.instructions;
 
-import utils.backend.Register
+import backend.instructions.addressing.Addressing;
+import utils.backend.Register;
 
 public class LDR extends Instruction {
 
-  private Register regsiter;
+  private Register register;
   private Addressing addr;
 
   public LDR(Register register, Addressing addr) {

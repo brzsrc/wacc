@@ -1,6 +1,6 @@
 package backend.instructions;
 
-import backend.instructions.addressingMode3.AddressingMode3;
+import backend.instructions.addressing.addressingMode3.*;
 import utils.backend.ARMConcreteRegister;
 
 public class STR extends Instruction {

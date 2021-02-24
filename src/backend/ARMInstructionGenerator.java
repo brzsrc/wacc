@@ -1,9 +1,13 @@
 package backend;
 
 import backend.instructions.*;
+import backend.instructions.addressing.ImmediateAddressing;
+import backend.instructions.addressing.addressingMode2.AddressingMode2;
+import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
+import backend.instructions.operand.Operand2.Operand2Operator;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
@@ -18,9 +22,12 @@ import java.util.Map;
 import static backend.instructions.operand.Immediate.BitNum;
 import static utils.Utils.*;
 
-public class ARMInstructionGenerator implements NodeVisitor<Register> {
+public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
-  /* the pseudo-register allocator used to generate an infinite supply of registers */
+  /*
+   * the pseudo-register allocator used to generate an infinite supply of
+   * registers
+   */
   private static PseudoRegisterAllocator pseudoRegAllocator;
   /* the ARM conrete register allocator */
   private static ARMConcreteRegisterAllocator armRegAllocator;
@@ -43,7 +50,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   }
 
   @Override
-  public Register visitArrayElemNode(ArrayElemNode node) {
+  public Void visitArrayElemNode(ArrayElemNode node) {
     List<Instruction> ins = new ArrayList<>();
 
     /* get the address of this array and store it in an available register */
@@ -51,14 +58,37 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
     Operand2 operand2 = new Operand2(new Immediate(identStackMap.get(node.getName()), BitNum.CONST8));
     ins.add(new Add(reg, armRegAllocator.get(ARMRegisterLabel.SP), operand2));
 
-    /* load the index to an available register */
-    ins.add(new LDR());
+    for (int i = 0; i < node.getDepth(); i++) {
+      /* load the index at depth `i` to the next available register */
+      Register reg2 = armRegAllocator.allocate();
+      ExprNode index = node.getIndex().get(i);
+      if (!(index instanceof IntegerNode)) {
+        visit(index);
+      } else {
+        ins.add(new LDR(reg2, new ImmediateAddressing(new Immediate(((IntegerNode) index).getVal(), BitNum.CONST8))));
+      }
+
+      /* check array bound */
+      ins.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, reg)));
+      ins.add(new Mov(armRegAllocator.get(0), new Operand2(reg2)));
+      ins.add(new Mov(armRegAllocator.get(1), new Operand2(reg)));
+      ins.add(new BL("p_check_array_bounds"));
+
+      ins.add(new Add(reg, reg, new Operand2(new Immediate(4, BitNum.CONST8))));
+      ins.add(new Add(reg, reg, new Operand2(reg2, Operand2Operator.LSL, new Immediate(2, BitNum.CONST8))));
+
+      /* free reg2 to make it available for the indexing of the next depth */
+      armRegAllocator.free();
+    }
+
+    /* now load the array content to `reg` */
+    ins.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, reg)));
 
     return null;
   }
 
   @Override
-  public Register visitArrayNode(ArrayNode node) {
+  public Void visitArrayNode(ArrayNode node) {
     /* TODO: xz1919 */
     /* 1 generate size of array and put into r0 */
     int size;
@@ -70,11 +100,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
     size += POINTER_SIZE;
 
     /* has to use absolute register, not virtual register */
-    // todo: need to check at register allocation that r0, r4 is not in use, store if occupied
+    // todo: need to check at register allocation that r0, r4 is not in use, store
+    // if occupied
     // instructions.add(
-    //         new Mov(
-    //                 new ARMConcreteRegister(ARMRegisterLabel.R0),
-    //                 new Operand2(new Immediate(size, BitNum.SHIFT32))));
+    // new Mov(
+    // new ARMConcreteRegister(ARMRegisterLabel.R0),
+    // new Operand2(new Immediate(size, BitNum.SHIFT32))));
 
     /* 2 call malloc, get result from r4 */
     // todo: does the malloc require more register than r0, r4 ?
@@ -84,19 +115,20 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   }
 
   @Override
-  public Register visitBinopNode(BinopNode node) {
+  public Void visitBinopNode(BinopNode node) {
     /* TODO: left over */
     Register reg1 = visit(node.getExpr1());
     Register reg2 = visit(node.getExpr2());
 
     /* generate corrisponding command for each binop command */
-    // todo: how did mark say about not using switch? use map to map a binop.enum to a command?
+    // todo: how did mark say about not using switch? use map to map a binop.enum to
+    // a command?
 
     return null;
   }
 
   @Override
-  public Register visitBoolNode(BoolNode node) {
+  public Void visitBoolNode(BoolNode node) {
     ARMConcreteRegister reg = armRegAllocator.allocate();
     Immediate immed = new Immediate(node.getVal() ? TRUE : FALSE, BitNum.SHIFT32);
     Operand2 operand2 = new Operand2(immed);
@@ -105,7 +137,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   }
 
   @Override
-  public Register visitCharNode(CharNode node) {
+  public Void visitCharNode(CharNode node) {
     ARMConcreteRegister reg = armRegAllocator.allocate();
     Immediate immed = new Immediate(node.getAsciiValue(), BitNum.SHIFT32);
     Operand2 operand2 = new Operand2(immed);
@@ -114,16 +146,18 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   }
 
   @Override
-  public Register visitIntegerNode(IntegerNode node) {
+  public Void visitIntegerNode(IntegerNode node) {
     // todo: same as visitCharNode
     return null;
   }
 
   @Override
-  public Register visitFunctionCallNode(FunctionCallNode node) {
+  public Void visitFunctionCallNode(FunctionCallNode node) {
     // todo: sx119
-    /* 1 compute parameters, all parameter in stack
-    *    also add into function's identmap */
+    /*
+     * 1 compute parameters, all parameter in stack also add into function's
+     * identmap
+     */
     for (ExprNode expr : node.getParams()) {
       visit(expr);
       // todo: use STR to store in stack, no need to change symbol table
@@ -136,66 +170,67 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   }
 
   @Override
-  public Register visitIdentNode(IdentNode node) {
+  public Void visitIdentNode(IdentNode node) {
     String identName = node.getName();
     /* if ident appear for the first time, return a new sudo reg */
     // if (identMap.containsKey(identName)) {
-    //   return identMap.get(identName);
+    // return identMap.get(identName);
     // }
     /* new ident should be handled in declare node or related function node */
-    throw new IllegalArgumentException("new Ident should be handled in visitDeclareNode or visitFuncNode, not in visitIdentNode");
+    throw new IllegalArgumentException(
+        "new Ident should be handled in visitDeclareNode or visitFuncNode, not in visitIdentNode");
   }
 
   @Override
-  public Register visitPairElemNode(PairElemNode node) {
+  public Void visitPairElemNode(PairElemNode node) {
     /* TODO: xz1919 */
     return null;
   }
 
   @Override
-  public Register visitPairNode(PairNode node) {
+  public Void visitPairNode(PairNode node) {
     /* TODO: xz1919 */
     return null;
   }
 
   @Override
-  public Register visitStringNode(StringNode node) {
+  public Void visitStringNode(StringNode node) {
     /* TODO: xx1219 */
     return null;
   }
 
   @Override
-  public Register visitUnopNode(UnopNode node) {
+  public Void visitUnopNode(UnopNode node) {
     // TODO: left over
     return null;
   }
 
   @Override
-  public Register visitAssignNode(AssignNode node) {
+  public Void visitAssignNode(AssignNode node) {
     /* TODO: ss6919 */
     return null;
   }
 
   @Override
-  public Register visitDeclareNode(DeclareNode node) {
+  public Void visitDeclareNode(DeclareNode node) {
     /* TODO: ss6919 */
     return null;
   }
 
   @Override
-  public Register visitExitNode(ExitNode node) {
+  public Void visitExitNode(ExitNode node) {
     /* TODO: xx1219 */
     return null;
   }
 
   @Override
-  public Register visitFreeNode(FreeNode node) {
+  public Void visitFreeNode(FreeNode node) {
     /* TODO: xz1919 */
     return null;
   }
 
   @Override
-  public Register visitIfNode(IfNode node) {
+  public Void visitIfNode(IfNode node) {
     Label ifLabel = labelGenerator.getLabel();
     Label elseLabel = labelGenerator.getLabel();
     Label exitLabel = labelGenerator.getLabel();
@@ -220,31 +255,31 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   }
 
   @Override
-  public Register visitPrintlnNode(PrintlnNode node) {
+  public Void visitPrintlnNode(PrintlnNode node) {
     /* TODO: xx1219 */
     return null;
   }
 
   @Override
-  public Register visitPrintNode(PrintNode node) {
+  public Void visitPrintNode(PrintNode node) {
     /* TODO: xx1219 */
     return null;
   }
 
   @Override
-  public Register visitReadNode(ReadNode node) {
+  public Void visitReadNode(ReadNode node) {
     /* TODO: xx1219 */
     return null;
   }
 
   @Override
-  public Register visitReturnNode(ReturnNode node) {
+  public Void visitReturnNode(ReturnNode node) {
     /* TODO: xz1919 */
     return null;
   }
 
   @Override
-  public Register visitScopeNode(ScopeNode node) {
+  public Void visitScopeNode(ScopeNode node) {
     // todo: sx119: reserve space for idents in stack
     List<StatNode> list = node.getBody();
 
@@ -255,12 +290,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   }
 
   @Override
-  public Register visitSkipNode(SkipNode node) {
+  public Void visitSkipNode(SkipNode node) {
     return null;
   }
 
   @Override
-  public Register visitWhileNode(WhileNode node) {
+  public Void visitWhileNode(WhileNode node) {
     /* 1 unconditional jump to end of loop, where conditional branch exists */
     Label testLabel = labelGenerator.getLabel();
     instructions.add(new B(Cond.NULL, testLabel.toString()));
@@ -274,7 +309,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
 
     /* 4 start of condition test */
     instructions.add(testLabel);
-    /*   translate cond expr */
+    /* translate cond expr */
     visit(node.getCond());
 
     /* 5 conditional branch jump to the start of loop */
@@ -284,13 +319,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
   }
 
   @Override
-  public Register visitFuncNode(FuncNode node) {
+  public Void visitFuncNode(FuncNode node) {
     /* TODO: xz1919 */
     return null;
   }
 
   @Override
-  public Register visitProgramNode(ProgramNode node) {
+  public Void visitProgramNode(ProgramNode node) {
     /*  */
     return null;
   }
