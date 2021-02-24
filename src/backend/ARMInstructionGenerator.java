@@ -2,6 +2,7 @@ package backend;
 
 import backend.instructions.*;
 import backend.instructions.addressing.ImmediateAddressing;
+import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
@@ -38,6 +39,14 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   /* the mapping between stack address and ident */
   private static Map<String, Integer> identStackMap;
   /* call getLabel on labelGenerator to get label in format LabelN */
+
+  /* a list of instructions for storing the data (msg_ mainly)
+   * would be attached as a prefix to the instructions list while printing */
+  private static List<Instruction> data;
+
+  /* a list of instructions for storing different helper functions
+   * would be appended to the end of instructions list while printing */
+  private static List<Instruction> helperFunctions;
 
   public ARMInstructionGenerator() {
     pseudoRegAllocator = new PseudoRegisterAllocator();
@@ -204,7 +213,16 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitStringNode(StringNode node) {
-    /* TODO: xx1219 */
+    /* Add msg into the data list */
+    Label msg = Label.getMsgLabel();
+    data.add(msg);
+    data.add(new Word(node.getLength()));
+    data.add(new Ascii(node.getString()));
+
+    /* Add the instructions */
+    ARMConcreteRegister reg = armRegAllocator.allocate();
+    instructions.add(new LDR(reg, new LabelAddressing(msg)));
+
     return null;
   }
 
@@ -228,7 +246,14 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitExitNode(ExitNode node) {
-    /* TODO: xx1219 */
+    /* If regs were allocated correctly for every statement
+     * then the argument value of exit would be put into r4 */
+    visit(node.getValue());
+    /* Mov the argument value from r4 to r0 */
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
+    /* Call the exit function */
+    instructions.add(new BL("exit"));
+    
     return null;
   }
 
