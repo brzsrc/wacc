@@ -1,16 +1,16 @@
 package backend.instructions;
 
-import backend.instructions.addressing.addressingMode3.*;
-import utils.backend.ARMConcreteRegister;
+import backend.instructions.addressing.Addressing;
+import utils.backend.Register;
 
 public class STR extends Instruction {
 
-  private ARMConcreteRegister srcReg;
-  private AddressingMode3 mode3;
+  private Register srcReg;
+  private Addressing addr;
 
-  public STR(ARMConcreteRegister srcReg, AddressingMode3 mode3) {
+  public STR(Register srcReg, Addressing addr) {
     this.srcReg = srcReg;
-    this.mode3 = mode3;
+    this.addr = addr;
   }
 
 

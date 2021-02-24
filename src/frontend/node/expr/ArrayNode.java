@@ -15,16 +15,22 @@ public class ArrayNode extends ExprNode {
    */
 
   private int length;
+  private int contentSize;
   private List<ExprNode> content;
 
   public ArrayNode(Type contentType, List<ExprNode> content, int length) {
     this.content = content;
     this.length = length;
     this.type = new ArrayType(contentType);
+    this.contentSize = contentType == null || content.isEmpty() ? 0 : content.get(0).getType().getSize();
   }
 
   public int getLength() {
     return length;
+  }
+
+  public int getContentSize() {
+    return contentSize;
   }
 
   public ExprNode getElem(int index) {

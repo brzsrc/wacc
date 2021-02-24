@@ -51,74 +51,85 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitArrayElemNode(ArrayElemNode node) {
-    List<Instruction> ins = new ArrayList<>();
-
     /* get the address of this array and store it in an available register */
-    Register reg = armRegAllocator.allocate();
+    Register addrReg = armRegAllocator.allocate();
     Operand2 operand2 = new Operand2(new Immediate(identStackMap.get(node.getName()), BitNum.CONST8));
-    ins.add(new Add(reg, armRegAllocator.get(ARMRegisterLabel.SP), operand2));
+    instructions.add(new Add(addrReg, armRegAllocator.get(ARMRegisterLabel.SP), operand2));
 
     for (int i = 0; i < node.getDepth(); i++) {
       /* load the index at depth `i` to the next available register */
-      Register reg2 = armRegAllocator.allocate();
+      Register indexReg = armRegAllocator.allocate();
       ExprNode index = node.getIndex().get(i);
       if (!(index instanceof IntegerNode)) {
         visit(index);
       } else {
-        ins.add(new LDR(reg2, new ImmediateAddressing(new Immediate(((IntegerNode) index).getVal(), BitNum.CONST8))));
+        instructions.add(new LDR(indexReg, new ImmediateAddressing(new Immediate(((IntegerNode) index).getVal(), BitNum.CONST8))));
       }
 
       /* check array bound */
-      ins.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, reg)));
-      ins.add(new Mov(armRegAllocator.get(0), new Operand2(reg2)));
-      ins.add(new Mov(armRegAllocator.get(1), new Operand2(reg)));
-      ins.add(new BL("p_check_array_bounds"));
+      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
+      instructions.add(new Mov(armRegAllocator.get(0), new Operand2(indexReg)));
+      instructions.add(new Mov(armRegAllocator.get(1), new Operand2(addrReg)));
+      instructions.add(new BL("p_check_array_bounds"));
 
-      ins.add(new Add(reg, reg, new Operand2(new Immediate(4, BitNum.CONST8))));
-      ins.add(new Add(reg, reg, new Operand2(reg2, Operand2Operator.LSL, new Immediate(2, BitNum.CONST8))));
+      instructions.add(new Add(addrReg, addrReg, new Operand2(new Immediate(4, BitNum.CONST8))));
+      instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, Operand2Operator.LSL, new Immediate(2, BitNum.CONST8))));
 
-      /* free reg2 to make it available for the indexing of the next depth */
+      /* free indexReg to make it available for the indexing of the next depth */
       armRegAllocator.free();
     }
 
     /* now load the array content to `reg` */
-    ins.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, reg)));
+    instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
 
     return null;
   }
 
   @Override
   public Void visitArrayNode(ArrayNode node) {
-    /* TODO: xz1919 */
-    /* 1 generate size of array and put into r0 */
-    int size;
-    if (node.getType() == null) {
-      size = 0;
-    } else {
-      size = node.getElem(0).getType().getSize() * node.getLength();
-    }
+    /* get the total number of bytes needed to allocate enought space for the array */
+    int size = node.getType() == null ? 0 : node.getContentSize() * node.getLength();
+    /* add 4 bytes to `size` to include the size of the array as the first byte */
     size += POINTER_SIZE;
 
-    /* has to use absolute register, not virtual register */
-    // todo: need to check at register allocation that r0, r4 is not in use, store
-    // if occupied
-    // instructions.add(
-    // new Mov(
-    // new ARMConcreteRegister(ARMRegisterLabel.R0),
-    // new Operand2(new Immediate(size, BitNum.SHIFT32))));
 
-    /* 2 call malloc, get result from r4 */
-    // todo: does the malloc require more register than r0, r4 ?
+    /* load R0 with the number of bytes needed and malloc  */
+    instructions.add(new LDR(armRegAllocator.get(0), new ImmediateAddressing(new Immediate(size, BitNum.CONST8))));
     instructions.add(new BL("malloc"));
 
-    return new ARMConcreteRegister(ARMRegisterLabel.R4);
+    /* then MOV the result pointer of the array to the next available register */
+    Register addrReg = armRegAllocator.allocate();
+    instructions.add(new Mov(addrReg, new Operand2(armRegAllocator.get(0))));
+
+    /* then allocate the content of the array to the corresponding address */
+    for (int i = 0; i < node.getLength(); i++) {
+      Register reg = armRegAllocator.allocate();
+      visit(node.getElem(i));
+      int STRIndex = i * WORD_SIZE + WORD_SIZE;
+      instructions.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.curr())));
+      instructions.add(new STR(addrReg, new AddressingMode2(AddrMode2.OFFSET, reg, new Immediate(STRIndex, BitNum.CONST8))));
+      armRegAllocator.free();
+    }
+
+    /* STR the size of the array in the first byte */
+    Register sizeReg = armRegAllocator.allocate();
+    instructions.add(new LDR(sizeReg, new ImmediateAddressing(new Immediate(size, BitNum.CONST8))));
+    instructions.add(new STR(sizeReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
+
+    /* TODO: STR the array pointer onto the stack and update the `identStackMap` */
+    // instructions.add(new STR(addrReg, new AddressingMode2(mode, Rn)));
+    /* update identStackMap but may need a better structure */
+
+    armRegAllocator.free();
+
+    return null;
   }
 
   @Override
   public Void visitBinopNode(BinopNode node) {
     /* TODO: left over */
-    Register reg1 = visit(node.getExpr1());
-    Register reg2 = visit(node.getExpr2());
+    // Register reg1 = visit(node.getExpr1());
+    // Register reg2 = visit(node.getExpr2());
 
     /* generate corrisponding command for each binop command */
     // todo: how did mark say about not using switch? use map to map a binop.enum to
@@ -133,7 +144,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Immediate immed = new Immediate(node.getVal() ? TRUE : FALSE, BitNum.SHIFT32);
     Operand2 operand2 = new Operand2(immed);
     // instructions.add(new Mov(reg, operand2));
-    return reg;
+    return null;
   }
 
   @Override
@@ -142,7 +153,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Immediate immed = new Immediate(node.getAsciiValue(), BitNum.SHIFT32);
     Operand2 operand2 = new Operand2(immed);
     // instructions.add(new Mov(reg, operand2));
-    return reg;
+    return null;
   }
 
   @Override
