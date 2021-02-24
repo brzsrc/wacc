@@ -52,7 +52,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Register> {
     ins.add(new Add(reg, armRegAllocator.get(ARMRegisterLabel.SP), operand2));
 
     /* load the index to an available register */
-    // ins.add(new );
+    ins.add(new );
 
     return null;
   }
