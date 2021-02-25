@@ -1,6 +1,7 @@
 package backend.instructions.arithmeticLogic;
 
 import backend.instructions.operand.Operand2;
+import frontend.node.expr.BinopNode.Binop;
 import utils.backend.Register;
 
 public class Xor extends ArithmeticLogic {
