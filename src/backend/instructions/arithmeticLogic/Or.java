@@ -1,11 +1,11 @@
 package backend.instructions.arithmeticLogic;
 
 import backend.instructions.operand.Operand2;
-import utils.backend.PseudoRegister;
+import utils.backend.Register;
 
 public class Or extends ArithmeticLogic {
 
-  public Or(PseudoRegister rd, PseudoRegister rn, Operand2 operand2) {
+  public Or(Register rd, Register rn, Operand2 operand2) {
     super(rd, rn, operand2);
   }
 

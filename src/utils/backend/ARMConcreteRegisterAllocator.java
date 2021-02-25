@@ -3,10 +3,15 @@ package utils.backend;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static utils.backend.ARMConcreteRegister.*;
 
 public class ARMConcreteRegisterAllocator {
+
+    public static final int GENERAL_REG_START = 4;
+    public static final Map<ARMRegisterLabel, Integer> ARMspecialRegMapping = Map.of(ARMRegisterLabel.SP, 13,
+            ARMRegisterLabel.SLR, 14, ARMRegisterLabel.PC, 15);
 
     private List<ARMConcreteRegister> registers;
     private int registerCounter;
@@ -14,7 +19,11 @@ public class ARMConcreteRegisterAllocator {
     public ARMConcreteRegisterAllocator() {
         registers = new ArrayList<>();
         Arrays.asList(ARMRegisterLabel.values()).forEach(label -> registers.add(new ARMConcreteRegister(label)));
-        registerCounter = 0;
+        registerCounter = GENERAL_REG_START;
+    }
+
+    public ARMConcreteRegister curr() {
+        return registers.get(registerCounter - (registerCounter > GENERAL_REG_START ? 1 : 0));
     }
 
     public ARMConcreteRegister next() {
@@ -23,6 +32,10 @@ public class ARMConcreteRegisterAllocator {
 
     public ARMConcreteRegister get(int counter) {
         return registers.get(counter);
+    }
+
+    public ARMConcreteRegister get(ARMRegisterLabel label) {
+        return registers.get(ARMspecialRegMapping.get(label));
     }
 
     public ARMConcreteRegister allocate() {

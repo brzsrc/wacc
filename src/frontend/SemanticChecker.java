@@ -46,12 +46,16 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* record whether a skipable semantic error is found in visiting to support checking of multiple errors */
   private boolean semanticError;
 
+  /* the stack address counter used in the current symbol table */
+  private int stackAddrCounter;
+
   /* constructor of SemanticChecker */
   public SemanticChecker() {
     currSymbolTable = null;
     globalFuncTable = new HashMap<>();
     isMainFunction = false;
     expectedFunctionReturn = null;
+    stackAddrCounter = 0;
   }
 
   @Override
@@ -119,7 +123,14 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* visit the function body */
     expectedFunctionReturn = funcNode.getReturnType();
     currSymbolTable = new SymbolTable(currSymbolTable);
-    funcNode.getParamList().forEach(i -> currSymbolTable.add(i.getName(), i));
+
+    int tempStackAddr = 0;
+    
+    for (IdentNode param : funcNode.getParamList()) {
+      currSymbolTable.add(param.getName(), param, tempStackAddr);
+      tempStackAddr += param.getType().getSize();
+    }
+
     StatNode functionBody = visit(ctx.stat()).asStatNode();
     functionBody.setScope(currSymbolTable);
     currSymbolTable = currSymbolTable.getParentSymbolTable();
@@ -294,7 +305,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     StatNode node = new DeclareNode(varName, expr);
     node.setScope(currSymbolTable);
 
-    semanticError |= currSymbolTable.add(varName, expr);
+    semanticError |= currSymbolTable.add(varName, expr, stackAddrCounter);
+
+    stackAddrCounter += expr.getType().getSize();
 
     return node;
   }
@@ -360,7 +373,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       indexList.add(index);
     }
 
-    return new ArrayElemNode(array, indexList, array.getType().asArrayType().getContentType());
+    return new ArrayElemNode(array, indexList, array.getType().asArrayType().getContentType(), arrayIdent);
   }
 
   @Override
