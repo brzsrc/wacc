@@ -57,6 +57,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Operand2 operand2 = new Operand2(new Immediate(identStackMap.get(node.getName()), BitNum.CONST8));
     instructions.add(new Add(addrReg, armRegAllocator.get(ARMRegisterLabel.SP), operand2));
 
+    /* TODO: make a helper function out of this */
     for (int i = 0; i < node.getDepth(); i++) {
       /* load the index at depth `i` to the next available register */
       Register indexReg = armRegAllocator.allocate();
@@ -119,7 +120,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* TODO: STR the array pointer onto the stack and update the `identStackMap` */
     // int addr = stack.push();
-    instructions.add(new STR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg, new Immediate(addr, BitNum.CONST8))));
+    // instructions.add(new STR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg, new Immediate(addr, BitNum.CONST8))));
     /* update identStackMap but may need a better structure */
 
     armRegAllocator.free();

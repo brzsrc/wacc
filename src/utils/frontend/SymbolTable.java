@@ -1,9 +1,34 @@
 package utils.frontend;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import frontend.node.expr.ExprNode;
+
+class Symbol {
+  private ExprNode node;
+  private int stackOffset;
+
+  public Symbol(ExprNode node, int stackOffset) {
+    this.node = node;
+    this.stackOffset = stackOffset;
+  }
+
+  public ExprNode getExprNode() {
+    return node;
+  }
+
+  public void setNode(ExprNode node) {
+    this.node = node;
+  }
+
+  public int getStackOffset() {
+    return stackOffset;
+  }
+
+  public void setStackOffset(int stackOffset) {
+    this.stackOffset = stackOffset;
+  }
+}
 
 public class SymbolTable {
 
@@ -13,30 +38,29 @@ public class SymbolTable {
    * The parent of the root SymbolTable will be set to null.
    */
 
-  private final HashMap<String, ExprNode> dictionary;
+  private final HashMap<String, Symbol> dictionary;
   private final SymbolTable parentSymbolTable;
-  private final Map<String, Integer> backendIdentMap;
+  private int stackOffsetCounter;
 
-  /* =========================================
-  *  frontend construction, check functions
-  *  ========================================= */
   public SymbolTable(SymbolTable parentSymbolTable) {
     this.dictionary = new HashMap<>();
     this.parentSymbolTable = parentSymbolTable;
-    this.backendIdentMap = new HashMap<>();
+    this.stackOffsetCounter = 0;
   }
 
-  public boolean add(String name, ExprNode expr) {
+  public boolean add(String name, ExprNode expr, int stackOffset) {
     if (dictionary.containsKey(name)) {
       SemanticErrorHandler.symbolRedeclared(null, name);
       return true;
     }
-    this.dictionary.put(name, expr);
+    
+    this.dictionary.put(name, new Symbol(expr, stackOffset));
+    stackOffset += expr.getType().getSize();
     return false;
   }
 
   public ExprNode lookup(String name) {
-    return dictionary.get(name);
+    return dictionary.get(name).getExprNode();
   }
 
   public ExprNode lookupAll(String name) {
@@ -54,12 +78,7 @@ public class SymbolTable {
     return parentSymbolTable;
   }
 
-  /* ==========================================
-  *  backend functions
-  *  ========================================== */
-
   public int getStackOffset(String ident) {
-    // todo: get offset of ident relative to current stack pointer
-    return 0;
+    return dictionary.get(ident).getStackOffset();
   }
 }
