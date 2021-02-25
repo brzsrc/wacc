@@ -1,7 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.Node;
-import utils.frontend.SymbolTable;
+import utils.frontend.symbolTable.SymbolTable;
 
 public abstract class StatNode implements Node {
 

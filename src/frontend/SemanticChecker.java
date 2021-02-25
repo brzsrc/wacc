@@ -18,7 +18,7 @@ import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 
 import frontend.type.*;
-import utils.frontend.SymbolTable;
+import utils.frontend.symbolTable.SymbolTable;
 
 import static utils.frontend.SemanticErrorHandler.*;
 import static utils.Utils.*;
