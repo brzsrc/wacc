@@ -1,34 +1,9 @@
-package utils.frontend;
+package utils.frontend.symbolTable;
 
 import java.util.HashMap;
 
 import frontend.node.expr.ExprNode;
-
-class Symbol {
-  private ExprNode node;
-  private int stackOffset;
-
-  public Symbol(ExprNode node, int stackOffset) {
-    this.node = node;
-    this.stackOffset = stackOffset;
-  }
-
-  public ExprNode getExprNode() {
-    return node;
-  }
-
-  public void setNode(ExprNode node) {
-    this.node = node;
-  }
-
-  public int getStackOffset() {
-    return stackOffset;
-  }
-
-  public void setStackOffset(int stackOffset) {
-    this.stackOffset = stackOffset;
-  }
-}
+import utils.frontend.SemanticErrorHandler;
 
 public class SymbolTable {
 
@@ -40,12 +15,10 @@ public class SymbolTable {
 
   private final HashMap<String, Symbol> dictionary;
   private final SymbolTable parentSymbolTable;
-  private int stackOffsetCounter;
 
   public SymbolTable(SymbolTable parentSymbolTable) {
     this.dictionary = new HashMap<>();
     this.parentSymbolTable = parentSymbolTable;
-    this.stackOffsetCounter = 0;
   }
 
   public boolean add(String name, ExprNode expr, int stackOffset) {
@@ -59,13 +32,13 @@ public class SymbolTable {
     return false;
   }
 
-  public ExprNode lookup(String name) {
-    return dictionary.get(name).getExprNode();
+  public Symbol lookup(String name) {
+    return dictionary.get(name);
   }
 
-  public ExprNode lookupAll(String name) {
+  public Symbol lookupAll(String name) {
     SymbolTable st = this;
-    ExprNode obj = null;
+    Symbol obj = null;
     while (obj == null && st != null) {
       obj = st.lookup(name);
       st = st.parentSymbolTable;

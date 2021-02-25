@@ -1,7 +1,7 @@
 package frontend.node.expr;
 
 import frontend.node.FuncNode;
-import utils.frontend.SymbolTable;
+import utils.frontend.symbolTable.SymbolTable;
 
 import utils.NodeVisitor;
 import java.util.List;

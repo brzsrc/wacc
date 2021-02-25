@@ -17,7 +17,8 @@ import frontend.type.BasicTypeEnum;
 import frontend.type.PairType;
 import frontend.type.Type;
 import utils.frontend.SemanticErrorHandler;
-import utils.frontend.SymbolTable;
+import utils.frontend.symbolTable.Symbol;
+import utils.frontend.symbolTable.SymbolTable;
 
 public class Utils {
 
@@ -121,11 +122,11 @@ public class Utils {
 
   public static ExprNode lookUpWithNotFoundException(ParserRuleContext ctx, SymbolTable table,
       String varName) {
-    ExprNode value = table.lookupAll(varName);
+    Symbol value = table.lookupAll(varName);
     if (value == null) {
       SemanticErrorHandler.symbolNotFound(ctx, varName);
     }
-    return value;
+    return value.getExprNode();
   }
 
   /* parse an integer from @param String intExt */
