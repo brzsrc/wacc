@@ -53,7 +53,7 @@ public abstract class ArithmeticLogic extends Instruction {
     } else if (b.equals(Binop.MOD)) {
       list.add(new BL("__aeabi_idivmod"));
       /* we only put the remainder in the register and discard the quotient */
-    list.add(new Mov(r1, dividend));
+      list.add(new Mov(r1, dividend));
     }
 
     return list;

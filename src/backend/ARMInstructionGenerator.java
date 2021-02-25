@@ -128,8 +128,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitBinopNode(BinopNode node) {
     visit(node.getExpr1());
     visit(node.getExpr2());
-    Register e1reg = armRegAllocator.curr();
-    Register e2reg = armRegAllocator.last();
+    Register e2reg = armRegAllocator.curr();
+    Register e1reg = armRegAllocator.last();
     Binop operator = node.getOperator();
     Operand2 op2 = new Operand2(e2reg);
 
