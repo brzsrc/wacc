@@ -221,13 +221,24 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitAssignNode(AssignNode node) {
-    /* TODO: ss6919 */
+    visit(node.getRhs());
+    ARMConcreteRegister reg = armRegAllocator.curr();
+    visit(node.getLhs());
+    instructions.add(new STR(reg,
+        new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.curr())));
+    armRegAllocator.free();
+    armRegAllocator.free();
     return null;
   }
 
   @Override
   public Void visitDeclareNode(DeclareNode node) {
-    /* TODO: ss6919 */
+    /* the returned value is now in r4 */
+    visit(node.getRhs());
+    instructions.add(new STR(armRegAllocator.curr(),
+        new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.SP),
+            new Immediate(node.getScope().getStackOffset(node.getIdentifier()), BitNum.CONST8))));
+    armRegAllocator.free();
     return null;
   }
 

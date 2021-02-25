@@ -26,6 +26,10 @@ public abstract class StatNode implements Node {
     return leaveAtEnd;
   }
 
+  public SymbolTable getScope() {
+    return scope;
+  }
+
   @Override
   public StatNode asStatNode() {
     return this;
