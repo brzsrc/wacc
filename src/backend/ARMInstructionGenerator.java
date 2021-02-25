@@ -5,12 +5,14 @@ import backend.instructions.addressing.ImmediateAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
+import backend.instructions.arithmeticLogic.ArithmeticLogic;
 import backend.instructions.memory.ARMStack;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
 import backend.instructions.operand.Operand2.Operand2Operator;
 import frontend.node.*;
 import frontend.node.expr.*;
+import frontend.node.expr.BinopNode.Binop;
 import frontend.node.stat.*;
 import utils.NodeVisitor;
 import utils.backend.*;
@@ -94,7 +96,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* add 4 bytes to `size` to include the size of the array as the first byte */
     size += POINTER_SIZE;
 
-
     /* load R0 with the number of bytes needed and malloc  */
     instructions.add(new LDR(armRegAllocator.get(0), new ImmediateAddressing(new Immediate(size, BitNum.CONST8))));
     instructions.add(new BL("malloc"));
@@ -118,11 +119,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new LDR(sizeReg, new ImmediateAddressing(new Immediate(size, BitNum.CONST8))));
     instructions.add(new STR(sizeReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
 
-    /* TODO: STR the array pointer onto the stack and update the `identStackMap` */
-    // int addr = stack.push();
-    // instructions.add(new STR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg, new Immediate(addr, BitNum.CONST8))));
-    /* update identStackMap but may need a better structure */
-
     armRegAllocator.free();
 
     return null;
@@ -130,14 +126,18 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitBinopNode(BinopNode node) {
-    /* TODO: left over */
-    // Register reg1 = visit(node.getExpr1());
-    // Register reg2 = visit(node.getExpr2());
+    visit(node.getExpr1());
+    visit(node.getExpr2());
+    Register e1reg = armRegAllocator.curr();
+    Register e2reg = armRegAllocator.last();
+    Binop operator = node.getOperator();
+    Operand2 op2 = new Operand2(e2reg);
 
-    /* generate corrisponding command for each binop command */
-    // todo: how did mark say about not using switch? use map to map a binop.enum to
-    // a command?
-
+    List<Instruction> insList = ArithmeticLogic.binopInstruction
+                                               .get(operator)
+                                               .binopAssemble(e1reg, e1reg, op2, operator);
+    instructions.addAll(insList);
+    
     return null;
   }
 

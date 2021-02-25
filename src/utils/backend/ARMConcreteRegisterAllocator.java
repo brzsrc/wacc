@@ -26,6 +26,10 @@ public class ARMConcreteRegisterAllocator {
         return registers.get(registerCounter - (registerCounter > GENERAL_REG_START ? 1 : 0));
     }
 
+    public ARMConcreteRegister last() {
+        return registers.get(registerCounter - (registerCounter > GENERAL_REG_START ? 2 : 0));
+    }
+
     public ARMConcreteRegister next() {
         return isFull() ? null : registers.get(registerCounter + 1);
     }
