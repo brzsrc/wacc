@@ -47,6 +47,10 @@ public class SymbolTable {
     return obj;
   }
 
+  public int getSize() {
+    return dictionary.size();
+  }
+
   public SymbolTable getParentSymbolTable() {
     return parentSymbolTable;
   }

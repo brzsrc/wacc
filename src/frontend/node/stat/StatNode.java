@@ -10,7 +10,7 @@ public abstract class StatNode implements Node {
    */
 
   private boolean leaveAtEnd = false;
-  private SymbolTable scope;
+  protected SymbolTable scope;
 
   /* Set leaveAtEnd if needs overwrite */
   protected void setLeaveAtEnd(boolean value) {

@@ -46,4 +46,8 @@ public class ScopeNode extends StatNode {
   public <T> T accept(NodeVisitor<T> visitor) {
     return visitor.visitScopeNode(this);
   }
+
+  public int getSymbolNum() {
+    return scope.getSize();
+  }
 }
