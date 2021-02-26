@@ -1,7 +1,7 @@
 package backend.instructions.arithmeticLogic;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,12 +9,10 @@ import backend.instructions.BL;
 import backend.instructions.Cmp;
 import backend.instructions.Instruction;
 import backend.instructions.Mov;
-import backend.instructions.Mov.MovType;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
 import backend.instructions.operand.Immediate.BitNum;
 import frontend.node.expr.BinopNode.Binop;
-import frontend.node.expr.UnopNode.Unop;
 import utils.backend.ARMConcreteRegister;
 import utils.backend.ARMRegisterLabel;
 import utils.backend.Register;
@@ -22,7 +20,6 @@ import utils.backend.Register;
 public abstract class ArithmeticLogic extends Instruction {
 
   public static final ArithmeticLogicAssemble BasicBinopAsm = (rd, rn, op2, b) -> {
-    /* TODO: need better code quality here */
     Map<Binop, ArithmeticLogic> m = Map.of(
       Binop.PLUS, new Add(rd, rn, op2),
       Binop.MINUS, new Sub(rd, rn, op2),
@@ -35,8 +32,7 @@ public abstract class ArithmeticLogic extends Instruction {
   };
 
   public static final ArithmeticLogicAssemble DivModAsm = (rd, rn, op2, b) -> {
-    /* notice that op2 will not be used heree */
-    /* TODO: need better code here */
+    /* op2 will not be used heree */
     List<Instruction> list = new ArrayList<>();
 
     Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
@@ -62,80 +58,40 @@ public abstract class ArithmeticLogic extends Instruction {
   public static final ArithmeticLogicAssemble CmpAsm = (rd, rn, op2, b) -> {
     List<Instruction> list = new ArrayList<>();
 
-    Operand2 operand2 = new Operand2(rn);
+    Operand2 rnop2 = new Operand2(rn);
     Operand2 one = new Operand2(new Immediate(1, BitNum.CONST8));
     Operand2 zero = new Operand2(new Immediate(0, BitNum.CONST8));
     
-    list.add(new Cmp(rd, operand2));
-
-    if (b.equals(Binop.GREATER)) {
-      list.add(new Mov(rd, one, MovType.GT));
-      list.add(new Mov(rd, zero, MovType.LE));
-    } else if (b.equals(Binop.GREATER_EQUAL)) {
-      list.add(new Mov(rd, one, MovType.GE));
-      list.add(new Mov(rd, zero, MovType.LT));
-    } else if (b.equals(Binop.LESS)) {
-      list.add(new Mov(rd, one, MovType.LT));
-      list.add(new Mov(rd, zero, MovType.GE));
-    } else if (b.equals(Binop.LESS_EQUAL)) {
-      list.add(new Mov(rd, one, MovType.LE));
-      list.add(new Mov(rd, zero, MovType.GT));
-    }
+    list.add(new Cmp(rd, rnop2));
+    /* default as false, set as true in following check */
+    list.add(new Mov(rd, zero, MovType.MOV));
+    list.add(new Mov(rd, one, Mov.binOpMovMap.get(b)));
 
     return list;
   };
 
-  public static final ArithmeticLogicAssemble EqualityAsm = (rd, rn, op2, b) -> {
-    List<Instruction> list = new ArrayList<>();
+  public static final Map<Binop, ArithmeticLogicAssemble> binopInstruction = Map.ofEntries(
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.PLUS, BasicBinopAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.MINUS, BasicBinopAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.MUL, BasicBinopAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.AND, BasicBinopAsm), 
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.OR, BasicBinopAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.DIV, DivModAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.MOD, DivModAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.GREATER, CmpAsm), 
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.GREATER_EQUAL, CmpAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.LESS, CmpAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.LESS_EQUAL, CmpAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.EQUAL, CmpAsm),
+    new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.INEQUAL, CmpAsm)
+  );
 
-    Operand2 reg2op2 = new Operand2(rn);
-    Operand2 one = new Operand2(new Immediate(1, BitNum.CONST8));
-    Operand2 zero = new Operand2(new Immediate(0, BitNum.CONST8));
-
-    list.add(new Cmp(rd, reg2op2));
-    if (b.equals(Binop.EQUAL)) {
-      list.add(new Mov(rd, one, MovType.EQ));
-      list.add(new Mov(rd, zero, MovType.NE));
-    } else if (b.equals(Binop.INEQUAL)) {
-      list.add(new Mov(rd, zero, MovType.EQ));
-      list.add(new Mov(rd, one, MovType.NE));
-    }
-
-    return list;
-  };
-
-  /* TODO: need better code quality here */
-  public static final Map<Binop, ArithmeticLogicAssemble> binopInstruction = new HashMap<>(){{
-    put(Binop.PLUS, BasicBinopAsm);
-    put(Binop.MINUS, BasicBinopAsm);
-    put(Binop.MUL, BasicBinopAsm);
-    put(Binop.AND, BasicBinopAsm); 
-    put(Binop.OR, BasicBinopAsm);
-    put(Binop.DIV, DivModAsm);
-    put(Binop.MOD, DivModAsm);
-    put(Binop.GREATER, CmpAsm); 
-    put(Binop.GREATER_EQUAL, CmpAsm);
-    put(Binop.LESS, CmpAsm);
-  }};
-
-  private Binop binop;
-  private Unop unop;
   protected Register Rd, Rn;
   protected Operand2 operand2;
 
-  public ArithmeticLogic(Register rd, Register rn, Operand2 operand2) {
+  protected ArithmeticLogic(Register rd, Register rn, Operand2 operand2) {
     Rd = rd;
     Rn = rn;
     this.operand2 = operand2;
-  }
-
-  public ArithmeticLogic(Binop binop, Register rd, Register rn, Operand2 operand2) {
-    this(rd, rn, operand2);
-    this.binop = binop;
-  }
-
-  public ArithmeticLogic(Unop unop, Register rd, Register rn, Operand2 operand2) {
-    this(rd, rn, operand2);
-    this.unop = unop;
   }
 }

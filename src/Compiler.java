@@ -1,7 +1,14 @@
+import backend.ARMCodeGenerator;
+import backend.ARMInstructionGenerator;
+import backend.ARMCodeGenerator.OptimizationLevel;
+import backend.directives.CodeSegment;
+import backend.directives.DataSegment;
+import backend.directives.TextSegment;
 import frontend.ASTPrinter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +20,7 @@ import org.antlr.v4.runtime.*;
 import frontend.antlr.*;
 import frontend.antlr.WACCParser.ProgramContext;
 import frontend.node.Node;
+import utils.NodeVisitor;
 import utils.frontend.ParserErrorHandler;
 import frontend.SemanticChecker;
 
@@ -55,6 +63,30 @@ public class Compiler {
         if (cmd_ops.contains("--print_ast")) {
           ASTPrinter painter = new ASTPrinter();
           painter.visit(program);
+        }
+
+        if (cmd_ops.contains("--assembly")) {
+          ARMInstructionGenerator generator = new ARMInstructionGenerator();
+          generator.visit(program);
+          DataSegment data = new DataSegment(generator.getDataSegmentMessages());
+          TextSegment text = new TextSegment();
+          CodeSegment code = new CodeSegment(generator.getInstructions());
+          ARMCodeGenerator printer = new ARMCodeGenerator(data, text, code, OptimizationLevel.NONE);
+          
+          System.out.println(printer.translate());
+
+          /* DO NOT DELETE THIS. WE DO NOT OUTPUT TO FILE DURING DEBUGGING! */
+          // File asmFile = new File(file.getName() + ".s");
+          // if (asmFile.createNewFile()) {
+          //   System.out.println("Assembly file created!");
+          //   try (FileWriter asmWriter = new FileWriter(asmFile)) {
+          //     asmWriter.write(printer.translate());
+          //     asmWriter.close();
+          //     System.out.println("Assembly has been written to the file!");
+          //   }
+          // } else {
+          //   System.out.println("File already exists");
+          // }
         }
       }
     } catch (FileNotFoundException e) {

@@ -136,9 +136,12 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     if (functionBody instanceof ScopeNode) {
+      ((ScopeNode) functionBody).setFuncBody();
       return functionBody;
     }
-    return new ScopeNode(functionBody);
+    ScopeNode enclosedBody = new ScopeNode(functionBody);
+    enclosedBody.setFuncBody();
+    return enclosedBody;
   }
 
   /* =========================================================

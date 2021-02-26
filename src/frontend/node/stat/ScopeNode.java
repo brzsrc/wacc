@@ -12,6 +12,7 @@ public class ScopeNode extends StatNode {
    */
 
   private final List<StatNode> body = new ArrayList<>();
+  private boolean isFuncBody = false;
 
   public ScopeNode(StatNode node) {
     body.add(node);
@@ -47,7 +48,14 @@ public class ScopeNode extends StatNode {
     return visitor.visitScopeNode(this);
   }
 
-  public int getSymbolNum() {
+  public void setFuncBody() {
+    isFuncBody = true;
+  }
+
+  public int getStackSize() {
+    if (isFuncBody) {
+      return 0;
+    }
     return scope.getSize();
   }
 }
