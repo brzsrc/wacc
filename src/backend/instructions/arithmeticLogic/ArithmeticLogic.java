@@ -9,7 +9,6 @@ import backend.instructions.BL;
 import backend.instructions.Cmp;
 import backend.instructions.Instruction;
 import backend.instructions.Mov;
-import backend.instructions.Mov.MovType;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
 import backend.instructions.operand.Immediate.BitNum;
@@ -67,42 +66,32 @@ public abstract class ArithmeticLogic extends Instruction {
     Operand2 zero = new Operand2(new Immediate(0, BitNum.CONST8));
     
     list.add(new Cmp(rd, operand2));
+    /* default as false, set as true in following check */
+    list.add(new Mov(rd, zero, MovType.MOV));
 
-    if (b.equals(Binop.GREATER)) {
-      list.add(new Mov(rd, one, MovType.GT));
-      list.add(new Mov(rd, zero, MovType.LE));
-    } else if (b.equals(Binop.GREATER_EQUAL)) {
-      list.add(new Mov(rd, one, MovType.GE));
-      list.add(new Mov(rd, zero, MovType.LT));
-    } else if (b.equals(Binop.LESS)) {
-      list.add(new Mov(rd, one, MovType.LT));
-      list.add(new Mov(rd, zero, MovType.GE));
-    } else if (b.equals(Binop.LESS_EQUAL)) {
-      list.add(new Mov(rd, one, MovType.LE));
-      list.add(new Mov(rd, zero, MovType.GT));
-    }
+    list.add(new Mov(rd, one, Mov.mapBinopToMov(b)));
 
     return list;
   };
 
-  public static final ArithmeticLogicAssemble EqualityAsm = (rd, rn, op2, b) -> {
-    List<Instruction> list = new ArrayList<>();
-
-    Operand2 reg2op2 = new Operand2(rn);
-    Operand2 one = new Operand2(new Immediate(1, BitNum.CONST8));
-    Operand2 zero = new Operand2(new Immediate(0, BitNum.CONST8));
-
-    list.add(new Cmp(rd, reg2op2));
-    if (b.equals(Binop.EQUAL)) {
-      list.add(new Mov(rd, one, MovType.EQ));
-      list.add(new Mov(rd, zero, MovType.NE));
-    } else if (b.equals(Binop.INEQUAL)) {
-      list.add(new Mov(rd, zero, MovType.EQ));
-      list.add(new Mov(rd, one, MovType.NE));
-    }
-
-    return list;
-  };
+//  public static final ArithmeticLogicAssemble EqualityAsm = (rd, rn, op2, b) -> {
+//    List<Instruction> list = new ArrayList<>();
+//
+//    Operand2 reg2op2 = new Operand2(rn);
+//    Operand2 one = new Operand2(new Immediate(1, BitNum.CONST8));
+//    Operand2 zero = new Operand2(new Immediate(0, BitNum.CONST8));
+//
+//    list.add(new Cmp(rd, reg2op2));
+//    if (b.equals(Binop.EQUAL)) {
+//      list.add(new Mov(rd, one, MovType.EQ));
+//      list.add(new Mov(rd, zero, MovType.NE));
+//    } else if (b.equals(Binop.INEQUAL)) {
+//      list.add(new Mov(rd, zero, MovType.EQ));
+//      list.add(new Mov(rd, one, MovType.NE));
+//    }
+//
+//    return list;
+//  };
 
   /* TODO: need better code quality here */
   public static final Map<Binop, ArithmeticLogicAssemble> binopInstruction = new HashMap<>(){{
@@ -116,10 +105,13 @@ public abstract class ArithmeticLogic extends Instruction {
     put(Binop.GREATER, CmpAsm); 
     put(Binop.GREATER_EQUAL, CmpAsm);
     put(Binop.LESS, CmpAsm);
+    put(Binop.LESS_EQUAL, CmpAsm);
+    put(Binop.EQUAL, CmpAsm);
+    put(Binop.INEQUAL, CmpAsm);
   }};
 
   private Binop binop;
-  private Unop unop;
+//  private Unop unop;
   protected Register Rd, Rn;
   protected Operand2 operand2;
 
@@ -134,8 +126,8 @@ public abstract class ArithmeticLogic extends Instruction {
     this.binop = binop;
   }
 
-  public ArithmeticLogic(Unop unop, Register rd, Register rn, Operand2 operand2) {
-    this(rd, rn, operand2);
-    this.unop = unop;
-  }
+//  public ArithmeticLogic(Unop unop, Register rd, Register rn, Operand2 operand2) {
+//    this(rd, rn, operand2);
+//    this.unop = unop;
+//  }
 }

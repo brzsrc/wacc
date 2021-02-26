@@ -1,3 +1,4 @@
+import backend.ARMInstructionGenerator;
 import frontend.ASTPrinter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +14,7 @@ import org.antlr.v4.runtime.*;
 import frontend.antlr.*;
 import frontend.antlr.WACCParser.ProgramContext;
 import frontend.node.Node;
+import utils.NodeVisitor;
 import utils.frontend.ParserErrorHandler;
 import frontend.SemanticChecker;
 
@@ -55,6 +57,11 @@ public class Compiler {
         if (cmd_ops.contains("--print_ast")) {
           ASTPrinter painter = new ASTPrinter();
           painter.visit(program);
+        }
+
+        if (cmd_ops.contains("--execute")) {
+          NodeVisitor<Void> generator = new ARMInstructionGenerator();
+          generator.visit(program);
         }
       }
     } catch (FileNotFoundException e) {

@@ -10,5 +10,10 @@ public class ARMConcreteRegister extends Register {
     public ARMConcreteRegister(ARMRegisterLabel label) {
         this.label = label;
     }
+
+    @Override
+    public String toString() {
+        return label.toString();
+    }
 }
 

@@ -28,7 +28,6 @@ public class SymbolTable {
     }
     
     this.dictionary.put(name, new Symbol(expr, stackOffset));
-    stackOffset += expr.getType().getSize();
     return false;
   }
 
@@ -48,7 +47,11 @@ public class SymbolTable {
   }
 
   public int getSize() {
-    return dictionary.size();
+    int stackSize = 0;
+    for (Symbol symbol : dictionary.values()) {
+      stackSize += symbol.getExprNode().getType().getSize();
+    }
+    return stackSize;
   }
 
   public SymbolTable getParentSymbolTable() {
