@@ -43,7 +43,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   /* a list of instructions for storing different helper functions
    * would be appended to the end of instructions list while printing */
-  private static List<Instruction> helperFunctions;
+  private static List<Instruction> helperFunctions = new ArrayList<>();
 
   /* call getLabel on labelGenerator to get label in format LabelN */
   private LabelGenerator labelGenerator;
