@@ -253,7 +253,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
     /* Call the exit function */
     instructions.add(new BL("exit"));
-    
+
     return null;
   }
 
@@ -290,19 +290,25 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitPrintlnNode(PrintlnNode node) {
-    /* TODO: xx1219 */
+    visit(node.getExpr());
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
+    HelperFunction.addPrint(node.getExpr().getType(), instructions, data, helperFunctions, armRegAllocator);
+    HelperFunction.addPrintln(instructions, data, helperFunctions, armRegAllocator);
     return null;
   }
 
   @Override
   public Void visitPrintNode(PrintNode node) {
-    /* TODO: xx1219 */
+    visit(node.getExpr());
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
+    HelperFunction.addPrint(node.getExpr().getType(), instructions, data, helperFunctions, armRegAllocator);
     return null;
   }
 
   @Override
   public Void visitReadNode(ReadNode node) {
-    /* TODO: xx1219 */
+    /* TODO: visit the "address" of node.getInputExpr() and Mov r4 int or0 */
+    HelperFunction.addRead(node.getInputExpr().getType(), instructions, data, helperFunctions, armRegAllocator);
     return null;
   }
 
