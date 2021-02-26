@@ -71,13 +71,9 @@ public class HelperFunction {
 
       /* add this helper into alreadyExist list */
       alreadyExist.add(helper);
-
-      /* prepare the scanf format and label */
-      String msgAscii = (type.equalToType(INT_BASIC_TYPE))? "%d\0" : "%c\0";
-
+      
       /* add the format into the data list */
-      Label msg = Label.getMsgLabel();
-      data.add(msgAscii);
+      Label msg = addMsg((helper == Helper.READ_INT)? "%d\0" : "%c\0", data);
 
       /* add the helper function label */
       Label label = Label.getFuncLabel(helper.toString());
@@ -124,12 +120,8 @@ public class HelperFunction {
       /* add this helper into alreadyExist list */
       alreadyExist.add(helper);
 
-      /* prepare the printf format and label */
-      String msgAscii = "\0";
-
       /* add the format into the data list */
-      Label msg = Label.getMsgLabel();
-      data.add(msgAscii);
+      Label msg = addMsg("\0", data);
 
       /* add the helper function label */
       Label label = Label.getFuncLabel(helper.toString());
@@ -160,12 +152,8 @@ public class HelperFunction {
       /* add this helper into alreadyExist list */
       alreadyExist.add(helper);
 
-      /* prepare the printf format and label */
-      String msgAscii = printSingleMap.get(helper);
-
       /* add the format into the data list */
-      Label msg = Label.getMsgLabel();
-      data.add(msgAscii);
+      Label msg = addMsg(printSingleMap.get(helper), data);
 
       /* add the helper function label */
       Label label = Label.getFuncLabel(helper.toString());
