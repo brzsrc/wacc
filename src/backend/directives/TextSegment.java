@@ -6,7 +6,12 @@ public class TextSegment implements Directive {
 
     @Override
     public List<String> toStringList() {
-        return List.of(".text\n\n");
+        return List.of("\t.text\n\n");
+    }
+
+    @Override
+    public int getIndentationLevel() {
+        return 1;
     }
     
 }

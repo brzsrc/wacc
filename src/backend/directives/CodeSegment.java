@@ -24,10 +24,16 @@ public class CodeSegment implements Directive {
     @Override
     public List<String> toStringList() {
         List<String> list = new ArrayList<>();
+        list.add("\t.global main");
         for (Instruction i : instructionList) {
-            list.add(i.assemble());
+            list.add("\t".repeat(i.getIndentationLevel()) + i.assemble());
         }
         return list;
+    }
+
+    @Override
+    public int getIndentationLevel() {
+        return 1;
     }
 
 }

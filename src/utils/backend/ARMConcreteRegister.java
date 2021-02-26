@@ -13,7 +13,7 @@ public class ARMConcreteRegister extends Register {
 
     @Override
     public String toString() {
-        return label.toString();
+        return label.toString().toLowerCase();
     }
 }
 

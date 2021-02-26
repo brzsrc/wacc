@@ -51,4 +51,9 @@ public class DataSegment implements Directive {
 
         return list;
     }
+
+    @Override
+    public int getIndentationLevel() {
+        return 1;
+    }
 }

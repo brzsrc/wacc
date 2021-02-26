@@ -468,16 +468,17 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     for (Entry<String, FuncNode> entry : funcMap.entrySet()) {
       visit(entry.getValue());
     }
+    
+    Label mainLabel = new Label("main");
+    instructions.add(mainLabel);
+
     visit(node.getBody());
 
-    for (Instruction instr : instructions) {
-      System.out.println(instr.assemble());
-    }
     return null;
   }
 
   /* below are getter and setter of this class */
-  
+
   public static List<Instruction> getInstructions() {
     return instructions;
   }

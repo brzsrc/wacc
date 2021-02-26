@@ -14,4 +14,9 @@ public class Label extends Instruction {
   public String assemble() {
     return labelName + ":";
   }
+
+  @Override
+  public int getIndentationLevel() {
+    return 1;
+  }
 }
