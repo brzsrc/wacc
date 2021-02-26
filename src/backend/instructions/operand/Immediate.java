@@ -19,4 +19,9 @@ public class Immediate {
   public BitNum getBitNum() {
     return bitNum;
   }
+
+  @Override
+  public String toString() {
+    return "#" + val;
+  }
 }

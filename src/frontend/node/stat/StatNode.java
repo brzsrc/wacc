@@ -1,7 +1,7 @@
 package frontend.node.stat;
 
 import frontend.node.Node;
-import utils.frontend.SymbolTable;
+import utils.frontend.symbolTable.SymbolTable;
 
 public abstract class StatNode implements Node {
 
@@ -10,7 +10,7 @@ public abstract class StatNode implements Node {
    */
 
   private boolean leaveAtEnd = false;
-  private SymbolTable scope;
+  protected SymbolTable scope;
 
   /* Set leaveAtEnd if needs overwrite */
   protected void setLeaveAtEnd(boolean value) {
@@ -24,6 +24,10 @@ public abstract class StatNode implements Node {
   /* Getters */
   public boolean leaveAtEnd() {
     return leaveAtEnd;
+  }
+
+  public SymbolTable getScope() {
+    return scope;
   }
 
   @Override
