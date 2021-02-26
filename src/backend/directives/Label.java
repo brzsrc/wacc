@@ -15,6 +15,10 @@ public class Label extends Instruction {
     return labelName + ":";
   }
 
+  public String getName() {
+    return labelName;
+  }
+
   @Override
   public int getIndentationLevel() {
     return 1;
