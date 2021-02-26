@@ -7,7 +7,7 @@ import utils.backend.Register;
 public class Or extends ArithmeticLogic {
 
   public Or(Register rd, Register rn, Operand2 operand2) {
-    super(Binop.OR, rd, rn, operand2);
+    super(rd, rn, operand2);
   }
 
   @Override

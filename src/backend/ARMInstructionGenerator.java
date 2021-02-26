@@ -1,5 +1,6 @@
 package backend;
 
+import backend.directives.Label;
 import backend.instructions.*;
 import backend.instructions.addressing.ImmediateAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
@@ -7,7 +8,6 @@ import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2
 import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.arithmeticLogic.Sub;
 import backend.instructions.arithmeticLogic.ArithmeticLogic;
-import backend.instructions.memory.ARMStack;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
 import backend.instructions.operand.Operand2.Operand2Operator;
@@ -19,9 +19,8 @@ import utils.NodeVisitor;
 import utils.backend.*;
 import utils.frontend.symbolTable.SymbolTable;
 
-import javax.swing.text.html.parser.Entity;
+import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.*;
@@ -31,39 +30,31 @@ import static utils.Utils.*;
 
 public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
-  /*
-   * the pseudo-register allocator used to generate an infinite supply of
-   * registers
-   */
-  private static PseudoRegisterAllocator pseudoRegAllocator;
   /* the ARM conrete register allocator */
-  private static ARMConcreteRegisterAllocator armRegAllocator;
-  /* a list of instructions represent the entire program */
-  private static List<Instruction> instructions;
-  /* the mapping between register and ident */
-  private static ARMStack stack;
-  /* the mapping between stack address and ident */
-  // todo: should be replaced by currSymbolTable
-  private static Map<String, Integer> identStackMap;
+  private static ARMConcreteRegisterAllocator armRegAllocator = new ARMConcreteRegisterAllocator();;
+  /* lists of instruction, data section messages and text section messages */
+  private static List<Instruction> instructions = new ArrayList<>();
+  private static List<String> dataSegmentMessages = new ArrayList<>();
+  private static List<String> textSegmentMessages = new ArrayList<>();
+  /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
   /* call getLabel on labelGenerator to get label in format LabelN */
   private LabelGenerator labelGenerator;
 
-  // todo: add a collection of predefined functions
-  //       and its update function
-
-  /*
-   * constant fields:
-   */
+  /* constant fields */
   private Register SP;
 
+  /* special instruction mapping */
+  /* TODO: 把这里完善一下 */
+  public enum SpecialInstruction { MALLOC, PRINT, PRINT_INT, PRINT_BOOL, PRINTLN, CHECK_ARRAY_BOUND }
+  public static final Map<SpecialInstruction, String> specialInstructions = Map.ofEntries(
+    new AbstractMap.SimpleEntry<SpecialInstruction, String>(SpecialInstruction.MALLOC, "malloc"),
+    new AbstractMap.SimpleEntry<SpecialInstruction, String>(SpecialInstruction.CHECK_ARRAY_BOUND, "p_check_array_bounds")
+  );
+
   public ARMInstructionGenerator() {
-    pseudoRegAllocator = new PseudoRegisterAllocator();
-    armRegAllocator = new ARMConcreteRegisterAllocator();
-    instructions = new ArrayList<>();
-    stack = new ARMStack();
     currSymbolTable = null;
-    labelGenerator = new LabelGenerator();
+    labelGenerator = new LabelGenerator("L");
 
     /* initialise constant fields */
     SP = armRegAllocator.get(ARMRegisterLabel.SP);
@@ -115,7 +106,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* load R0 with the number of bytes needed and malloc  */
     instructions.add(new LDR(armRegAllocator.get(0), new ImmediateAddressing(new Immediate(size, BitNum.CONST8))));
-    instructions.add(new BL("malloc"));
+    instructions.add(new BL(specialInstructions.get(SpecialInstruction.MALLOC)));
 
     /* then MOV the result pointer of the array to the next available register */
     Register addrReg = armRegAllocator.allocate();
@@ -193,7 +184,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
      * identmap
      */
     List<ExprNode> params = node.getParams();
-    int paramNum = params.size();
     int paramSize = 0;
     for (ExprNode expr : params) {
       Register reg = armRegAllocator.next();
@@ -264,7 +254,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new LDR(armRegAllocator.get(ARMRegisterLabel.R0), new ImmediateAddressing(new Immediate(2 * POINTER_SIZE, BitNum.CONST8))));
 
     /* 1.2 BL malloc and get pointer in general use register*/
-    instructions.add(new BL("malloc"));
+    instructions.add(new BL(specialInstructions.get(SpecialInstruction.MALLOC)));
     Register pairPointer = armRegAllocator.allocate();
     instructions.add(new Mov(pairPointer, new Operand2(armRegAllocator.get(ARMRegisterLabel.R0))));
 
@@ -287,7 +277,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
                     new ImmediateAddressing(new Immediate(child.getType().getSize(), BitNum.CONST8))));
 
     /* 3 BL malloc, assign child value and get pointer in heap area pairPointer[0] */
-    instructions.add(new BL("malloc"));
+    instructions.add(new BL(specialInstructions.get(SpecialInstruction.MALLOC)));
     instructions.add(new STR(fstVal, new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.R0))));
     if (isFst) {
       instructions.add(new STR(armRegAllocator.get(ARMRegisterLabel.R0), new AddressingMode2(AddrMode2.OFFSET, pairPointer)));
@@ -367,7 +357,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* 3 ifBody translate */
     instructions.add(ifLabel);
     visit(node.getIfBody());
-
 
     /* 4 end of if statement */
     instructions.add(exitLabel);
@@ -486,4 +475,19 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
     return null;
   }
+
+  /* below are getter and setter of this class */
+  
+  public static List<Instruction> getInstructions() {
+    return instructions;
+  }
+
+  public static List<String> getDataSegmentMessages() {
+    return dataSegmentMessages;
+  }
+
+  public static List<String> getTextSegmentMessages() {
+    return textSegmentMessages;
+  }
+  
 }

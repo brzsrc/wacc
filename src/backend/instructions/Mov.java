@@ -35,10 +35,6 @@ public class Mov extends Instruction {
     this(Rd, operand2, MOV);
   }
 
-  public static MovType mapBinopToMov(BinopNode.Binop b) {
-    return binOpMovMap.get(b);
-  }
-
   @Override
   public String assemble() {
     return type + " " + Rd + ", " + operand2;

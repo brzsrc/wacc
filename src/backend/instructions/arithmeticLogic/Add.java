@@ -8,7 +8,7 @@ public class Add extends ArithmeticLogic {
 
   public Add(Register rd, Register rn,
       Operand2 operand2) {
-    super(Binop.PLUS, rd, rn, operand2);
+    super(rd, rn, operand2);
   }
 
   @Override

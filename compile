@@ -20,11 +20,11 @@ helpFunction()
 
 while getopts "pto:axh" opt
 do
-   case "$opt" in
+   case $opt in
       p ) PARSE_ONLY="--parse_only" ;;
       t ) PRINT_AST="--print_ast" ;;
       o ) echo "Level $OPTARG is currently unavailable" ;;
-      a ) echo "Generating ARM assembly code is currently unavailable." ;;
+      a ) ASSEMBLY="--assembly" ;;
       x ) EXECUTE="--execute" ;;
       h ) helpFunction ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent

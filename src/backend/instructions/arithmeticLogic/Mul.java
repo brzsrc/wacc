@@ -7,7 +7,7 @@ import utils.backend.Register;
 public class Mul extends ArithmeticLogic {
 
   public Mul(Register rd, Register rn, Operand2 operand2) {
-    super(Binop.MUL, rd, rn, operand2);
+    super(rd, rn, operand2);
   }
 
   @Override
