@@ -5,14 +5,12 @@ import static utils.Utils.CHAR_BASIC_TYPE;
 import static utils.Utils.INT_BASIC_TYPE;
 import static utils.Utils.STRING_BASIC_TYPE;
 
-import backend.instructions.Ascii;
 import backend.instructions.BL;
 import backend.instructions.Cmp;
 import backend.instructions.Instruction;
 import backend.instructions.LDR;
 import backend.instructions.Label;
 import backend.instructions.Mov;
-import backend.instructions.Word;
 import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.RegAddressing;
 import backend.instructions.arithmeticLogic.Add;
@@ -57,7 +55,7 @@ public class HelperFunction {
   }};
 
 
-  public static void addRead(Type type, List<Instruction> instructions, List<Instruction> data,
+  public static void addRead(Type type, List<Instruction> instructions, List<String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     /* arg of read must be either int or char */
@@ -79,9 +77,7 @@ public class HelperFunction {
 
       /* add the format into the data list */
       Label msg = Label.getMsgLabel();
-      data.add(msg);
-      data.add(new Word(msgAscii.length()));
-      data.add(new Ascii(msgAscii));
+      data.add(msgAscii);
 
       /* add the helper function label */
       Label label = Label.getFuncLabel(helper.toString());
@@ -98,7 +94,7 @@ public class HelperFunction {
     }
   }
 
-  public static void addPrint(Type type, List<Instruction> instructions, List<Instruction> data,
+  public static void addPrint(Type type, List<Instruction> instructions, List<String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     if (type.equalToType(INT_BASIC_TYPE)) {
@@ -115,7 +111,7 @@ public class HelperFunction {
 
   }
 
-  public static void addPrintln(List<Instruction> instructions, List<Instruction> data,
+  public static void addPrintln(List<Instruction> instructions, List<String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_LN;
@@ -133,9 +129,7 @@ public class HelperFunction {
 
       /* add the format into the data list */
       Label msg = Label.getMsgLabel();
-      data.add(msg);
-      data.add(new Word(msgAscii.length()));
-      data.add(new Ascii(msgAscii));
+      data.add(msgAscii);
 
       /* add the helper function label */
       Label label = Label.getFuncLabel(helper.toString());
@@ -154,7 +148,7 @@ public class HelperFunction {
   }
 
   /* print int, print char or print reference */
-  private static void addPrintSingle(Helper helper, List<Instruction> instructions, List<Instruction> data,
+  private static void addPrintSingle(Helper helper, List<Instruction> instructions, List<String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     /* call the helper function anyway */
@@ -171,9 +165,7 @@ public class HelperFunction {
 
       /* add the format into the data list */
       Label msg = Label.getMsgLabel();
-      data.add(msg);
-      data.add(new Word(msgAscii.length()));
-      data.add(new Ascii(msgAscii));
+      data.add(msgAscii);
 
       /* add the helper function label */
       Label label = Label.getFuncLabel(helper.toString());
@@ -189,7 +181,7 @@ public class HelperFunction {
   }
 
   /* print bool */
-  private static void addPrintBool(List<Instruction> instructions, List<Instruction> data,
+  private static void addPrintBool(List<Instruction> instructions, List<String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_BOOL;
@@ -223,7 +215,7 @@ public class HelperFunction {
   }
 
   /* print string (char array included) */
-  private static void addPrintMultiple(List<Instruction> instructions, List<Instruction> data,
+  private static void addPrintMultiple(List<Instruction> instructions, List<String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_STRING;
@@ -264,12 +256,10 @@ public class HelperFunction {
     helperFunctions.add(new Pop(Collections.singletonList(allocator.get(ARMRegisterLabel.PC))));
   }
 
-  private static Label addMsg(String msgAscii, List<Instruction> data) {
+  private static Label addMsg(String msgAscii, List<String> data) {
     /* add a Msg into the data list */
     Label msg = Label.getMsgLabel();
-    data.add(msg);
-    data.add(new Word(msgAscii.length()));
-    data.add(new Ascii(msgAscii));
+    data.add(msgAscii);
 
     return msg;
   }

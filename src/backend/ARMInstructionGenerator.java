@@ -2,8 +2,8 @@ package backend;
 
 import backend.directives.Label;
 import backend.instructions.*;
+import backend.instructions.addressing.Addressing;
 import backend.instructions.addressing.ImmediateAddressing;
-import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
@@ -41,13 +41,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private SymbolTable currSymbolTable;
   /* call getLabel on labelGenerator to get label in format LabelN */
 
-  /* a list of instructions for storing the data (msg_ mainly)
-   * would be attached as a prefix to the instructions list while printing */
-  private static List<Instruction> data;
-
   /* a list of instructions for storing different helper functions
    * would be appended to the end of instructions list while printing */
   private static List<Instruction> helperFunctions;
+
+  /* call getLabel on labelGenerator to get label in format LabelN */
+  private LabelGenerator labelGenerator;
 
   /* constant fields */
   private Register SP;
@@ -61,19 +60,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   );
 
   public ARMInstructionGenerator() {
-<<<<<<< HEAD
-    pseudoRegAllocator = new PseudoRegisterAllocator();
-    armRegAllocator = new ARMConcreteRegisterAllocator();
-    instructions = new ArrayList<>();
-    identRegMap = new HashMap<>();
-    identStackMap = new HashMap<>();
-=======
     currSymbolTable = null;
     labelGenerator = new LabelGenerator("L");
-
     /* initialise constant fields */
     SP = armRegAllocator.get(ARMRegisterLabel.SP);
->>>>>>> develop
   }
 
   @Override
@@ -306,14 +296,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitStringNode(StringNode node) {
     /* Add msg into the data list */
-    Label msg = Label.getMsgLabel();
-    data.add(msg);
-    data.add(new Word(node.getLength()));
-    data.add(new Ascii(node.getString()));
+    Label msg = labelGenerator.getLabel();
+    dataSegmentMessages.add(node.getString());
 
     /* Add the instructions */
     ARMConcreteRegister reg = armRegAllocator.allocate();
-    instructions.add(new LDR(reg, new LabelAddressing(msg)));
+    Addressing strLabel = new ImmediateAddressing(msg.getName());
+    instructions.add(new LDR(reg, strLabel));
 
     return null;
   }
@@ -353,7 +342,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitExitNode(ExitNode node) {
-<<<<<<< HEAD
     /* If regs were allocated correctly for every statement
      * then the argument value of exit would be put into r4 */
     visit(node.getValue());
@@ -362,10 +350,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* Call the exit function */
     instructions.add(new BL("exit"));
 
-=======
-    currSymbolTable = node.getScope();
-    /* TODO: xx1219 */
->>>>>>> develop
     return null;
   }
 
@@ -378,14 +362,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitIfNode(IfNode node) {
-<<<<<<< HEAD
-    Label ifLabel = Label.getBlockLabel();
-    Label elseLabel = Label.getBlockLabel();
-    Label exitLabel = Label.getBlockLabel();
-=======
     Label ifLabel = labelGenerator.getLabel();
     Label exitLabel = labelGenerator.getLabel();
->>>>>>> develop
 
     /* 1 condition check, branch */
     currSymbolTable = node.getScope();
@@ -408,35 +386,25 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitPrintlnNode(PrintlnNode node) {
-<<<<<<< HEAD
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
-    HelperFunction.addPrint(node.getExpr().getType(), instructions, data, helperFunctions, armRegAllocator);
-    HelperFunction.addPrintln(instructions, data, helperFunctions, armRegAllocator);
-=======
-    currSymbolTable = node.getScope();
-    /* TODO: xx1219 */
->>>>>>> develop
+    HelperFunction.addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+    HelperFunction.addPrintln(instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     return null;
   }
 
   @Override
   public Void visitPrintNode(PrintNode node) {
-<<<<<<< HEAD
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
-    HelperFunction.addPrint(node.getExpr().getType(), instructions, data, helperFunctions, armRegAllocator);
-=======
-    currSymbolTable = node.getScope();
-    /* TODO: xx1219 */
->>>>>>> develop
+    HelperFunction.addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     return null;
   }
 
   @Override
   public Void visitReadNode(ReadNode node) {
     /* TODO: visit the "address" of node.getInputExpr() and Mov r4 int or0 */
-    HelperFunction.addRead(node.getInputExpr().getType(), instructions, data, helperFunctions, armRegAllocator);
+    HelperFunction.addRead(node.getInputExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     return null;
   }
 
@@ -476,11 +444,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitWhileNode(WhileNode node) {
     /* 1 unconditional jump to end of loop, where conditional branch exists */
-    Label testLabel = Label.getBlockLabel();
+    Label testLabel = labelGenerator.getLabel();
     instructions.add(new B(Cond.NULL, testLabel.toString()));
 
     /* 2 get a label, mark the start of the loop */
-    Label startLabel = Label.getBlockLabel();
+    Label startLabel = labelGenerator.getLabel();
     instructions.add(startLabel);
 
     /* 3 loop body */
