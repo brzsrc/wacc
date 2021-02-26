@@ -15,6 +15,7 @@ import backend.instructions.operand.Operand2.Operand2Operator;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
+import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
 import utils.NodeVisitor;
 import utils.backend.*;
@@ -307,9 +308,35 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     return null;
   }
 
+//  @Override
+//  public Void visitBinopNode(BinopNode node) {
+//    visit(node.getExpr1());
+//    visit(node.getExpr2());
+//    Register e2reg = armRegAllocator.curr();
+//    // todo: get rid of last() function, replace by calling curr() or next() before visit
+//    Register e1reg = armRegAllocator.last();
+//    Binop operator = node.getOperator();
+//    Operand2 op2 = new Operand2(e2reg);
+//
+//    List<Instruction> insList = ArithmeticLogic.binopInstruction
+//        .get(operator)
+//        .binopAssemble(e1reg, e1reg, op2, operator);
+//    instructions.addAll(insList);
+//    armRegAllocator.free();
+//
+//    return null;
+//  }
+
   @Override
   public Void visitUnopNode(UnopNode node) {
-    // TODO: left over
+    visit(node.getExpr());
+    Register reg = armRegAllocator.curr();
+    Unop operator = node.getOperator();
+    List<Instruction> insList = ArithmeticLogic.unopInstruction
+        .get(operator)
+        .unopAssemble(reg, reg);
+    instructions.addAll(insList);
+    armRegAllocator.free();
     return null;
   }
 

@@ -1,5 +1,10 @@
 package backend.instructions.arithmeticLogic;
 
+import backend.instructions.LDR;
+import backend.instructions.Label;
+import backend.instructions.addressing.addressingMode2.AddressingMode2;
+import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
+import frontend.node.expr.UnopNode.Unop;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +89,56 @@ public abstract class ArithmeticLogic extends Instruction {
     new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.LESS_EQUAL, CmpAsm),
     new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.EQUAL, CmpAsm),
     new AbstractMap.SimpleEntry<Binop, ArithmeticLogicAssemble>(Binop.INEQUAL, CmpAsm)
+  );
+
+  public static final UnopAssemble ArrayLenAsm = (rd, rn) -> {
+    List<Instruction> list = new ArrayList<>();
+    Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
+    list.add(new LDR(rd, new AddressingMode2(AddrMode2.OFFSET, rd)));
+    Operand2 len = new Operand2(rd);
+    list.add(new Mov(r0, len));
+    list.add(new BL("p_print_int"));
+    return list;
+  };
+
+  public static UnopAssemble ChrAsm = (rd, rn) -> {
+    List<Instruction> list = new ArrayList<>();
+    Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
+    Operand2 int_ = new Operand2(rd);
+    list.add(new Mov(r0, int_));
+    list.add(new BL("putchar"));
+    return list;
+  };
+
+  public static UnopAssemble NegationAsm = (rd, rn) -> {
+    List<Instruction> list = new ArrayList<>();
+    list.add(new Rsb(rd, rn, new Operand2(new Immediate(0, BitNum.CONST8))));
+    /* TODO: not sure if the Mov instruction needs to be added or not
+    list.add(new Mov(new ARMConcreteRegister(ARMRegisterLabel.R0), new Operand2(rd))); */
+    return list;
+  };
+
+  public static UnopAssemble LogicNotAsm = (rd, rn) -> {
+    List<Instruction> list = new ArrayList<>();
+    list.add(new Xor(rd, rn, new Operand2(new Immediate(1, BitNum.CONST8))));
+    return list;
+  };
+
+  public static UnopAssemble OrdAsm = (rd, rn) -> {
+    List<Instruction> list = new ArrayList<>();
+    Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
+    Operand2 chr = new Operand2(rd);
+    list.add(new Mov(r0, chr));
+    list.add(new BL("p_print_int"));
+    return list;
+  };
+
+  public static final Map<Unop, UnopAssemble> unopInstruction = Map.ofEntries(
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.LEN, ArrayLenAsm),
+      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm),
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.MINUS, NegationAsm),
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, LogicNotAsm),
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, OrdAsm)
   );
 
   protected Register Rd, Rn;
