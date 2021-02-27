@@ -196,9 +196,9 @@ public class HelperFunction {
       /* cmp the content in r0 with 0*/
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
       /* if not equal to 0 LDR true */
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgFalse), LdrMode.LDRNE));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgTrue), LdrMode.LDRNE));
       /* otherwise equal to 0 LDR false */
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgTrue), LdrMode.LDREQ));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgFalse), LdrMode.LDREQ));
 
       addCommonPrint(helperFunctions, allocator);
     }

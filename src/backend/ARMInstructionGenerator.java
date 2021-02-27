@@ -1,6 +1,5 @@
 package backend;
 
-import backend.instructions.Label;
 import backend.instructions.LDR.LdrMode;
 import backend.instructions.STR.StrMode;
 import backend.instructions.*;
@@ -11,6 +10,7 @@ import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.arithmeticLogic.Sub;
+import backend.instructions.memory.Pop;
 import backend.instructions.memory.Push;
 import backend.instructions.arithmeticLogic.ArithmeticLogic;
 import backend.instructions.operand.Immediate;
@@ -327,8 +327,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitAssignNode(AssignNode node) {
-    // todo: use type check, if is identnode, use addressing to put value in stack in one instruction
-    currSymbolTable = node.getScope();
     visit(node.getRhs());
     ARMConcreteRegister reg = armRegAllocator.curr();
     visit(node.getLhs());
@@ -341,8 +339,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitDeclareNode(DeclareNode node) {
-    // todo: same as visitAssignNode
-    currSymbolTable = node.getScope();
     /* the returned value is now in r4 */
     visit(node.getRhs());
     StrMode strMode = node.getRhs().getType().getSize() == 1 ? StrMode.STRB : StrMode.STR;
@@ -379,13 +375,16 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Label exitLabel = labelGenerator.getLabel();
 
     /* 1 condition check, branch */
-    currSymbolTable = node.getScope();
+    currSymbolTable = node.getIfBody().getScope();
     visit(node.getCond());
     instructions.add(new B(Cond.EQ, ifLabel.toString()));
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     /* 2 elseBody translate */
+    currSymbolTable = node.getElseBody().getScope();
     visit(node.getElseBody());
     instructions.add(new B(Cond.NULL, exitLabel.toString()));
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     /* 3 ifBody translate */
     instructions.add(ifLabel);
@@ -441,13 +440,16 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
     }
     for (StatNode elem : list) {
+      currSymbolTable = elem.getScope();
       visit(elem);
+      currSymbolTable = currSymbolTable.getParentSymbolTable();
     }
 
     if (stackSize != 0) {
       instructions.add(new Add(SP, SP,
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
     }
+
     return null;
   }
 
@@ -458,6 +460,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitWhileNode(WhileNode node) {
+    
     /* 1 unconditional jump to end of loop, where conditional branch exists */
     Label testLabel = labelGenerator.getLabel();
     instructions.add(new B(Cond.NULL, testLabel.toString()));
@@ -467,12 +470,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(startLabel);
 
     /* 3 loop body */
+    currSymbolTable = node.getBody().getScope();
     visit(node.getBody());
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     /* 4 start of condition test */
     instructions.add(testLabel);
     /* translate cond expr */
-    currSymbolTable = node.getScope();
     visit(node.getCond());
 
     /* 5 conditional branch jump to the start of loop */
@@ -503,6 +507,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitProgramNode(ProgramNode node) {
+    currSymbolTable = node.getBody().getScope();
+
     Map<String, FuncNode> funcMap = node.getFunctions();
     for (Entry<String, FuncNode> entry : funcMap.entrySet()) {
       visit(entry.getValue());
@@ -512,7 +518,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(mainLabel);
     instructions.add(new Push(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.LR))));
     visit(node.getBody());
-    instructions.add(new Push(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
+    instructions.add(new LDR(armRegAllocator.get(0), new ImmediateAddressing(new Immediate(0, BitNum.CONST8))));
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
 
     return null;
   }
