@@ -221,11 +221,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     String identName = node.getName();
 
     /* put pointer that point to ident's value in stack to next available register */
-    int offset = currSymbolTable.getStackOffset(identName);
+    int offset = currSymbolTable.getSize() - currSymbolTable.getStackOffset(identName) - 1;
     LdrMode mode = node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRB;
     instructions.add(new LDR(
             armRegAllocator.allocate(),
-            new AddressingMode2(AddrMode2.OFFSET, SP, new Immediate(offset, BitNum.CONST8))));
+            new AddressingMode2(AddrMode2.OFFSET, SP, new Immediate(offset, BitNum.CONST8)), mode));
     return null;
   }
 
