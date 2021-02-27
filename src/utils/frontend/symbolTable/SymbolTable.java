@@ -59,6 +59,17 @@ public class SymbolTable {
   }
 
   public int getStackOffset(String ident) {
-    return dictionary.get(ident).getStackOffset();
+    // todo: generator's usage is wrong
+    /* if ident is defined in current scope, return its offset */
+    if (dictionary.containsKey(ident)) {
+      return dictionary.get(ident).getStackOffset();
+    }
+    /* else, get its offset from upper scope */
+    if (parentSymbolTable != null) {
+      return parentSymbolTable.getStackOffset(ident);
+    }
+
+    /* else, unhandled ident undefined error from semantic checker */
+    throw new IllegalArgumentException("should have handled undefined ident error in semantic checker");
   }
 }

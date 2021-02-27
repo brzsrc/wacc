@@ -375,10 +375,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Label exitLabel = labelGenerator.getLabel();
 
     /* 1 condition check, branch */
-    currSymbolTable = node.getIfBody().getScope();
     visit(node.getCond());
     instructions.add(new B(Cond.EQ, ifLabel.toString()));
-    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     /* 2 elseBody translate */
     currSymbolTable = node.getElseBody().getScope();
@@ -387,8 +385,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     /* 3 ifBody translate */
+    currSymbolTable = node.getIfBody().getScope();
     instructions.add(ifLabel);
     visit(node.getIfBody());
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     /* 4 end of if statement */
     instructions.add(exitLabel);
@@ -442,7 +442,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     for (StatNode elem : list) {
       currSymbolTable = elem.getScope();
       visit(elem);
-      currSymbolTable = currSymbolTable.getParentSymbolTable();
+//      currSymbolTable = currSymbolTable.getParentSymbolTable();
     }
 
     if (stackSize != 0) {
@@ -477,10 +477,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* 4 start of condition test */
     instructions.add(testLabel);
     /* translate cond expr */
+    System.out.println(currSymbolTable == null);
     visit(node.getCond());
 
     /* 5 conditional branch jump to the start of loop */
-    new B(Cond.EQ, startLabel.toString());
+    instructions.add(new B(Cond.EQ, startLabel.toString()));
 
     return null;
   }

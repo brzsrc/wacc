@@ -219,7 +219,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* simply create a new SymbolTable to represent a BEGIN ... END statement */
     currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode body = visit(ctx.stat()).asStatNode();
-    ScopeNode scopeNode = new ScopeNode(new ScopeNode(body));
+    ScopeNode scopeNode = new ScopeNode(body);
     scopeNode.setScope(currSymbolTable);
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
@@ -299,7 +299,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitSkipStat(SkipStatContext ctx) {
-    return new SkipNode();
+    return new SkipNode(currSymbolTable);
   }
 
   @Override

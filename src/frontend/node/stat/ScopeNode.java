@@ -1,6 +1,8 @@
 package frontend.node.stat;
 
 import utils.NodeVisitor;
+import utils.frontend.symbolTable.SymbolTable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,10 +15,12 @@ public class ScopeNode extends StatNode {
 
   private final List<StatNode> body = new ArrayList<>();
   private boolean isFuncBody = false;
+  private boolean isBeginEnd = false;
 
   public ScopeNode(StatNode node) {
     body.add(node);
     setLeaveAtEnd(getEndValue());
+    isBeginEnd = true;
     setScope(node.scope);
   }
 
@@ -25,11 +29,10 @@ public class ScopeNode extends StatNode {
     mergeScope(before);
     mergeScope(after);
     setLeaveAtEnd(getEndValue());
-    setScope(after.scope);
   }
 
   private void mergeScope(StatNode s) {
-    if (s instanceof ScopeNode) {
+    if (s instanceof ScopeNode && !((ScopeNode) s).isBeginEnd) {
       body.addAll(((ScopeNode) s).body);
     } else if (!(s instanceof SkipNode)) {
       body.add(s);
