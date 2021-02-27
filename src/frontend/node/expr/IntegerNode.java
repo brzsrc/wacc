@@ -16,6 +16,7 @@ public class IntegerNode extends ExprNode {
   public IntegerNode(int val) {
     this.val = val;
     this.type = new BasicType(BasicTypeEnum.INTEGER);
+    this.weight = 1;
   }
 
   public int getVal() {

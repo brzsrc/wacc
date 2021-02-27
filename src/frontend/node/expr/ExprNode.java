@@ -10,6 +10,7 @@ public abstract class ExprNode implements Node {
    */
 
   protected Type type;
+  protected int weight = 0;
 
   public Type getType() {
     return this.type;
@@ -22,5 +23,9 @@ public abstract class ExprNode implements Node {
   @Override
   public ExprNode asExprNode() {
     return this;
+  }
+
+  public int getWeight() {
+    return weight;
   }
 }

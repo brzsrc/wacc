@@ -11,6 +11,7 @@ public abstract class StatNode implements Node {
 
   private boolean leaveAtEnd = false;
   protected SymbolTable scope;
+  protected int weight = 0;
 
   /* Set leaveAtEnd if needs overwrite */
   protected void setLeaveAtEnd(boolean value) {
@@ -35,4 +36,7 @@ public abstract class StatNode implements Node {
     return this;
   }
 
+  public int getWeight() {
+    return weight;
+  }
 }

@@ -23,6 +23,7 @@ public class ArrayNode extends ExprNode {
     this.length = length;
     this.type = new ArrayType(contentType);
     this.contentSize = contentType == null || content.isEmpty() ? 0 : content.get(0).getType().getSize();
+    this.weight = 2;
   }
 
   public int getLength() {
