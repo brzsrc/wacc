@@ -30,6 +30,7 @@ public class ArrayElemNode extends ExprNode {
     this.arrayDepth = array.getType().asArrayType().getDepth();
     this.indexDepth = index.size();
     this.ident = ident;
+    this.weight = 1;
 
     if (arrayDepth < indexDepth) {
       arrayDepthError(null, array.getType(), index.size());

@@ -146,8 +146,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitBinopNode(BinopNode node) {
-    visit(node.getExpr1());
-    visit(node.getExpr2());
+    ExprNode expr1 = node.getExpr1();
+    ExprNode expr2 = node.getExpr2();
+    if(expr1.getWeight() > expr2.getWeight()) {
+      visit(expr1);
+      visit(expr2);
+    } else {
+      visit(expr2);
+      visit(expr1);
+    }
     Register e2reg = armRegAllocator.curr();
     Register e1reg = armRegAllocator.last();
     Binop operator = node.getOperator();

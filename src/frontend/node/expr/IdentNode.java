@@ -15,6 +15,7 @@ public class IdentNode extends ExprNode {
   public IdentNode(Type type, String name) {
     this.type = type;
     this.name = name;
+    this.weight = 1;
   }
 
   public String getName() {
