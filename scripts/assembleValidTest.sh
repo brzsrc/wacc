@@ -4,7 +4,7 @@ VALID_EXAMPLES=(
                 # "/advanced"
                 # "/array"
                 # "/basic"
-                # "/expressions"
+                "/expressions"
                 # "/function"
                 # "/if"
                 # "/IO"
@@ -12,7 +12,7 @@ VALID_EXAMPLES=(
                 # "/runtimeErr"
                 # "/scope"
                 # "/sequence"
-                "/variables"
+                # "/variables"
                 # "/while"
                 )
 

@@ -1,7 +1,6 @@
 package backend.instructions.arithmeticLogic;
 
 import backend.instructions.LDR;
-import backend.instructions.Label;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import frontend.node.expr.UnopNode.Unop;

@@ -38,8 +38,7 @@ public class Operand2 {
         /* TODO: need better code quality here */
         if (Rm != null) res.add(Rm.toString());
         if (operator != Operand2Operator.NONE) res.add(operator.toString());
-        res.add(immed.toString());
+        if (immed != null) res.add(immed.toString());
         return res.stream().reduce((i, j) -> i + " " + j).orElse("");
-    }
-    
+    }   
 }

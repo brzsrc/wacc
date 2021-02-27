@@ -1,6 +1,6 @@
 package backend;
 
-import backend.directives.Label;
+import backend.instructions.Label;
 import backend.instructions.*;
 import backend.instructions.addressing.Addressing;
 import backend.instructions.addressing.ImmediateAddressing;

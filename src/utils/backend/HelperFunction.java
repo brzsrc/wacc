@@ -54,6 +54,7 @@ public class HelperFunction {
     put(Helper.PRINT_REFERENCE, "%p\0");
   }};
 
+  private static LabelGenerator labelGenerator = new LabelGenerator("msg_");
 
   public static void addRead(Type type, List<Instruction> instructions, List<String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
@@ -76,7 +77,7 @@ public class HelperFunction {
       Label msg = addMsg((helper == Helper.READ_INT)? "%d\0" : "%c\0", data);
 
       /* add the helper function label */
-      Label label = Label.getFuncLabel(helper.toString());
+      Label label = new Label(helper.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
       /* fst arg of read is the snd arg of scanf (storing address)*/
@@ -124,7 +125,7 @@ public class HelperFunction {
       Label msg = addMsg("\0", data);
 
       /* add the helper function label */
-      Label label = Label.getFuncLabel(helper.toString());
+      Label label = new Label(helper.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg)));
@@ -156,7 +157,7 @@ public class HelperFunction {
       Label msg = addMsg(printSingleMap.get(helper), data);
 
       /* add the helper function label */
-      Label label = Label.getFuncLabel(helper.toString());
+      Label label = new Label(helper.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
       /* put the content in r0 int o r1 as the snd arg of printf */
@@ -188,7 +189,7 @@ public class HelperFunction {
       Label msgFalse = addMsg("false\0", data);
 
       /* add the helper function label */
-      Label label = Label.getFuncLabel(helper.toString());
+      Label label = new Label(helper.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
       /* cmp the content in r0 with 0*/
@@ -220,7 +221,7 @@ public class HelperFunction {
       Label msg = addMsg("%.*s\0", data);
 
       /* add the helper function label */
-      Label label = Label.getFuncLabel(helper.toString());
+      Label label = new Label(helper.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
       /* put the string length into r1 as snd arg */
@@ -246,7 +247,7 @@ public class HelperFunction {
 
   private static Label addMsg(String msgAscii, List<String> data) {
     /* add a Msg into the data list */
-    Label msg = Label.getMsgLabel();
+    Label msg = labelGenerator.getLabel();
     data.add(msgAscii);
 
     return msg;

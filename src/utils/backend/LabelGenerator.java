@@ -1,6 +1,6 @@
 package utils.backend;
 
-import backend.directives.Label;
+import backend.instructions.Label;
 
 public class LabelGenerator {
 

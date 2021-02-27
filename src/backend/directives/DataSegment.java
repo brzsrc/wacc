@@ -1,5 +1,6 @@
 package backend.directives;
 
+import backend.instructions.Label;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,7 @@ public class DataSegment implements Directive {
         List<String> list = new ArrayList<>();
         list.add("\t.data\n\n");
         for (Entry<Label, String> e : messages.entrySet()) {
-            list.add("\t" + e.getKey().toString());
+            list.add("\t" + e.getKey().assemble());
             list.add("\t\t.word " + e.getValue().length() + "\n\t\t.ascii " + e.getValue());
         }
 
