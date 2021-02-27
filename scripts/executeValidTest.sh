@@ -25,14 +25,14 @@ for folder in ${VALID_EXAMPLES[@]}; do
   ASSEMBLY_OUTPUT_VALID_FOLDER="${ASSEMBLY_OUTPUT_DIR}${folder}"
   for file in $(find "${VALID_EXAMPLES_SRC_DIR}${folder}" -name "*.wacc")
   do
-    FILE_NAME=$(basename $file)
-    ASSEMBLY_OUTPUT_FILE="${ASSEMBLY_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
-    echo $ASSEMBLY_OUTPUT_FILE
-    # This step should use the example assembler to produce output and compare with sample answer
-    # ./execute "${VALID_EXAMPLES_SRC_DIR}/${folder}/${FILE_NAME}" 1> "${ASSEMBLY_OUTPUT_FILE}.s" 2> "${ASSEMBLY_OUTPUT_FILE}.log"
-    # If the result is a mismatch, then exit with 1 (maybe)
+    FILE_NAME=$(basename "${file%.*}")
+    EXECUTABLE_FILE="${ASSEMBLY_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
+    ASSEMBLY_OUTPUT_FILE="${ASSEMBLY_OUTPUT_VALID_FOLDER}/${FILE_NAME}.s"
+    echo $file
+    arm-linux-gnueabi-gcc -o $EXECUTABLE_FILE -mcpu=arm1176jzf-s -mtune=arm1176jzf-s $ASSEMBLY_OUTPUT_FILE
+    qemu-arm -L /usr/arm-linux-gnueabi/ $EXECUTABLE_FILE
     (( COUNTER += 1 ))
-    echo "$COUNTER / $(($TOTAL_COUNT)) files have successfully been assembled"
+    echo "$COUNTER / $(($TOTAL_COUNT)) files have been executed"
     echo ""
   done
 

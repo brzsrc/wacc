@@ -19,9 +19,6 @@ VALID_EXAMPLES=(
 VALID_EXAMPLES_SRC_DIR="./src/test/examples/valid"
 ASSEMBLY_OUTPUT_DIR="./log/assemble"
 
-rm -rf $ASSEMBLY_OUTPUT_DIR
-mkdir $ASSEMBLY_OUTPUT_DIR
-
 # counters to represent the total number of test files to be processed
 TOTAL_COUNT=$(find "${VALID_EXAMPLES[@]/#/${VALID_EXAMPLES_SRC_DIR}}" -name "*.wacc" | wc -l)
 COUNTER=0
@@ -31,10 +28,10 @@ for folder in ${VALID_EXAMPLES[@]}; do
   mkdir $ASSEMBLY_OUTPUT_VALID_FOLDER
   for file in $(find "${VALID_EXAMPLES_SRC_DIR}${folder}" -name "*.wacc")
   do
-    FILE_NAME=$(basename $file)
-    ASSEMBLY_OUTPUT_FILE="${ASSEMBLY_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
-    echo $ASSEMBLY_OUTPUT_FILE
-    ./compile -a $file 1> "${ASSEMBLY_OUTPUT_FILE}.s" 2> "${ASSEMBLY_OUTPUT_FILE}.log"
+    FILE_NAME=$(basename "${file%.*}")
+    echo $file
+    ASSEMBLY_OUTPUT_FILE_NAME="${ASSEMBLY_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
+    ./compile -a $file 1> "${ASSEMBLY_OUTPUT_FILE_NAME}.s" 2> "${ASSEMBLY_OUTPUT_FILE_NAME}.log"
     ret=$?
     echo "exit status: " $ret
 
