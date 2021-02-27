@@ -227,6 +227,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       visit(expr);
       int size = expr.getType().getSize();
       instructions.add(new STR(reg,new AddressingMode2(AddrMode2.PREINDEX, SP, new Immediate(-size, BitNum.CONST8))));
+      armRegAllocator.free();
 
       paramSize += size;
     }
@@ -325,7 +326,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
             new LDR(armRegAllocator.get(ARMRegisterLabel.R0),
                     new ImmediateAddressing(new Immediate(child.getType().getSize(), BitNum.CONST8))));
 
-    /* 3 BL malloc, assign child value and get pointer in heap area pairPointer[0] */
+    /* 3 BL malloc, assign child value and get pointer in heap area pairPointer[0] or [1] */
     instructions.add(new BL(specialInstructions.get(SpecialInstruction.MALLOC)));
     instructions.add(new STR(fstVal, new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.R0))));
     if (isFst) {
@@ -333,6 +334,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     } else {
       instructions.add(new STR(armRegAllocator.get(ARMRegisterLabel.R0), new AddressingMode2(AddrMode2.OFFSET, pairPointer, new Immediate(POINTER_SIZE, BitNum.CONST8))));
     }
+
+    /* free register used for storing child's value */
+    armRegAllocator.free();
 
   }
 
