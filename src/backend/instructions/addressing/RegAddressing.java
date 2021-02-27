@@ -13,4 +13,9 @@ public class RegAddressing extends Addressing {
   public Register getReg() {
     return reg;
   }
+
+  @Override
+  public String toString() {
+    return "[" + reg + "]";
+  }
 }

@@ -12,4 +12,9 @@ public class LabelAddressing extends Addressing {
   public Label getLabel() {
     return label;
   }
+
+  @Override
+  public String toString() {
+    return "=" + label.getName();
+  }
 }

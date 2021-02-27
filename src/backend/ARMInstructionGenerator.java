@@ -1,9 +1,11 @@
 package backend;
 
 import backend.instructions.Label;
+import backend.instructions.STR.StrMode;
 import backend.instructions.*;
 import backend.instructions.addressing.Addressing;
 import backend.instructions.addressing.ImmediateAddressing;
+import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
@@ -302,7 +304,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* Add the instructions */
     ARMConcreteRegister reg = armRegAllocator.allocate();
-    Addressing strLabel = new ImmediateAddressing(msg.getName());
+    Addressing strLabel = new LabelAddressing(msg);
     instructions.add(new LDR(reg, strLabel));
 
     return null;
@@ -341,9 +343,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     currSymbolTable = node.getScope();
     /* the returned value is now in r4 */
     visit(node.getRhs());
+    StrMode strMode = node.getRhs().getType().getSize() == 1 ? StrMode.STRB : StrMode.STR;
     instructions.add(new STR(armRegAllocator.curr(),
         new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.SP),
-            new Immediate(node.getScope().getStackOffset(node.getIdentifier()), BitNum.CONST8))));
+            new Immediate(node.getScope().getStackOffset(node.getIdentifier()), BitNum.CONST8)), strMode));
     armRegAllocator.free();
     return null;
   }

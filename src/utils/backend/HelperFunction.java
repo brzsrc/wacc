@@ -49,9 +49,9 @@ public class HelperFunction {
 
   /* map for addPrintSingle */
   private static Map<Helper, String> printSingleMap = new HashMap<>(){{
-    put(Helper.PRINT_INT, "%d\0");
-    put(Helper.PRINT_CHAR, "%c\0");
-    put(Helper.PRINT_REFERENCE, "%p\0");
+    put(Helper.PRINT_INT, "%d");
+    put(Helper.PRINT_CHAR, "%c");
+    put(Helper.PRINT_REFERENCE, "%p");
   }};
 
   private static LabelGenerator labelGenerator = new LabelGenerator("msg_");
@@ -74,7 +74,7 @@ public class HelperFunction {
       alreadyExist.add(helper);
       
       /* add the format into the data list */
-      Label msg = addMsg((helper == Helper.READ_INT)? "%d\0" : "%c\0", data);
+      Label msg = addMsg((helper == Helper.READ_INT)? "%d" : "%c", data);
 
       /* add the helper function label */
       Label label = new Label(helper.toString());
@@ -122,7 +122,7 @@ public class HelperFunction {
       alreadyExist.add(helper);
 
       /* add the format into the data list */
-      Label msg = addMsg("\0", data);
+      Label msg = addMsg("", data);
 
       /* add the helper function label */
       Label label = new Label(helper.toString());
@@ -184,9 +184,9 @@ public class HelperFunction {
       alreadyExist.add(helper);
 
       /* add the msgTrue into the data list */
-      Label msgTrue = addMsg("true\0", data);
+      Label msgTrue = addMsg("true", data);
       /* add the msgFalse into the data list */
-      Label msgFalse = addMsg("false\0", data);
+      Label msgFalse = addMsg("false", data);
 
       /* add the helper function label */
       Label label = new Label(helper.toString());
@@ -218,7 +218,7 @@ public class HelperFunction {
       alreadyExist.add(helper);
 
       /* add the format into the data list */
-      Label msg = addMsg("%.*s\0", data);
+      Label msg = addMsg("%.*s", data);
 
       /* add the helper function label */
       Label label = new Label(helper.toString());

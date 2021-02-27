@@ -35,4 +35,23 @@ public class AddressingMode2 extends Addressing {
     public AddressingMode2(AddrMode2 mode, Register Rn) {
         this(mode, Rn, null, null, null);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        switch (mode) {
+            case OFFSET:
+                str.append(Rn != null ? Rn + ", " : "");
+                str.append(Rm != null ? Rm + ", " : "");
+                str.append(operator != null ? operator.name() + " " : "");
+                str.append(immed != null ? immed : "");
+                return "[" + str.toString() + "]";
+            case PREINDEX:
+                return "";
+            case POSTINDEX:
+                return "";
+            default:
+                return "";
+        }
+    }
 }
