@@ -75,7 +75,11 @@ public class HelperFunction {
       alreadyExist.add(helper);
       
       /* add the format into the data list */
+<<<<<<< HEAD
       Label msg = addMsg((helper == Helper.READ_INT)? "\"%d\\0\"" : "\"%c\\0\"", data);
+=======
+      Label msg = addMsg((helper == Helper.READ_INT)? "\"%d\\0" : "\"%c\\0", data);
+>>>>>>> 3f6f9ba6f7d43482b0867bcad495c09a8cdf3e55
 
       /* add the helper function label */
       Label label = new Label(helper.toString());
@@ -123,7 +127,11 @@ public class HelperFunction {
       alreadyExist.add(helper);
 
       /* add the format into the data list */
+<<<<<<< HEAD
       Label msg = addMsg("\"\\0\"", data);
+=======
+      Label msg = addMsg("\"\"", data);
+>>>>>>> 3f6f9ba6f7d43482b0867bcad495c09a8cdf3e55
 
       /* add the helper function label */
       Label label = new Label(helper.toString());
@@ -219,7 +227,11 @@ public class HelperFunction {
       alreadyExist.add(helper);
 
       /* add the format into the data list */
+<<<<<<< HEAD
       Label msg = addMsg("\"%.*s\\0\"", data);
+=======
+      Label msg = addMsg("\"%.*s\\0", data);
+>>>>>>> 3f6f9ba6f7d43482b0867bcad495c09a8cdf3e55
 
       /* add the helper function label */
       Label label = new Label(helper.toString());
