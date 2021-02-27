@@ -2,6 +2,7 @@ package backend;
 
 import backend.directives.Label;
 import backend.instructions.*;
+import backend.instructions.addressing.Addressing;
 import backend.instructions.addressing.ImmediateAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
@@ -39,6 +40,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
   /* call getLabel on labelGenerator to get label in format LabelN */
+
+  /* a list of instructions for storing different helper functions
+   * would be appended to the end of instructions list while printing */
+  private static List<Instruction> helperFunctions = new ArrayList<>();
+
+  /* call getLabel on labelGenerator to get label in format LabelN */
   private LabelGenerator labelGenerator;
 
   /* constant fields */
@@ -55,7 +62,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public ARMInstructionGenerator() {
     currSymbolTable = null;
     labelGenerator = new LabelGenerator("L");
-
     /* initialise constant fields */
     SP = armRegAllocator.get(ARMRegisterLabel.SP);
   }
@@ -289,7 +295,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitStringNode(StringNode node) {
-    /* TODO: xx1219 */
+    /* Add msg into the data list */
+    Label msg = labelGenerator.getLabel();
+    dataSegmentMessages.add(node.getString());
+
+    /* Add the instructions */
+    ARMConcreteRegister reg = armRegAllocator.allocate();
+    Addressing strLabel = new ImmediateAddressing(msg.getName());
+    instructions.add(new LDR(reg, strLabel));
+
     return null;
   }
 
@@ -328,8 +342,14 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitExitNode(ExitNode node) {
-    currSymbolTable = node.getScope();
-    /* TODO: xx1219 */
+    /* If regs were allocated correctly for every statement
+     * then the argument value of exit would be put into r4 */
+    visit(node.getValue());
+    /* Mov the argument value from r4 to r0 */
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
+    /* Call the exit function */
+    instructions.add(new BL("exit"));
+
     return null;
   }
 
@@ -366,21 +386,25 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitPrintlnNode(PrintlnNode node) {
-    currSymbolTable = node.getScope();
-    /* TODO: xx1219 */
+    visit(node.getExpr());
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
+    HelperFunction.addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+    HelperFunction.addPrintln(instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     return null;
   }
 
   @Override
   public Void visitPrintNode(PrintNode node) {
-    currSymbolTable = node.getScope();
-    /* TODO: xx1219 */
+    visit(node.getExpr());
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
+    HelperFunction.addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     return null;
   }
 
   @Override
   public Void visitReadNode(ReadNode node) {
-    /* TODO: xx1219 */
+    /* TODO: visit the "address" of node.getInputExpr() and Mov r4 int or0 */
+    HelperFunction.addRead(node.getInputExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     return null;
   }
 
