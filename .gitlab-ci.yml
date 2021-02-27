@@ -14,7 +14,7 @@ build-job:
   stage: build
   script:
     - echo "Building the WACC compiler..."
-    - make
+    - make && mkdir log
 
 test-parser-syntax-valid: 
   stage: test
@@ -50,3 +50,10 @@ test-semantics-check-semantic-err:
     - echo "Using invalid examples with only semantic error to test SemanticChecker, SHOULD generate any semantics error and NOT syntax error"
     - make
     - ./scripts/semanticCheckerSemanticErr
+
+test-assemble-valid:
+  stage: test
+  script:
+    - echo "Testing whether files can be correctly assembled without any Java runtime error..."
+    - make
+    - ./scripts/assembleValidTest.sh

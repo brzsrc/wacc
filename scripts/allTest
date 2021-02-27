@@ -6,3 +6,5 @@
 ./scripts/parserTestSemanticErr
 ./scripts/semanticCheckerValid
 ./scripts/semanticCheckerSemanticErr
+./scripts/assembleTest.sh
+./scripts/executeTest.sh

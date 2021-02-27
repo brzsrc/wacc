@@ -8,6 +8,10 @@ src/frontend/antlr/
 #ignore other junk files
 *~
 
+#ignore the log output
+log
+log/*
+
 #ignore the .idea folder created by intellij or MacOS
 .idea
 .DS_Store

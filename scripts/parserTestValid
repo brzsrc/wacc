@@ -22,8 +22,7 @@ TOTAL_COUNT=$(find ${VALID_EXAMPLES[@]} -name "*.wacc" | wc -l)
 COUNTER=0
 
 for folder in ${VALID_EXAMPLES[@]}; do
-  for file in $(find $folder -name "*.wacc")
-  do
+  for file in $(find $folder -name "*.wacc"); do
     ./compile $file 2>> $VALID_PARSER_EXAMPLES_LOG
     ret=$?
     echo "exit status: " $ret
