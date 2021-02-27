@@ -18,7 +18,11 @@ public class ScopeNode extends StatNode {
   private boolean isBeginEnd = false;
 
   public ScopeNode(StatNode node) {
-    body.add(node);
+    if (node instanceof ScopeNode) {
+      body.addAll(((ScopeNode) node).body);
+    } else {
+      body.add(node);
+    }
     setLeaveAtEnd(getEndValue());
     isBeginEnd = true;
     setScope(node.scope);
