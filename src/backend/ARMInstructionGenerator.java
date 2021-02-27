@@ -515,6 +515,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   /* below are getter and setter of this class */
 
   public static List<Instruction> getInstructions() {
+    instructions.addAll(helperFunctions);
     return instructions;
   }
 
