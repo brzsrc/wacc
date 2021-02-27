@@ -15,6 +15,7 @@ import backend.instructions.operand.Operand2.Operand2Operator;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
+import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
 import utils.NodeVisitor;
 import utils.backend.*;
@@ -309,7 +310,14 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitUnopNode(UnopNode node) {
-    // TODO: left over
+    visit(node.getExpr());
+    Register reg = armRegAllocator.curr();
+    Unop operator = node.getOperator();
+    List<Instruction> insList = ArithmeticLogic.unopInstruction
+        .get(operator)
+        .unopAssemble(reg, reg);
+    instructions.addAll(insList);
+    armRegAllocator.free();
     return null;
   }
 
