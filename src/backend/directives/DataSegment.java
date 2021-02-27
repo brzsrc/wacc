@@ -34,7 +34,7 @@ public class DataSegment implements Directive {
         list.add("\t.data\n\n");
         for (Entry<Label, String> e : messages.entrySet()) {
             list.add("\t" + e.getKey().assemble());
-            list.add("\t\t.word " + (e.getValue().length() + 1) + "\n\t\t.ascii \"" + e.getValue() + "\\0\"");
+            list.add("\t\t.word " + (e.getValue().length() + 1) + "\n\t\t.ascii " + e.getValue());
         }
 
         return list;
