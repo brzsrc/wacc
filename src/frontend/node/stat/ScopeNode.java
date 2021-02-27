@@ -17,6 +17,7 @@ public class ScopeNode extends StatNode {
   public ScopeNode(StatNode node) {
     body.add(node);
     setLeaveAtEnd(getEndValue());
+    setScope(node.scope);
   }
 
   /* Handle the sequential statement */
@@ -24,6 +25,7 @@ public class ScopeNode extends StatNode {
     mergeScope(before);
     mergeScope(after);
     setLeaveAtEnd(getEndValue());
+    setScope(after.scope);
   }
 
   private void mergeScope(StatNode s) {
