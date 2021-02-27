@@ -11,7 +11,7 @@ public class ARMConcreteRegisterAllocator {
 
     public static final int GENERAL_REG_START = 4;
     public static final Map<ARMRegisterLabel, Integer> ARMspecialRegMapping = Map.of(ARMRegisterLabel.SP, 13,
-            ARMRegisterLabel.SLR, 14, ARMRegisterLabel.PC, 15);
+            ARMRegisterLabel.LR, 14, ARMRegisterLabel.PC, 15);
 
     private List<ARMConcreteRegister> registers;
     private int registerCounter;

@@ -9,19 +9,6 @@ import java.util.Map.Entry;
 
 import utils.backend.LabelGenerator;
 
-class Message {
-    private String ascii;
-
-    public Message(String ascii) {
-        this.ascii = ascii;
-    }
-
-    @Override
-    public String toString() {
-        return ".word " + ascii.length() + "\n\t\t.ascii " + ascii;
-    }
-}
-
 public class DataSegment implements Directive {
     Map<Label, String> messages;
     LabelGenerator labelGenerator;

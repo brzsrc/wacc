@@ -1,6 +1,7 @@
 package backend;
 
 import backend.instructions.Label;
+import backend.instructions.LDR.LdrMode;
 import backend.instructions.STR.StrMode;
 import backend.instructions.*;
 import backend.instructions.addressing.Addressing;
@@ -10,6 +11,7 @@ import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.arithmeticLogic.Sub;
+import backend.instructions.memory.Push;
 import backend.instructions.arithmeticLogic.ArithmeticLogic;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
@@ -25,6 +27,7 @@ import utils.frontend.symbolTable.SymbolTable;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.*;
@@ -219,10 +222,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* put pointer that point to ident's value in stack to next available register */
     int offset = currSymbolTable.getStackOffset(identName);
-    instructions.add(new Add(
+    LdrMode mode = node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRB;
+    instructions.add(new LDR(
             armRegAllocator.allocate(),
-            SP,
-            new Operand2(new Immediate(offset, BitNum.SHIFT32))));
+            new AddressingMode2(AddrMode2.OFFSET, SP, new Immediate(offset, BitNum.CONST8))));
     return null;
   }
 
@@ -345,7 +348,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     StrMode strMode = node.getRhs().getType().getSize() == 1 ? StrMode.STRB : StrMode.STR;
     instructions.add(new STR(armRegAllocator.curr(),
         new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.SP),
-            new Immediate(node.getScope().getStackOffset(node.getIdentifier()), BitNum.CONST8)), strMode));
+            new Immediate(node.getScope().getSize() - node.getScope().getStackOffset(node.getIdentifier()) - 1, BitNum.CONST8)), strMode));
     armRegAllocator.free();
     return null;
   }
@@ -400,6 +403,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
     HelperFunction.addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     HelperFunction.addPrintln(instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+    armRegAllocator.free();
     return null;
   }
 
@@ -408,6 +412,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.get(4))));
     HelperFunction.addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+    armRegAllocator.free();
     return null;
   }
 
@@ -505,8 +510,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     
     Label mainLabel = new Label("main");
     instructions.add(mainLabel);
-
+    instructions.add(new Push(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.LR))));
     visit(node.getBody());
+    instructions.add(new Push(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
 
     return null;
   }

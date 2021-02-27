@@ -80,7 +80,7 @@ public class HelperFunction {
       /* add the helper function label */
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
-      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
+      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
       /* fst arg of read is the snd arg of scanf (storing address)*/
       helperFunctions.add(new Mov(allocator.get(1), new Operand2(allocator.get(0))));
       /* fst arg of scanf is the format */
@@ -128,7 +128,7 @@ public class HelperFunction {
       /* add the helper function label */
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
-      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
+      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg)));
       /* skip the first 4 byte of the msg which is the length of it */
       helperFunctions.add(new Add(allocator.get(0), allocator.get(0), new Operand2(new Immediate(4, BitNum.CONST8))));
@@ -160,7 +160,7 @@ public class HelperFunction {
       /* add the helper function label */
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
-      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
+      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
       /* put the content in r0 int o r1 as the snd arg of printf */
       helperFunctions.add(new Mov(allocator.get(1), new Operand2(allocator.get(0))));
       /* fst arg of printf is the format */
@@ -192,13 +192,13 @@ public class HelperFunction {
       /* add the helper function label */
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
-      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
+      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
       /* cmp the content in r0 with 0*/
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
       /* if not equal to 0 LDR true */
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgTrue), LdrMode.LDRNE));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgFalse), LdrMode.LDRNE));
       /* otherwise equal to 0 LDR false */
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgFalse), LdrMode.LDREQ));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgTrue), LdrMode.LDREQ));
 
       addCommonPrint(helperFunctions, allocator);
     }
@@ -224,7 +224,7 @@ public class HelperFunction {
       /* add the helper function label */
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
-      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.SLR))));
+      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
       /* put the string length into r1 as snd arg */
       helperFunctions.add(new LDR(allocator.get(1), new RegAddressing(allocator.get(0))));
       /* skip the fst 4 bytes which is the length of the string */
