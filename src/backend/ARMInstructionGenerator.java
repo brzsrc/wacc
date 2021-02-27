@@ -446,10 +446,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       instructions.add(new Sub(SP, SP,
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
     }
+    currSymbolTable = node.getScope();
     for (StatNode elem : list) {
-      currSymbolTable = elem.getScope();
       visit(elem);
-//      currSymbolTable = currSymbolTable.getParentSymbolTable();
     }
 
     if (stackSize != 0) {
