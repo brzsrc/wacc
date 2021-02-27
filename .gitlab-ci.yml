@@ -59,6 +59,7 @@ test-assemble-valid:
     - echo "Testing whether files can be correctly assembled without any Java runtime error..."
     - make && mkdir log
     - cd log && mkdir assemble
+    - cd ..
     - ./scripts/assembleValidTest.sh
 
 test-execute-valid:
