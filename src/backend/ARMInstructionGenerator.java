@@ -308,25 +308,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     return null;
   }
 
-//  @Override
-//  public Void visitBinopNode(BinopNode node) {
-//    visit(node.getExpr1());
-//    visit(node.getExpr2());
-//    Register e2reg = armRegAllocator.curr();
-//    // todo: get rid of last() function, replace by calling curr() or next() before visit
-//    Register e1reg = armRegAllocator.last();
-//    Binop operator = node.getOperator();
-//    Operand2 op2 = new Operand2(e2reg);
-//
-//    List<Instruction> insList = ArithmeticLogic.binopInstruction
-//        .get(operator)
-//        .binopAssemble(e1reg, e1reg, op2, operator);
-//    instructions.addAll(insList);
-//    armRegAllocator.free();
-//
-//    return null;
-//  }
-
   @Override
   public Void visitUnopNode(UnopNode node) {
     visit(node.getExpr());
