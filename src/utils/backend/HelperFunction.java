@@ -11,6 +11,7 @@ import backend.instructions.Instruction;
 import backend.instructions.LDR;
 import backend.instructions.Label;
 import backend.instructions.Mov;
+import backend.instructions.LDR.LdrMode;
 import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.RegAddressing;
 import backend.instructions.arithmeticLogic.Add;
@@ -195,9 +196,9 @@ public class HelperFunction {
       /* cmp the content in r0 with 0*/
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
       /* if not equal to 0 LDR true */
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgTrue), false));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgTrue), LdrMode.LDRNE));
       /* otherwise equal to 0 LDR false */
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgFalse), true));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgFalse), LdrMode.LDREQ));
 
       addCommonPrint(helperFunctions, allocator);
     }

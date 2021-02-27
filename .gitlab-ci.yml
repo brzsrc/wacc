@@ -64,6 +64,5 @@ test-execute-valid:
   stage: backend-execute
   script:
     - echo "Making arm executable for each assembly file and trying to execute them..."
-    - make && mkdir log
     - ./scripts/executeValidTest.sh
   needs: ["test-assemble-valid"]

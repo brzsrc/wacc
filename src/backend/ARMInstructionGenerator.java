@@ -146,7 +146,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getExpr1());
     visit(node.getExpr2());
     Register e2reg = armRegAllocator.curr();
-    // todo: get rid of last() function, replace by calling curr() or next() before visit
     Register e1reg = armRegAllocator.last();
     Binop operator = node.getOperator();
     Operand2 op2 = new Operand2(e2reg);

@@ -16,6 +16,6 @@ public class RegAddressing extends Addressing {
 
   @Override
   public String toString() {
-    return "[" + reg + "]";
+    return reg.toString();
   }
 }

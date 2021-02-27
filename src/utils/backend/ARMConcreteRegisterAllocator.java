@@ -23,11 +23,11 @@ public class ARMConcreteRegisterAllocator {
     }
 
     public ARMConcreteRegister curr() {
-        return registers.get(registerCounter - 1);
+        return registers.get(registerCounter > GENERAL_REG_START ? registerCounter - 1 : registerCounter);
     }
 
     public ARMConcreteRegister last() {
-        return registers.get(registerCounter - 2);
+        return registers.get(registerCounter > GENERAL_REG_START ? registerCounter - 2 : registerCounter);
     }
 
     public ARMConcreteRegister next() {
