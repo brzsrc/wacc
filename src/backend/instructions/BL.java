@@ -5,15 +5,18 @@ import utils.backend.Cond;
 public class BL extends B {
 
   public BL(String label) {
-    super(label);
+    super(label, Bmode.BL);
   }
 
   public BL(Cond cond, String label) {
-    super(cond, label);
+    super(cond, label, Bmode.BL);
   }
 
-  @Override
-  public String assemble() {
-    return "BL " + label;
+  public BL(String label, Bmode bmode) {
+    super(label, bmode);
+  }
+
+  public BL(Cond cond, String label, Bmode bmode) {
+    super(cond, label, bmode);
   }
 }

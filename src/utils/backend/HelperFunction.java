@@ -5,6 +5,7 @@ import static utils.Utils.CHAR_BASIC_TYPE;
 import static utils.Utils.INT_BASIC_TYPE;
 import static utils.Utils.STRING_BASIC_TYPE;
 
+import backend.instructions.B.Bmode;
 import backend.instructions.BL;
 import backend.instructions.Cmp;
 import backend.instructions.Instruction;
@@ -33,7 +34,8 @@ public class HelperFunction {
 
   /* print char would directly call BL putChar instead */
   public enum Helper {
-    READ_INT, READ_CHAR, PRINT_INT, PRINT_CHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN;
+    READ_INT, READ_CHAR, PRINT_INT, PRINT_CHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
+    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR;
     /* ... continue with some other helpers like runtime_error checker ... */
 
     @Override
@@ -139,6 +141,54 @@ public class HelperFunction {
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(ARMRegisterLabel.PC))));
     }
 
+  }
+
+  public static void addCheckDivByZero(List<Instruction> instructions, List<String> data,
+      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
+    Helper helper = Helper.CHECK_DIVIDE_BY_ZERO;
+//    /* call the helper function anyway */
+//    instructions.add(new BL(helper.toString()));
+
+    /* only add the helper if it doesn't exist yet */
+    if (!alreadyExist.contains(helper)) {
+
+      /* add this helper into alreadyExist list */
+      alreadyExist.add(helper);
+
+      /* add the format into the data list */
+      Label msg = addMsg("\"\\0\"", data);
+
+      /* add the helper function label */
+      Label label = new Label(helper.toString());
+      helperFunctions.add(label);
+      helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
+      helperFunctions.add(new Cmp(allocator.get(1), new Operand2(new Immediate(0, BitNum.CONST8))));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
+      helperFunctions.add(new BL("p_throw_runtime_error", Bmode.BLEQ));
+      addThrowRuntimeError(instructions, helperFunctions, allocator);
+      helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
+    }
+  }
+
+  public static void addThrowRuntimeError(List<Instruction> instructions,
+      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
+    Helper helper = Helper.THROW_RUNTIME_ERROR;
+    /* call the helper function anyway */
+    instructions.add(new BL(helper.toString()));
+
+    /* only add the helper if it doesn't exist yet */
+    if (!alreadyExist.contains(helper)) {
+
+      /* add this helper into alreadyExist list */
+      alreadyExist.add(helper);
+
+      /* add the helper function label */
+      Label label = new Label(helper.toString());
+      helperFunctions.add(label);
+      helperFunctions.add(new BL("p_print_string"));
+      helperFunctions.add(new Mov(allocator.get(0), new Operand2(new Immediate(-1, BitNum.CONST8))));
+      helperFunctions.add(new BL("exit"));
+    }
   }
 
   /* print int, print char or print reference */
