@@ -21,6 +21,7 @@ import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
+import java.util.LinkedHashMap;
 import utils.NodeVisitor;
 import utils.backend.*;
 import utils.frontend.symbolTable.SymbolTable;
@@ -41,7 +42,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private static ARMConcreteRegisterAllocator armRegAllocator = new ARMConcreteRegisterAllocator();;
   /* lists of instruction, data section messages and text section messages */
   private static List<Instruction> instructions = new ArrayList<>();
-  private static List<String> dataSegmentMessages = new ArrayList<>();
+  /* use linkedHashMap to ensure the correct ordering */
+  private static Map<Label, String> dataSegmentMessages = new LinkedHashMap<>();
   private static List<String> textSegmentMessages = new ArrayList<>();
   /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
@@ -560,7 +562,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     return instructions;
   }
 
-  public static List<String> getDataSegmentMessages() {
+  public static Map<Label, String> getDataSegmentMessages() {
     return dataSegmentMessages;
   }
 

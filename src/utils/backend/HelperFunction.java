@@ -33,7 +33,7 @@ import java.util.Set;
 public class HelperFunction {
 
   /* print char would directly call BL putChar instead */
-  public enum Helper {
+  private enum Helper {
     READ_INT, READ_CHAR, PRINT_INT, PRINT_CHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
     CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR;
     /* ... continue with some other helpers like runtime_error checker ... */
@@ -59,7 +59,7 @@ public class HelperFunction {
 
   private static LabelGenerator labelGenerator = new LabelGenerator("msg_");
 
-  public static void addRead(Type type, List<Instruction> instructions, List<String> data,
+  public static void addRead(Type type, List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     /* arg of read must be either int or char */
@@ -94,7 +94,7 @@ public class HelperFunction {
     }
   }
 
-  public static void addPrint(Type type, List<Instruction> instructions, List<String> data,
+  public static void addPrint(Type type, List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     if (type.equalToType(INT_BASIC_TYPE)) {
@@ -111,7 +111,7 @@ public class HelperFunction {
 
   }
 
-  public static void addPrintln(List<Instruction> instructions, List<String> data,
+  public static void addPrintln(List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_LN;
@@ -143,7 +143,7 @@ public class HelperFunction {
 
   }
 
-  public static void addCheckDivByZero(List<Instruction> instructions, List<String> data,
+  public static void addCheckDivByZero(List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.CHECK_DIVIDE_BY_ZERO;
 //    /* add this instr outside this func cuz only DIV and MOD will need to call this func*/
@@ -170,7 +170,7 @@ public class HelperFunction {
     }
   }
 
-  public static void addThrowRuntimeError(List<Instruction> instructions, List<String> data,
+  public static void addThrowRuntimeError(List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.THROW_RUNTIME_ERROR;
 
@@ -191,7 +191,7 @@ public class HelperFunction {
   }
 
   /* print string (char array included) */
-  private static void addPrintMultiple(List<Instruction> instructions, List<String> data,
+  private static void addPrintMultiple(List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_STRING;
@@ -220,7 +220,7 @@ public class HelperFunction {
   }
 
   /* print int, print char or print reference */
-  private static void addPrintSingle(Helper helper, List<Instruction> instructions, List<String> data,
+  private static void addPrintSingle(Helper helper, List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     /* call the helper function anyway */
@@ -249,7 +249,7 @@ public class HelperFunction {
   }
 
   /* print bool */
-  private static void addPrintBool(List<Instruction> instructions, List<String> data,
+  private static void addPrintBool(List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_BOOL;
@@ -295,12 +295,11 @@ public class HelperFunction {
     helperFunctions.add(new Pop(Collections.singletonList(allocator.get(ARMRegisterLabel.PC))));
   }
 
-  public static Label addMsg(String msgAscii, List<String> data) {
+  public static Label addMsg(String msgAscii, Map<Label, String> data) {
     /* add a Msg into the data list */
-    Label msg = labelGenerator.getLabel();
-    data.add(msgAscii);
-
-    return msg;
+    Label msgLabel = labelGenerator.getLabel();
+    data.put(msgLabel, msgAscii);
+    return msgLabel;
   }
 
 }
