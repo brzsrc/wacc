@@ -5,7 +5,6 @@ import static utils.Utils.CHAR_BASIC_TYPE;
 import static utils.Utils.INT_BASIC_TYPE;
 import static utils.Utils.STRING_BASIC_TYPE;
 
-import backend.instructions.B.Bmode;
 import backend.ARMInstructionGenerator.SpecialInstruction;
 import backend.instructions.BL;
 import backend.instructions.Cmp;
@@ -38,7 +37,7 @@ public class HelperFunction {
   /* print char would directly call BL putChar instead */
   private enum Helper {
     READ_INT, READ_CHAR, PRINT_INT, PRINT_CHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
-    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND;
+    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, CHECK_NULL_POINTER;
     /* ... continue with some other helpers like runtime_error checker ... */
 
     @Override
@@ -156,6 +155,33 @@ public class HelperFunction {
 
   }
 
+  public static void addCheckNullPointer(Map<Label, String> data, List<Instruction> helperFunctions,
+      ARMConcreteRegisterAllocator allocator) {
+    Helper helper = Helper.CHECK_NULL_POINTER;
+
+    if (alreadyExist.contains(helper)) {
+      return;
+    }
+    
+    /* add this helper into alreadyExist list */
+    alreadyExist.add(helper);
+
+    /* add the error message into the data list */
+    
+    Label msg = addMsg("\"NullReferenceError: dereference a null reference\\n\\0\"", data);
+
+    /* add the helper function label */
+    Label label = new Label(helper.toString());
+    helperFunctions.add(label);
+    helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
+    helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
+    helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
+    helperFunctions.add(new BL(Cond.EQ, Helper.CHECK_NULL_POINTER.toString()));
+    helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
+    addThrowRuntimeError(data, helperFunctions, allocator);
+
+  }
+
   public static void addCheckDivByZero(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.CHECK_DIVIDE_BY_ZERO;
@@ -179,7 +205,7 @@ public class HelperFunction {
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
       helperFunctions.add(new Cmp(allocator.get(1), new Operand2(new Immediate(0, BitNum.CONST8))));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
-      helperFunctions.add(new BL(Helper.THROW_RUNTIME_ERROR.toString(), Bmode.BLEQ));
+      helperFunctions.add(new BL(Cond.EQ, Helper.THROW_RUNTIME_ERROR.toString()));
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
       addThrowRuntimeError(data, helperFunctions, allocator);
     }
@@ -199,11 +225,11 @@ public class HelperFunction {
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(indexOutOfBoundLabel), LdrMode.LDRLT));
-      helperFunctions.add(new BL("p_throw_runtime_error", Bmode.BLLT));
+      helperFunctions.add(new BL(Cond.LT, "p_throw_runtime_error"));
       helperFunctions.add(new LDR(allocator.get(1), new AddressingMode2(AddrMode2.OFFSET, allocator.get(1))));
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(allocator.get(1))));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(negativeIndexLabel), LdrMode.LDRCS));
-      helperFunctions.add(new BL("p_throw_runtime_error", Bmode.BLCS));
+      helperFunctions.add(new BL(Cond.CS, "p_throw_runtime_error"));
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
     }
   }
@@ -221,7 +247,7 @@ public class HelperFunction {
       /* add the helper function label */
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
-      helperFunctions.add(new BL(Helper.PRINT_STRING.toString(), Bmode.BL));
+      helperFunctions.add(new BL(Helper.PRINT_STRING.toString()));
       helperFunctions.add(new Mov(allocator.get(0), new Operand2(new Immediate(-1, BitNum.CONST8))));
       helperFunctions.add(new BL("exit"));
       addPrintMultiple(data, helperFunctions, allocator);

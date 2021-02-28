@@ -254,6 +254,7 @@ public class ASTPrinter implements NodeVisitor<Void> {
     /* { */
     appendLeadingSpace();
     System.out.println("{");
+    System.out.print("scope size = " + node.getStackSize());
 
     /* stat body */
     leadingSpace += INDENT_SIZE;
