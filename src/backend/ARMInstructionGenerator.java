@@ -337,7 +337,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitStringNode(StringNode node) {
     /* Add msg into the data list */
     Label msg = labelGenerator.getLabel();
-    textSegmentMessages.add(node.getString());
+    dataSegmentMessages.add(node.getString());
 
     /* Add the instructions */
     ARMConcreteRegister reg = armRegAllocator.allocate();
