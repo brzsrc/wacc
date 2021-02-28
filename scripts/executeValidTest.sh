@@ -18,6 +18,10 @@ VALID_EXAMPLES_SRC_DIR="./src/test/examples/valid"
 ASSEMBLY_OUTPUT_DIR="./log/assembly"
 EXECUTE_OUTPUT_DIR="./log/output"
 
+mkdir log
+mkdir $ASSEMBLY_OUTPUT_DIR
+mkdir $EXECUTE_OUTPUT_DIR
+
 # counters to represent the total number of test files to be processed
 TOTAL_COUNT=$(find "${VALID_EXAMPLES[@]/#/${VALID_EXAMPLES_SRC_DIR}}" -name "*.wacc" | wc -l)
 COUNTER=0
