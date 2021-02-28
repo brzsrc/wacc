@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static utils.Utils.ARRAY_TYPE;
+import static utils.Utils.PAIR_TYPE;
+
 public class HelperFunction {
 
   /* print char would directly call BL putChar instead */
@@ -156,9 +159,9 @@ public class HelperFunction {
 
   }
 
-  public static void addFreeArray(Map<Label, String> data, List<Instruction> helperFunctions,
+  public static void addFree(Type type, Map<Label, String> data, List<Instruction> helperFunctions,
     ARMConcreteRegisterAllocator allocator) {
-      Helper helper = Helper.FREE_ARRAY;
+      Helper helper = (type.equalToType(ARRAY_TYPE))? Helper.FREE_ARRAY : Helper.FREE_PAIR;
 
       /* only add the helper if it doesn't exist yet */
       if (!alreadyExist.contains(helper)) {
@@ -182,18 +185,21 @@ public class HelperFunction {
         helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
         helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(1, BitNum.CONST8))));
         helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDRNE));
-        helperFunctions.add(new B(cond, new Label("p_throw_runtime_error")));
-        helperFunctions.add(new BL(cond, new Label("free")));
+        helperFunctions.add(new B(Cond.EQ, "p_throw_runtime_error"));
+        if(type.equalToType(PAIR_TYPE)) {
+          helperFunctions.add(new Push(Collections.singletonList(allocator.get(0))));
+          helperFunctions.add(new LDR(allocator.get(0), new RegAddressing(allocator.get(0))));
+          helperFunctions.add(new BL("free"));
+          helperFunctions.add(new LDR(allocator.get(0), new RegAddressing(allocator.get(13))));
+          helperFunctions.add(new LDR(allocator.get(0), new AddressingMode2(AddrMode2.OFFSET, allocator.get(0), new Immediate(4, BitNum.CONST8))));
+          helperFunctions.add(new BL("free"));
+          helperFunctions.add(new Pop(Collections.singletonList(allocator.get(0))));
+        }
         helperFunctions.add(new BL("free"));
         helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
         addThrowRuntimeError(data, helperFunctions, allocator);
       }
   }
-
-  public static void addFreePair(Map<Label, String> data, List<Instruction> helperFunctions,
-    ARMConcreteRegisterAllocator allocator) {
-
-    }
 
   public static void addCheckNullPointer(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {

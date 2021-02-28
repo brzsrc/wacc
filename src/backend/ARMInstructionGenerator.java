@@ -22,6 +22,8 @@ import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
 import frontend.type.ArrayType;
+import frontend.type.Type;
+
 import java.util.LinkedHashMap;
 import utils.NodeVisitor;
 import utils.backend.*;
@@ -441,15 +443,16 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitFreeNode(FreeNode node) {
     currSymbolTable = node.getScope();
-    instructions.add(new Mov(armRegAllocator.get(0), ));
-    if(node.getExpr().getType().equalToType(ARRAY_TYPE)) {
-      instructions.add(new Label("p_free_array"));
-      HelperFunction.
+    visit(node.getExpr());
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
+    Type type = node.getExpr().getType();
+    if(type.equalToType(ARRAY_TYPE)) {
+      instructions.add(new BL("p_free_array"));
+      HelperFunction.addFree(type, dataSegmentMessages, helperFunctions, armRegAllocator);
     } else {
-      instructions.add(new Label("p_free_pair"));
-      HelperFunction.
+      instructions.add(new BL("p_free_pair"));
+      HelperFunction.addFree(type, dataSegmentMessages, helperFunctions, armRegAllocator);
     }
-   
     return null; 
   }
 
