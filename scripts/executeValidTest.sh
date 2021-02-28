@@ -29,10 +29,11 @@ for folder in ${VALID_EXAMPLES[@]}; do
   do
     FILE_NAME=$(basename "${file%.*}")
     EXECUTABLE_FILE_NAME="${ASSEMBLY_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
+    EXECUTABLE_OUTPUT_FILE="${EXECUTE_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
     echo $file
     ./compile -a $file 1> "${EXECUTABLE_FILE_NAME}.s" 2> "${EXECUTABLE_FILE_NAME}.log"
     arm-linux-gnueabi-gcc -o $EXECUTABLE_FILE_NAME -mcpu=arm1176jzf-s -mtune=arm1176jzf-s "$EXECUTABLE_FILE_NAME.s"
-    qemu-arm -L /usr/arm-linux-gnueabi/ $EXECUTABLE_FILE_NAME > "$EXECUTE_OUTPUT_VALID_FOLDER/$EXECUTABLE_FILE_NAME.output"
+    qemu-arm -L /usr/arm-linux-gnueabi/ $EXECUTABLE_FILE_NAME 1> "$EXECUTABLE_OUTPUT_FILE.output" 2> "$EXECUTABLE_OUTPUT_FILE.output.log"
     (( COUNTER += 1 ))
     echo "$COUNTER / $(($TOTAL_COUNT)) files have been executed"
     echo ""
