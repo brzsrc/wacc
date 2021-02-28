@@ -38,7 +38,7 @@ public class HelperFunction {
   /* print char would directly call BL putChar instead */
   private enum Helper {
     READ_INT, READ_CHAR, PRINT_INT, PRINT_CHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
-    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND;
+    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR;
     /* ... continue with some other helpers like runtime_error checker ... */
 
     @Override
@@ -153,6 +153,33 @@ public class HelperFunction {
       helperFunctions.add(new BL("fflush"));
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(ARMRegisterLabel.PC))));
     }
+
+  }
+
+  public static void addFreeArray(Map<Label, String> data, List<Instruction> helperFunctions,
+    ARMConcreteRegisterAllocator allocator) {
+      Helper helper = Helper.FREE_ARRAY;
+
+      /* only add the helper if it doesn't exist yet */
+      if (!alreadyExist.contains(helper)) {
+
+        /* add this helper into alreadyExist list */
+        alreadyExist.add(helper);
+
+        /* add the helper function label */
+        Label label = new Label(helper.toString());
+        helperFunctions.add(label);
+        helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
+        helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(1, BitNum.CONST8))));
+        helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(label), LdrMode.LDRNE));
+    
+        helperFunctions.add(new BL("free"));
+    
+      }
+  }
+
+  public static void addFreePair(Map<Label, String> data, List<Instruction> helperFunctions,
+    ARMConcreteRegisterAllocator allocator) {
 
   }
 
