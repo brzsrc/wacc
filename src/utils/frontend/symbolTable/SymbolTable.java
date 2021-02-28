@@ -15,10 +15,12 @@ public class SymbolTable {
 
   private final HashMap<String, Symbol> dictionary;
   private final SymbolTable parentSymbolTable;
+  private int scopeSize;
 
   public SymbolTable(SymbolTable parentSymbolTable) {
     this.dictionary = new HashMap<>();
     this.parentSymbolTable = parentSymbolTable;
+    scopeSize = 0;
   }
 
   public boolean add(String name, ExprNode expr, int stackOffset) {
@@ -28,6 +30,7 @@ public class SymbolTable {
     }
     
     this.dictionary.put(name, new Symbol(expr, stackOffset));
+    scopeSize += expr.getType().getSize();
     return false;
   }
 
@@ -47,11 +50,7 @@ public class SymbolTable {
   }
 
   public int getSize() {
-    int stackSize = 0;
-    for (Symbol symbol : dictionary.values()) {
-      stackSize += symbol.getExprNode().getType().getSize();
-    }
-    return stackSize;
+    return scopeSize;
   }
 
   public SymbolTable getParentSymbolTable() {
@@ -59,14 +58,23 @@ public class SymbolTable {
   }
 
   public int getStackOffset(String ident) {
-    // todo: generator's usage is wrong
+    /** change from previous implementation:
+     *    Offset in map is from top of stack to bottom
+     *        +-----------+
+     * scope1 | val1 | +6 |
+     *        | val2 | +4 |
+     *        | val3 | +0 |
+     * scope2 | val4 | +4 |
+     *        | val5 | +0 |
+     *        +-----------+
+     */
     /* if ident is defined in current scope, return its offset */
     if (dictionary.containsKey(ident)) {
       return dictionary.get(ident).getStackOffset();
     }
     /* else, get its offset from upper scope */
     if (parentSymbolTable != null) {
-      return parentSymbolTable.getStackOffset(ident);
+      return parentSymbolTable.getStackOffset(ident) + scopeSize;
     }
 
     /* else, unhandled ident undefined error from semantic checker */

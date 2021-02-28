@@ -41,9 +41,9 @@ public class AddressingMode2 extends Addressing {
         StringBuilder str = new StringBuilder();
         switch (mode) {
             case OFFSET:
-                str.append(Rn != null ? Rn + ", " : "");
-                str.append(Rm != null ? Rm + ", " : "");
-                str.append(operator != null ? operator.name() + " " : "");
+                str.append(Rn != null ? Rn : "");
+                str.append(Rm != null ? ", " + Rm : "");
+                str.append(operator != null ? ", " + operator.name() + " " : "");
                 str.append(immed != null ? immed : "");
                 return "[" + str.toString() + "]";
             case PREINDEX:

@@ -1,19 +1,19 @@
 #!/bin/bash
 
 VALID_EXAMPLES=(
-                # "/advanced"
-                # "/array"
-                # "/basic"
+                "/advanced"
+                "/array"
+                "/basic"
                 "/expressions"
-                # "/function"
-                # "/if"
-                # "/IO"
-                # "/pairs"
-                # "/runtimeErr"
-                # "/scope"
-                # "/sequence"
-                # "/variables"
-                # "/while"
+                "/function"
+                "/if"
+                "/IO"
+                "/pairs"
+                "/runtimeErr"
+                "/scope"
+                "/sequence"
+                "/variables"
+                "/while"
                 )
 
 VALID_EXAMPLES_SRC_DIR="./src/test/examples/valid"
