@@ -146,7 +146,7 @@ public class HelperFunction {
   public static void addCheckDivByZero(List<Instruction> instructions, List<String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.CHECK_DIVIDE_BY_ZERO;
-//    /* call the helper function anyway */
+//    /* add this instr outside this func cuz only DIV and MOD will need to call this func*/
 //    instructions.add(new BL(helper.toString()));
 
     /* only add the helper if it doesn't exist yet */
@@ -164,17 +164,15 @@ public class HelperFunction {
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
       helperFunctions.add(new Cmp(allocator.get(1), new Operand2(new Immediate(0, BitNum.CONST8))));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
-      helperFunctions.add(new BL("p_throw_runtime_error", Bmode.BLEQ));
-      addThrowRuntimeError(instructions, helperFunctions, allocator);
+      helperFunctions.add(new BL("p__throw_runtime_error", Bmode.BLEQ));
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
+      addThrowRuntimeError(instructions, data, helperFunctions, allocator);
     }
   }
 
-  public static void addThrowRuntimeError(List<Instruction> instructions,
+  public static void addThrowRuntimeError(List<Instruction> instructions, List<String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.THROW_RUNTIME_ERROR;
-    /* call the helper function anyway */
-    instructions.add(new BL(helper.toString()));
 
     /* only add the helper if it doesn't exist yet */
     if (!alreadyExist.contains(helper)) {
@@ -185,9 +183,39 @@ public class HelperFunction {
       /* add the helper function label */
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
-      helperFunctions.add(new BL("p_print_string"));
+      helperFunctions.add(new BL("p_print_string", Bmode.BL));
       helperFunctions.add(new Mov(allocator.get(0), new Operand2(new Immediate(-1, BitNum.CONST8))));
       helperFunctions.add(new BL("exit"));
+      addPrintMultiple(instructions, data, helperFunctions, allocator);
+    }
+  }
+
+  /* print string (char array included) */
+  private static void addPrintMultiple(List<Instruction> instructions, List<String> data,
+      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
+
+    Helper helper = Helper.PRINT_STRING;
+
+    /* only add the helper if it doesn't exist yet */
+    if (!alreadyExist.contains(helper)) {
+
+      /* add this helper into alreadyExist list */
+      alreadyExist.add(helper);
+
+      /* add the format into the data list */
+      Label msg = addMsg("\"%.*s\\0\"", data);
+
+      /* add the helper function label */
+      Label label = new Label(helper.toString());
+      helperFunctions.add(label);
+      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
+      /* put the string length into r1 as snd arg */
+      helperFunctions.add(new LDR(allocator.get(1), new RegAddressing(allocator.get(0))));
+      /* skip the fst 4 bytes which is the length of the string */
+      helperFunctions.add(new Add(allocator.get(2), allocator.get(0), new Operand2(new Immediate(4, BitNum.CONST8))));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg)));
+
+      addCommonPrint(helperFunctions, allocator);
     }
   }
 
@@ -254,36 +282,7 @@ public class HelperFunction {
     }
   }
 
-  /* print string (char array included) */
-  private static void addPrintMultiple(List<Instruction> instructions, List<String> data,
-      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
-    Helper helper = Helper.PRINT_STRING;
-    /* call the helper function anyway */
-    instructions.add(new BL(helper.toString()));
-
-    /* only add the helper if it doesn't exist yet */
-    if (!alreadyExist.contains(helper)) {
-
-      /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
-
-      /* add the format into the data list */
-      Label msg = addMsg("\"%.*s\\0\"", data);
-
-      /* add the helper function label */
-      Label label = new Label(helper.toString());
-      helperFunctions.add(label);
-      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
-      /* put the string length into r1 as snd arg */
-      helperFunctions.add(new LDR(allocator.get(1), new RegAddressing(allocator.get(0))));
-      /* skip the fst 4 bytes which is the length of the string */
-      helperFunctions.add(new Add(allocator.get(2), allocator.get(0), new Operand2(new Immediate(4, BitNum.CONST8))));
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg)));
-
-      addCommonPrint(helperFunctions, allocator);
-    }
-  }
   
 
   private static void addCommonPrint(List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
