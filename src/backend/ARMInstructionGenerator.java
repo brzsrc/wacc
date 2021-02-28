@@ -135,6 +135,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     instructions.add(new Mov(addrReg, new Operand2(armRegAllocator.get(0))));
 
+    armRegAllocator.free();
+
     /* then allocate the content of the array to the corresponding address */
     Register reg = armRegAllocator.allocate();
 
@@ -149,9 +151,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       armRegAllocator.free();
     }
 
+    Register sizeReg = armRegAllocator.allocate();
     /* STR the size of the array in the first byte */
-    instructions.add(new LDR(reg, new ImmediateAddressing(new Immediate(size, BitNum.CONST8))));
-    instructions.add(new STR(reg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
+    instructions.add(new LDR(sizeReg, new ImmediateAddressing(new Immediate(node.getLength(), BitNum.CONST8))));
+    instructions.add(new STR(sizeReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
 
     HelperFunction.addCheckArrayBound(dataSegmentMessages, helperFunctions, armRegAllocator);
     HelperFunction.addThrowRuntimeError(dataSegmentMessages, helperFunctions, armRegAllocator);
