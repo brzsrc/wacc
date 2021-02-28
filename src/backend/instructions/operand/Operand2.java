@@ -34,11 +34,10 @@ public class Operand2 {
 
     @Override
     public String toString() {
-        List<String> res = new ArrayList<>();
-        /* TODO: need better code quality here */
-        if (Rm != null) res.add(Rm.toString());
-        if (operator != Operand2Operator.NONE) res.add(operator.toString());
-        if (immed != null) res.add(immed.toString());
-        return res.stream().reduce((i, j) -> i + " " + j).orElse("");
+        String res = "";
+        if (Rm != null) res = res.concat(" " + Rm.toString());
+        if (operator != Operand2Operator.NONE) res = res.concat(", " + operator.toString());
+        if (immed != null) res = res.concat(" " + immed.toString());
+        return res;
     }   
 }
