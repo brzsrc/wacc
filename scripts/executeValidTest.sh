@@ -53,4 +53,4 @@ if [ $COUNTER -ne $TOTAL_COUNT ]; then
   exit 1
 fi
 
-zip -r log.zip ./log/output
+zip -r output.zip ./log/output
