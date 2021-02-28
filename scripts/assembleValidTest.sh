@@ -19,6 +19,9 @@ VALID_EXAMPLES=(
 VALID_EXAMPLES_SRC_DIR="./src/test/examples/valid"
 ASSEMBLY_OUTPUT_DIR="./log/assemble"
 
+mkdir log
+mkdir $ASSEMBLY_OUTPUT_DIR
+
 # counters to represent the total number of test files to be processed
 TOTAL_COUNT=$(find "${VALID_EXAMPLES[@]/#/${VALID_EXAMPLES_SRC_DIR}}" -name "*.wacc" | wc -l)
 COUNTER=0
@@ -49,3 +52,5 @@ if [ $COUNTER -ne $TOTAL_COUNT ]; then
   echo "There are still " "$(($TOTAL_COUNT - $COUNTER)) / $(($TOTAL_COUNT))" " test cases failed to be assembled!"
   exit 1
 fi
+
+zip -r assembly.zip ./log/assembly

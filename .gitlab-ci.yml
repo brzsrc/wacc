@@ -61,10 +61,17 @@ test-assemble-valid:
     - cd log && mkdir assemble
     - cd ..
     - ./scripts/assembleValidTest.sh
+  artifacts:
+    paths:
+      - assembly.zip
 
 test-execute-valid:
   stage: backend-execute
   script:
     - echo "Making arm executable for each assembly file and trying to execute them..."
+    - ./scripts/assembleValidTest.sh
     - ./scripts/executeValidTest.sh
   needs: ["test-assemble-valid"]
+  artifacts:
+    paths:
+      - output.zip
