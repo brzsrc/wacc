@@ -2,30 +2,17 @@ package backend.directives;
 
 import backend.instructions.Label;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import utils.backend.LabelGenerator;
 
 public class DataSegment implements Directive {
-    Map<Label, String> messages;
-    LabelGenerator labelGenerator;
+    private Map<Label, String> messages;
     
-    public DataSegment() {
-        messages = new HashMap<>();
-        labelGenerator = new LabelGenerator("msg_");
-    }
-
-    public DataSegment(List<String> messages) {
-        this();
-        messages.forEach(i -> addData(i));
-    }
-
-    public void addData(String str) {
-        Label label = labelGenerator.getLabel();
-        messages.put(label, str);
+    public DataSegment(Map<Label, String> messages) {
+       this. messages = messages;
     }
 
     @Override

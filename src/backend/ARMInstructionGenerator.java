@@ -21,6 +21,7 @@ import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
+import java.util.LinkedHashMap;
 import utils.NodeVisitor;
 import utils.backend.*;
 import utils.frontend.symbolTable.SymbolTable;
@@ -41,7 +42,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private static ARMConcreteRegisterAllocator armRegAllocator = new ARMConcreteRegisterAllocator();;
   /* lists of instruction, data section messages and text section messages */
   private static List<Instruction> instructions = new ArrayList<>();
-  private static List<String> dataSegmentMessages = new ArrayList<>();
+  /* use linkedHashMap to ensure the correct ordering */
+  private static Map<Label, String> dataSegmentMessages = new LinkedHashMap<>();
   private static List<String> textSegmentMessages = new ArrayList<>();
   /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
@@ -174,7 +176,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
                                                .binopAssemble(e1reg, e1reg, op2, operator);
     instructions.addAll(insList);
     if(operator == Binop.DIV || operator == Binop.MOD) {
-      HelperFunction.addCheckDivByZero(instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+      HelperFunction.addCheckDivByZero(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
     armRegAllocator.free();
     
@@ -336,8 +338,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitStringNode(StringNode node) {
     /* Add msg into the data list */
-    Label msg = labelGenerator.getLabel();
-    dataSegmentMessages.add(node.getString());
+    Label msg = HelperFunction.addMsg(node.getString(), dataSegmentMessages);
 
     /* Add the instructions */
     ARMConcreteRegister reg = armRegAllocator.allocate();
@@ -561,7 +562,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     return instructions;
   }
 
-  public static List<String> getDataSegmentMessages() {
+  public static Map<Label, String> getDataSegmentMessages() {
     return dataSegmentMessages;
   }
 
