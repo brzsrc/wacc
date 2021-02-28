@@ -13,7 +13,7 @@ public class Add extends ArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "ADD " + Rd + ", " + Rn + ", " + operand2;
+    return "ADD " + Rd + ", " + Rn + "," + operand2;
   }
 
 }

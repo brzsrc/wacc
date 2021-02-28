@@ -4,10 +4,8 @@ import utils.backend.Cond;
 
 public class B extends Instruction {
 
-
-
   public enum Bmode {
-    B, BL, BLEQ;
+    B, BL, BLEQ, BLLT, BLCS
   }
 
   protected String label;

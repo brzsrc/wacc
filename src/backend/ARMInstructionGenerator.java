@@ -103,7 +103,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
       instructions.add(new Mov(armRegAllocator.get(0), new Operand2(indexReg)));
       instructions.add(new Mov(armRegAllocator.get(1), new Operand2(addrReg)));
-      instructions.add(new BL("p_check_array_bounds"));
+      instructions.add(new BL(specialInstructions.get(SpecialInstruction.CHECK_ARRAY_BOUND)));
 
       instructions.add(new Add(addrReg, addrReg, new Operand2(new Immediate(POINTER_SIZE, BitNum.CONST8))));
       instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, Operand2Operator.LSL, new Immediate(2, BitNum.CONST8))));
@@ -138,17 +138,23 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* then allocate the content of the array to the corresponding address */
     Register reg = armRegAllocator.allocate();
 
+    /* STR mode used to indicate whether to store a byte or a word */
+    StrMode mode = node.getContentSize() > 1 ? StrMode.STR : StrMode.STRB;
+
     for (int i = 0; i < node.getLength(); i++) {
       visit(node.getElem(i));
       int STRIndex = i * WORD_SIZE + WORD_SIZE;
       instructions.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.curr())));
-      instructions.add(new STR(addrReg, new AddressingMode2(AddrMode2.OFFSET, reg, new Immediate(STRIndex, BitNum.CONST8))));
+      instructions.add(new STR(addrReg, new AddressingMode2(AddrMode2.OFFSET, reg, new Immediate(STRIndex, BitNum.CONST8)), mode));
       armRegAllocator.free();
     }
 
     /* STR the size of the array in the first byte */
     instructions.add(new LDR(reg, new ImmediateAddressing(new Immediate(size, BitNum.CONST8))));
     instructions.add(new STR(reg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
+
+    HelperFunction.addCheckArrayBound(dataSegmentMessages, helperFunctions, armRegAllocator);
+    HelperFunction.addThrowRuntimeError(dataSegmentMessages, helperFunctions, armRegAllocator);
 
     armRegAllocator.free();
 
@@ -161,6 +167,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     ExprNode expr2 = node.getExpr2();
     Register e2reg;
     Register e1reg;
+
     if(expr1.getWeight() > expr2.getWeight()) {
       visit(expr1);
       visit(expr2);
