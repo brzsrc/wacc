@@ -1,6 +1,7 @@
 #!/bin/bash
 
-VALID_EXAMPLES=("/advanced"
+VALID_EXAMPLES=(
+                "/advanced"
                 "/array"
                 "/basic"
                 "/expressions"
@@ -12,7 +13,8 @@ VALID_EXAMPLES=("/advanced"
                 "/scope"
                 "/sequence"
                 "/variables"
-                "/while")
+                "/while"
+                )
 
 VALID_EXAMPLES_SRC_DIR="./src/test/examples/valid"
 ASSEMBLY_OUTPUT_DIR="./log/assembly"
@@ -37,11 +39,10 @@ for folder in ${VALID_EXAMPLES[@]}; do
     EXECUTABLE_OUTPUT_FILE="${EXECUTE_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
     echo $file
     ./compile -a $file 1> "${EXECUTABLE_FILE_NAME}.s" 2> "${EXECUTABLE_FILE_NAME}.log"
-    arm-linux-gnueabi-gcc -o $EXECUTABLE_FILE_NAME -mcpu=arm1176jzf-s -mtune=arm1176jzf-s "$EXECUTABLE_FILE_NAME.s"
-    qemu-arm -L /usr/arm-linux-gnueabi/ $EXECUTABLE_FILE_NAME 1> "${EXECUTABLE_OUTPUT_FILE}.output" 2> "${EXECUTABLE_OUTPUT_FILE}.output.log"
+    arm-linux-gnueabi-gcc -o $EXECUTABLE_OUTPUT_FILE -mcpu=arm1176jzf-s -mtune=arm1176jzf-s "$EXECUTABLE_FILE_NAME.s" > "${EXECUTABLE_OUTPUT_FILE}.output.log"
+    timeout 5 qemu-arm -L /usr/arm-linux-gnueabi/ $EXECUTABLE_OUTPUT_FILE 1> "${EXECUTABLE_OUTPUT_FILE}.output" 2>> "${EXECUTABLE_OUTPUT_FILE}.output.log"
     (( COUNTER += 1 ))
     echo "$COUNTER / $(($TOTAL_COUNT)) files have been executed"
-    echo ""
   done
 
   echo "========================================================================================"
