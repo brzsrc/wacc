@@ -97,16 +97,22 @@ public class HelperFunction {
   public static void addPrint(Type type, List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
+    /* TODO: need to refactor here */
     if (type.equalToType(INT_BASIC_TYPE)) {
-      addPrintSingle(Helper.PRINT_INT, instructions, data, helperFunctions, allocator);
+      instructions.add(new BL(Helper.PRINT_INT.toString()));
+      addPrintSingle(Helper.PRINT_INT, data, helperFunctions, allocator);
     } else if (type.equalToType(CHAR_BASIC_TYPE)) {
-      addPrintSingle(Helper.PRINT_CHAR, instructions, data, helperFunctions, allocator);
+      instructions.add(new BL(Helper.PRINT_CHAR.toString()));
+      addPrintSingle(Helper.PRINT_CHAR, data, helperFunctions, allocator);
     } else if (type.equalToType(BOOL_BASIC_TYPE)) {
-      addPrintBool(instructions, data, helperFunctions, allocator);
+      instructions.add(new BL(Helper.PRINT_BOOL.toString()));
+      addPrintBool(data, helperFunctions, allocator);
     } else if (type.equalToType(STRING_BASIC_TYPE) || type.equalToType(CHAR_ARRAY_TYPE)) {
-      addPrintMultiple(instructions, data, helperFunctions, allocator);
+      instructions.add(new BL(Helper.PRINT_STRING.toString()));
+      addPrintMultiple(data, helperFunctions, allocator);
     } else {
-      addPrintSingle(Helper.PRINT_REFERENCE, instructions, data, helperFunctions, allocator);
+      instructions.add(new BL(Helper.PRINT_REFERENCE.toString()));
+      addPrintSingle(Helper.PRINT_REFERENCE, data, helperFunctions, allocator);
     }
 
   }
@@ -143,11 +149,10 @@ public class HelperFunction {
 
   }
 
-  public static void addCheckDivByZero(List<Instruction> instructions, Map<Label, String> data,
+  public static void addCheckDivByZero(Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.CHECK_DIVIDE_BY_ZERO;
-//    /* add this instr outside this func cuz only DIV and MOD will need to call this func*/
-//    instructions.add(new BL(helper.toString()));
+    /* add this instr outside this func cuz only DIV and MOD will need to call this func*/
 
     /* only add the helper if it doesn't exist yet */
     if (!alreadyExist.contains(helper)) {
@@ -155,8 +160,8 @@ public class HelperFunction {
       /* add this helper into alreadyExist list */
       alreadyExist.add(helper);
 
-      /* add the format into the data list */
-      Label msg = addMsg("\"\\0\"", data);
+      /* add the error message into the data list */
+      Label msg = addMsg("\"DivideByZeroError: divide or modulo by zero\\n\\0\"", data);
 
       /* add the helper function label */
       Label label = new Label(helper.toString());
@@ -164,13 +169,13 @@ public class HelperFunction {
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
       helperFunctions.add(new Cmp(allocator.get(1), new Operand2(new Immediate(0, BitNum.CONST8))));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
-      helperFunctions.add(new BL("p__throw_runtime_error", Bmode.BLEQ));
+      helperFunctions.add(new BL(Helper.THROW_RUNTIME_ERROR.toString(), Bmode.BLEQ));
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
-      addThrowRuntimeError(instructions, data, helperFunctions, allocator);
+      addThrowRuntimeError(data, helperFunctions, allocator);
     }
   }
 
-  public static void addThrowRuntimeError(List<Instruction> instructions, Map<Label, String> data,
+  public static void addThrowRuntimeError(Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.THROW_RUNTIME_ERROR;
 
@@ -183,15 +188,15 @@ public class HelperFunction {
       /* add the helper function label */
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
-      helperFunctions.add(new BL("p_print_string", Bmode.BL));
+      helperFunctions.add(new BL(Helper.PRINT_STRING.toString(), Bmode.BL));
       helperFunctions.add(new Mov(allocator.get(0), new Operand2(new Immediate(-1, BitNum.CONST8))));
       helperFunctions.add(new BL("exit"));
-      addPrintMultiple(instructions, data, helperFunctions, allocator);
+      addPrintMultiple(data, helperFunctions, allocator);
     }
   }
 
   /* print string (char array included) */
-  private static void addPrintMultiple(List<Instruction> instructions, Map<Label, String> data,
+  private static void addPrintMultiple(Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_STRING;
@@ -220,11 +225,8 @@ public class HelperFunction {
   }
 
   /* print int, print char or print reference */
-  private static void addPrintSingle(Helper helper, List<Instruction> instructions, Map<Label, String> data,
+  private static void addPrintSingle(Helper helper, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
-
-    /* call the helper function anyway */
-    instructions.add(new BL(helper.toString()));
 
     /* only add the helper if it doesn't exist yet */
     if (!alreadyExist.contains(helper)) {
@@ -249,12 +251,10 @@ public class HelperFunction {
   }
 
   /* print bool */
-  private static void addPrintBool(List<Instruction> instructions, Map<Label, String> data,
+  private static void addPrintBool(Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_BOOL;
-    /* call the helper function anyway */
-    instructions.add(new BL(helper.toString()));
 
     /* only add the helper if it doesn't exist yet */
     if (!alreadyExist.contains(helper)) {
@@ -271,7 +271,7 @@ public class HelperFunction {
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
-      /* cmp the content in r0 with 0*/
+      /* cmp the content in r0 with 0 */
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
       /* if not equal to 0 LDR true */
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msgTrue), LdrMode.LDRNE));

@@ -176,7 +176,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
                                                .binopAssemble(e1reg, e1reg, op2, operator);
     instructions.addAll(insList);
     if(operator == Binop.DIV || operator == Binop.MOD) {
-      HelperFunction.addCheckDivByZero(instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+      HelperFunction.addCheckDivByZero(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
     armRegAllocator.free();
     
