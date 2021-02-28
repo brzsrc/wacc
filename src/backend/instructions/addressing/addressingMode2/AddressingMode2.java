@@ -44,7 +44,7 @@ public class AddressingMode2 extends Addressing {
                 str.append(Rn != null ? Rn : "");
                 str.append(Rm != null ? ", " + Rm : "");
                 str.append(operator != null ? ", " + operator.name() + " " : "");
-                str.append(immed != null ? immed : "");
+                str.append(immed != null ? ", " + immed : "");
                 return "[" + str.toString() + "]";
             case PREINDEX:
                 return "";
