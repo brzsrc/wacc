@@ -295,7 +295,7 @@ public class HelperFunction {
     helperFunctions.add(new Pop(Collections.singletonList(allocator.get(ARMRegisterLabel.PC))));
   }
 
-  private static Label addMsg(String msgAscii, List<String> data) {
+  public static Label addMsg(String msgAscii, List<String> data) {
     /* add a Msg into the data list */
     Label msg = labelGenerator.getLabel();
     data.add(msgAscii);
