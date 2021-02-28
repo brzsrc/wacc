@@ -29,6 +29,7 @@ COUNTER=0
 for folder in ${VALID_EXAMPLES[@]}; do
   ASSEMBLY_OUTPUT_VALID_FOLDER="${ASSEMBLY_OUTPUT_DIR}${folder}"
   EXECUTE_OUTPUT_VALID_FOLDER="${EXECUTE_OUTPUT_DIR}${folder}"
+  mkdir $EXECUTE_OUTPUT_VALID_FOLDER
   for file in $(find "${VALID_EXAMPLES_SRC_DIR}${folder}" -name "*.wacc")
   do
     FILE_NAME=$(basename "${file%.*}")
@@ -37,7 +38,7 @@ for folder in ${VALID_EXAMPLES[@]}; do
     echo $file
     ./compile -a $file 1> "${EXECUTABLE_FILE_NAME}.s" 2> "${EXECUTABLE_FILE_NAME}.log"
     arm-linux-gnueabi-gcc -o $EXECUTABLE_FILE_NAME -mcpu=arm1176jzf-s -mtune=arm1176jzf-s "$EXECUTABLE_FILE_NAME.s"
-    qemu-arm -L /usr/arm-linux-gnueabi/ $EXECUTABLE_FILE_NAME 1> "$EXECUTABLE_OUTPUT_FILE.output" 2> "$EXECUTABLE_OUTPUT_FILE.output.log"
+    qemu-arm -L /usr/arm-linux-gnueabi/ $EXECUTABLE_FILE_NAME 1> "${EXECUTABLE_OUTPUT_FILE}.output" 2> "${EXECUTABLE_OUTPUT_FILE}.output.log"
     (( COUNTER += 1 ))
     echo "$COUNTER / $(($TOTAL_COUNT)) files have been executed"
     echo ""

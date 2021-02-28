@@ -29,6 +29,7 @@ COUNTER=0
 for folder in ${VALID_EXAMPLES[@]}; do
   ASSEMBLY_OUTPUT_VALID_FOLDER="${ASSEMBLY_OUTPUT_DIR}${folder}"
   mkdir $ASSEMBLY_OUTPUT_VALID_FOLDER
+  mkdir $ASSEMBLY_OUTPUT_VALID_FOLDER
   for file in $(find "${VALID_EXAMPLES_SRC_DIR}${folder}" -name "*.wacc")
   do
     FILE_NAME=$(basename "${file%.*}")
