@@ -503,7 +503,15 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitCharExpr(CharExprContext ctx) {
-    return new CharNode(ctx.CHAR_LITER().getText().charAt(0));
+    String text = ctx.CHAR_LITER().getText();
+    /* text for char 'a' is \'a\' length is 3
+     * text for escChar like '\0' is \'\\0\' length is 4 */
+    assert text.length() == 3 || text.length() == 4;
+    if (text.length() == 3) {
+      return new CharNode(text.charAt(1));
+    } else {
+      return new CharNode(escCharMap.get(text.charAt(2)));
+    }
   }
 
   @Override

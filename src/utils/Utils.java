@@ -76,6 +76,17 @@ public class Utils {
     put("<", Binop.LESS);
     put("<=", Binop.LESS_EQUAL);
   }};
+  public static final Map<Character, Character> escCharMap = new HashMap<Character, Character>(){{
+    put('0', '\0');
+    put('b', '\b');
+    put('t', '\t');
+    put('n', '\n');
+    put('f', '\f');
+    put('r', '\r');
+    put('\"', '\"');
+    put('\'', '\'');
+    put('\\', '\\');
+  }};
 
   /* error code used in ErrorHandlers */
   public static final int SYNTAX_ERROR_CODE = 100;
