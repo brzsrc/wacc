@@ -54,7 +54,6 @@ public class ARMConcreteRegisterAllocator {
     }
 
     public ARMConcreteRegister free() {
-        System.out.println("freed");
         return registers.get(--registerCounter);
     }
 

@@ -76,7 +76,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitArrayElemNode(ArrayElemNode node) {
     /* get the address of this array and store it in an available register */
     Register addrReg = armRegAllocator.allocate();
-    System.out.println(addrReg.toString() + " in arrayElem");
     Operand2 operand2 = new Operand2(new Immediate(currSymbolTable.getStackOffset(node.getName()), BitNum.CONST8));
     instructions.add(new Add(addrReg, SP, operand2));
 
@@ -92,7 +91,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
         indexReg = armRegAllocator.allocate();
         instructions.add(new LDR(indexReg, new ImmediateAddressing(new Immediate(((IntegerNode) index).getVal(), BitNum.CONST8))));
       }
-      System.out.println(indexReg.toString() + " in arrayElem");
 
 
       /* check array bound */
@@ -127,13 +125,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* then MOV the result pointer of the array to the next available register */
     Register addrReg = armRegAllocator.allocate();
-    System.out.println(addrReg.toString() + " in array1");
 
     instructions.add(new Mov(addrReg, new Operand2(armRegAllocator.get(0))));
 
     /* then allocate the content of the array to the corresponding address */
     Register reg = armRegAllocator.allocate();
-    System.out.println(reg.toString() + " in array2");
 
     for (int i = 0; i < node.getLength(); i++) {
       visit(node.getElem(i));
@@ -185,7 +181,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitBoolNode(BoolNode node) {
     ARMConcreteRegister reg = armRegAllocator.allocate();
-    System.out.println(reg.toString() + " in bool");
 
     Immediate immed = new Immediate(node.getVal() ? TRUE : FALSE, BitNum.SHIFT32);
     Operand2 operand2 = new Operand2(immed);
@@ -196,7 +191,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitCharNode(CharNode node) {
     ARMConcreteRegister reg = armRegAllocator.allocate();
-    System.out.println(reg.toString() + " in charNode");
 
     Immediate immed = new Immediate(node.getAsciiValue(), BitNum.SHIFT32);
     instructions.add(new LDR(reg, new ImmediateAddressing(immed)));
@@ -207,7 +201,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitIntegerNode(IntegerNode node) {
     // todo: same as visitCharNode
     ARMConcreteRegister reg = armRegAllocator.allocate();
-    System.out.println(reg.toString() + " in integer");
 
     Immediate immed = new Immediate(node.getVal(), BitNum.SHIFT32);
     instructions.add(new LDR(reg, new ImmediateAddressing(immed)));
@@ -240,7 +233,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 4 get result, put in register */
     instructions.add(new Mov(armRegAllocator.get(ARMRegisterLabel.R0), new Operand2(armRegAllocator.allocate())));
-    System.out.println(armRegAllocator.curr().toString() + " in funcCall");
 
     return null;
   }
@@ -255,7 +247,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new LDR(
             armRegAllocator.allocate(),
             new AddressingMode2(AddrMode2.OFFSET, SP, new Immediate(offset, BitNum.CONST8)), mode));
-    System.out.println(armRegAllocator.curr().toString() + " in Ident");
 
     return null;
   }
@@ -304,7 +295,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* 1.2 BL malloc and get pointer in general use register*/
     instructions.add(new BL(specialInstructions.get(SpecialInstruction.MALLOC)));
     Register pairPointer = armRegAllocator.allocate();
-    System.out.println(pairPointer.toString() + " in pair");
 
     instructions.add(new Mov(pairPointer, new Operand2(armRegAllocator.get(ARMRegisterLabel.R0))));
 
@@ -343,13 +333,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitStringNode(StringNode node) {
     /* Add msg into the data list */
-    System.out.println(node.getString());
     Label msg = labelGenerator.getLabel();
-    dataSegmentMessages.add(node.getString());
+    textSegmentMessages.add(node.getString());
 
     /* Add the instructions */
     ARMConcreteRegister reg = armRegAllocator.allocate();
-    System.out.println(reg.toString() + " in String");
 
     Addressing strLabel = new LabelAddressing(msg);
     instructions.add(new LDR(reg, strLabel));
