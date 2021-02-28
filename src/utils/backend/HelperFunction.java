@@ -6,6 +6,7 @@ import static utils.Utils.INT_BASIC_TYPE;
 import static utils.Utils.STRING_BASIC_TYPE;
 
 import backend.instructions.B.Bmode;
+import backend.ARMInstructionGenerator.SpecialInstruction;
 import backend.instructions.BL;
 import backend.instructions.Cmp;
 import backend.instructions.Instruction;
@@ -15,6 +16,8 @@ import backend.instructions.Mov;
 import backend.instructions.LDR.LdrMode;
 import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.RegAddressing;
+import backend.instructions.addressing.addressingMode2.AddressingMode2;
+import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.memory.Pop;
 import backend.instructions.memory.Push;
@@ -35,7 +38,7 @@ public class HelperFunction {
   /* print char would directly call BL putChar instead */
   private enum Helper {
     READ_INT, READ_CHAR, PRINT_INT, PRINT_CHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
-    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR;
+    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND;
     /* ... continue with some other helpers like runtime_error checker ... */
 
     @Override
@@ -47,15 +50,19 @@ public class HelperFunction {
   /* char array type would be the same as string for printf */
   private static Type CHAR_ARRAY_TYPE = new ArrayType(CHAR_BASIC_TYPE);
 
-  /* record which helpers already exist, we don't want repeated helper functions */
+  /*
+   * record which helpers already exist, we don't want repeated helper functions
+   */
   private static Set<Helper> alreadyExist = new HashSet<>();
 
   /* map for addPrintSingle */
-  private static Map<Helper, String> printSingleMap = new HashMap<>(){{
-    put(Helper.PRINT_INT, "\"%d\\0\"");
-    put(Helper.PRINT_CHAR, "\"%c\\0\"");
-    put(Helper.PRINT_REFERENCE, "\"%p\\0\"");
-  }};
+  private static Map<Helper, String> printSingleMap = new HashMap<>() {
+    {
+      put(Helper.PRINT_INT, "\"%d\\0\"");
+      put(Helper.PRINT_CHAR, "\"%c\\0\"");
+      put(Helper.PRINT_REFERENCE, "\"%p\\0\"");
+    }
+  };
 
   private static LabelGenerator labelGenerator = new LabelGenerator("msg_");
 
@@ -66,7 +73,7 @@ public class HelperFunction {
     assert type.equalToType(INT_BASIC_TYPE) || type.equalToType(CHAR_BASIC_TYPE);
 
     /* distinguish read_int from read_char */
-    Helper helper = (type.equalToType(INT_BASIC_TYPE))? Helper.READ_INT : Helper.READ_CHAR;
+    Helper helper = (type.equalToType(INT_BASIC_TYPE)) ? Helper.READ_INT : Helper.READ_CHAR;
     /* call the helper function anyway */
     instructions.add(new BL(helper.toString()));
 
@@ -75,15 +82,15 @@ public class HelperFunction {
 
       /* add this helper into alreadyExist list */
       alreadyExist.add(helper);
-      
+
       /* add the format into the data list */
-      Label msg = addMsg((helper == Helper.READ_INT)? "\"%d\\0\"" : "\"%c\\0\"", data);
+      Label msg = addMsg((helper == Helper.READ_INT) ? "\"%d\\0\"" : "\"%c\\0\"", data);
 
       /* add the helper function label */
       Label label = new Label(helper.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
-      /* fst arg of read is the snd arg of scanf (storing address)*/
+      /* fst arg of read is the snd arg of scanf (storing address) */
       helperFunctions.add(new Mov(allocator.get(1), new Operand2(allocator.get(0))));
       /* fst arg of scanf is the format */
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg)));
@@ -149,10 +156,13 @@ public class HelperFunction {
 
   }
 
-  public static void addCheckDivByZero(Map<Label, String> data,
-      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
+  public static void addCheckDivByZero(Map<Label, String> data, List<Instruction> helperFunctions,
+      ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.CHECK_DIVIDE_BY_ZERO;
-    /* add this instr outside this func cuz only DIV and MOD will need to call this func*/
+    /*
+     * add this instr outside this func cuz only DIV and MOD will need to call this
+     * func
+     */
 
     /* only add the helper if it doesn't exist yet */
     if (!alreadyExist.contains(helper)) {
@@ -175,8 +185,31 @@ public class HelperFunction {
     }
   }
 
-  public static void addThrowRuntimeError(Map<Label, String> data,
-      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
+  public static void addCheckArrayBound(Map<Label, String> data, List<Instruction> helperFunctions,
+      ARMConcreteRegisterAllocator allocator) {
+    Helper helper = Helper.CHECK_ARRAY_BOUND;
+
+    Label negativeIndexLabel = addMsg("\"ArrayIndexOutOfBoundsError: negative index\\n\\0\"", data);
+    Label indexOutOfBoundLabel = addMsg("\"ArrayIndexOutOfBoundsError: index too large\\n\\0\"", data);
+
+    if (!alreadyExist.contains(helper)) {
+      /* add this helper into alreadyExist list */
+      alreadyExist.add(helper);
+      helperFunctions.add(new Label("p_check_array_bounds"));
+      helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
+      helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(indexOutOfBoundLabel), LdrMode.LDRLT));
+      helperFunctions.add(new BL("p_throw_runtime_error", Bmode.BLLT));
+      helperFunctions.add(new LDR(allocator.get(1), new AddressingMode2(AddrMode2.OFFSET, allocator.get(1))));
+      helperFunctions.add(new Cmp(allocator.get(0), new Operand2(allocator.get(1))));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(negativeIndexLabel), LdrMode.LDRCS));
+      helperFunctions.add(new BL("p_throw_runtime_error", Bmode.BLCS));
+      helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
+    }
+  }
+
+  public static void addThrowRuntimeError(Map<Label, String> data, List<Instruction> helperFunctions,
+      ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.THROW_RUNTIME_ERROR;
 
     /* only add the helper if it doesn't exist yet */
@@ -196,8 +229,8 @@ public class HelperFunction {
   }
 
   /* print string (char array included) */
-  private static void addPrintMultiple(Map<Label, String> data,
-      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
+  private static void addPrintMultiple(Map<Label, String> data, List<Instruction> helperFunctions,
+      ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_STRING;
 
@@ -225,8 +258,8 @@ public class HelperFunction {
   }
 
   /* print int, print char or print reference */
-  private static void addPrintSingle(Helper helper, Map<Label, String> data,
-      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
+  private static void addPrintSingle(Helper helper, Map<Label, String> data, List<Instruction> helperFunctions,
+      ARMConcreteRegisterAllocator allocator) {
 
     /* only add the helper if it doesn't exist yet */
     if (!alreadyExist.contains(helper)) {
@@ -251,8 +284,8 @@ public class HelperFunction {
   }
 
   /* print bool */
-  private static void addPrintBool(Map<Label, String> data,
-      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
+  private static void addPrintBool(Map<Label, String> data, List<Instruction> helperFunctions,
+      ARMConcreteRegisterAllocator allocator) {
 
     Helper helper = Helper.PRINT_BOOL;
 
@@ -281,9 +314,6 @@ public class HelperFunction {
       addCommonPrint(helperFunctions, allocator);
     }
   }
-
-
-  
 
   private static void addCommonPrint(List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
     /* skip the first 4 byte of the msg which is the length of it */

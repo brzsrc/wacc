@@ -34,10 +34,11 @@ public class Operand2 {
 
     @Override
     public String toString() {
-        String res = "";
-        if (Rm != null) res = res.concat(" " + Rm.toString());
-        if (operator != Operand2Operator.NONE) res = res.concat(", " + operator.toString());
-        if (immed != null) res = res.concat(" " + immed.toString());
-        return res;
+        StringBuilder res = new StringBuilder();
+        /* TODO: need better code quality here */
+        if (Rm != null) res.append(" " + Rm.toString());
+        if (operator != Operand2Operator.NONE) res.append(", " + operator.toString());
+        if (immed != null) res.append(" " + immed.toString());
+        return res.toString();
     }   
 }

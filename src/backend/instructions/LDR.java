@@ -5,7 +5,7 @@ import utils.backend.Register;
 
 public class LDR extends Instruction {
 
-  public enum LdrMode { LDR, LDRB, LDREQ, LDRNE }
+  public enum LdrMode { LDR, LDRB, LDREQ, LDRNE, LDRLT, LDRCS }
 
   private Register register;
   private Addressing addr;
