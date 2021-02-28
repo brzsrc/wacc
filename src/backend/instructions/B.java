@@ -8,7 +8,7 @@ public class B extends Instruction {
     B, BL, BLEQ, BLLT, BLCS
   }
 
-  protected String label;
+  protected Label label;
   protected Cond cond;
   protected Bmode bMode;
 
@@ -26,12 +26,12 @@ public class B extends Instruction {
 
   public B(Cond cond, String label, Bmode bMode) {
     this.cond = cond;
-    this.label = label;
+    this.label = new Label(label);
     this.bMode = bMode;
   }
 
   @Override
   public String assemble() {
-    return bMode.name() + " " + label;
+    return bMode.name() + " " + label.getName();
   }
 }
