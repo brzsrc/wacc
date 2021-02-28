@@ -56,6 +56,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   /* call getLabel on labelGenerator to get label in format LabelN */
   private LabelGenerator labelGenerator;
 
+  /* mark if we are visiting a lhs or rhs of an expr */
+  private boolean isLhs;
+
   /* constant fields */
   private Register SP;
 
@@ -70,6 +73,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public ARMInstructionGenerator() {
     currSymbolTable = null;
     labelGenerator = new LabelGenerator("L");
+    isLhs = true;
     /* initialise constant fields */
     SP = armRegAllocator.get(ARMRegisterLabel.SP);
   }
@@ -108,9 +112,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       armRegAllocator.free();
     }
 
-    /* now load the array content to `reg` */
-    instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
-
+    /* if is not lhs, load the array content to `reg` */
+    if (!isLhs) {
+      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
+    }
     return null;
   }
 
@@ -249,10 +254,20 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* put pointer that point to ident's value in stack to next available register */
     int offset = currSymbolTable.getStackOffset(identName);
     LdrMode mode = node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRB;
-    instructions.add(new LDR(
-            armRegAllocator.allocate(),
-            new AddressingMode2(AddrMode2.OFFSET, SP, new Immediate(offset, BitNum.CONST8)), mode));
 
+    Immediate immed = new Immediate(offset, BitNum.CONST8);
+
+    /* if is lhs, then only put address in register */
+    if (isLhs) {
+      instructions.add(new Add(
+            armRegAllocator.allocate(),
+            SP, new Operand2(immed)));
+    } else {
+      /* otherwise, put value in register */
+      instructions.add(new LDR(
+              armRegAllocator.allocate(),
+              new AddressingMode2(AddrMode2.OFFSET, SP, immed), mode));
+    }
     return null;
   }
 
@@ -274,10 +289,20 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* 4 get pointer to child
     *    store in the same register, save register space
     *    no need to check whether child has initialised, as it is in lhs */
+    AddressingMode2 addrMode;
+    Operand2 operand2;
     if (node.isFist()) {
-      instructions.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, reg)));
+      addrMode = new AddressingMode2(AddrMode2.OFFSET, reg);
+      operand2 = new Operand2(new Immediate(0, BitNum.CONST8));
     } else {
-      instructions.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, reg, new Immediate(POINTER_SIZE, BitNum.CONST8))));
+      addrMode = new AddressingMode2(AddrMode2.OFFSET, reg, new Immediate(POINTER_SIZE, BitNum.CONST8));
+      operand2 = new Operand2(new Immediate(POINTER_SIZE, BitNum.CONST8));
+    }
+
+    if (isLhs) {
+      instructions.add(new Add(reg, reg, operand2));
+    } else {
+      instructions.add(new LDR(reg, addrMode));
     }
 
     return null;
@@ -363,9 +388,14 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitAssignNode(AssignNode node) {
+    /* visit rhs */
     visit(node.getRhs());
     ARMConcreteRegister reg = armRegAllocator.curr();
+
+    /* visit lhs */
+    isLhs = true;
     visit(node.getLhs());
+    isLhs = false;
     instructions.add(new STR(reg,
         new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.curr())));
     armRegAllocator.free();
@@ -412,12 +442,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 1 condition check, branch */
     visit(node.getCond());
-    instructions.add(new B(Cond.EQ, ifLabel.toString()));
+    instructions.add(new B(Cond.EQ, ifLabel.getName()));
     armRegAllocator.free();
 
     /* 2 elseBody translate */
     visit(node.getElseBody());
-    instructions.add(new B(Cond.NULL, exitLabel.toString()));
+    instructions.add(new B(Cond.NULL, exitLabel.getName()));
 
     /* 3 ifBody translate */
     instructions.add(ifLabel);
@@ -495,7 +525,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     
     /* 1 unconditional jump to end of loop, where conditional branch exists */
     Label testLabel = labelGenerator.getLabel();
-    instructions.add(new B(Cond.NULL, testLabel.toString()));
+    instructions.add(new B(Cond.NULL, testLabel.getName()));
 
     /* 2 get a label, mark the start of the loop */
     Label startLabel = labelGenerator.getLabel();
@@ -511,7 +541,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     armRegAllocator.free();
 
     /* 5 conditional branch jump to the start of loop */
-    instructions.add(new B(Cond.EQ, startLabel.toString()));
+    instructions.add(new B(Cond.EQ, startLabel.getName()));
 
     return null;
   }
