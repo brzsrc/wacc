@@ -2,7 +2,9 @@ package utils.backend;
 
 public enum Cond {
   NULL,
-  EQ;
+  EQ,
+  LT,
+  CS;
 
   @Override
   public String toString() {

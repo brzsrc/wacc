@@ -294,8 +294,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(armRegAllocator.get(ARMRegisterLabel.R0), new Operand2(reg)));
 
     /* 3 BL null pointer check */
-    // todo: add check null pointer to collection of predefine functions
     instructions.add(new BL("p_check_null_pointer"));
+    HelperFunction.addCheckNullPointer(dataSegmentMessages, helperFunctions, armRegAllocator);
 
     /* 4 get pointer to child
     *    store in the same register, save register space
@@ -556,10 +556,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(testLabel);
     /* translate cond expr */
     visit(node.getCond());
-    armRegAllocator.free();
+    instructions.add(new Cmp(armRegAllocator.curr(), new Operand2(new Immediate(TRUE, BitNum.CONST8))));
 
     /* 5 conditional branch jump to the start of loop */
     instructions.add(new B(Cond.EQ, startLabel.getName()));
+
+    armRegAllocator.free();
 
     return null;
   }
@@ -601,6 +603,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     for (IdentNode ident : node.getParamList()) {
       stackSize -= ident.getType().getSize();
     }
+    instructions.add(new Label("f_" + node.getFunctionName()));
     if (stackSize != 0) {
       instructions.add(new Sub(SP, SP,
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
@@ -618,10 +621,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitProgramNode(ProgramNode node) {
     currSymbolTable = node.getBody().getScope();
 
-    Map<String, FuncNode> funcMap = node.getFunctions();
-    for (Entry<String, FuncNode> entry : funcMap.entrySet()) {
-      helperFunctions.add(new Label("f_" + entry.getValue().getFunctionName()));
-      visit(entry.getValue());
+    for (FuncNode func : node.getFunctions().values()) {
+      visitFuncNode(func);
     }
     
     Label mainLabel = new Label("main");
