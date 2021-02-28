@@ -25,7 +25,7 @@ public class ScopeNode extends StatNode {
     }
     setLeaveAtEnd(getEndValue());
     isBeginEnd = true;
-    setScope(node.scope);
+    setScope(node.getScope());
   }
 
   /* Handle the sequential statement */

@@ -104,7 +104,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     isMainFunction = true;
     currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode body = visit(ctx.stat()).asStatNode();
-    body.setScope(currSymbolTable);
+    // body.setScope(currSymbolTable);
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     if (semanticError) {
@@ -220,7 +220,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode body = visit(ctx.stat()).asStatNode();
     ScopeNode scopeNode = new ScopeNode(body);
-    scopeNode.setScope(currSymbolTable);
+    if (scopeNode.getScope() == null) {
+      scopeNode.setScope(currSymbolTable);
+    }
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     return scopeNode;
