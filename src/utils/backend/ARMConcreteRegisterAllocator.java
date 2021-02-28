@@ -58,7 +58,7 @@ public class ARMConcreteRegisterAllocator {
     }
 
     private boolean isFull() {
-        return registerCounter < MAX_ARM_REGISTER;
+        return registerCounter > MAX_ARM_REGISTER;
     }
 
 }
