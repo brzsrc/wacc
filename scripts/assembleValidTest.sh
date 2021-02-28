@@ -17,7 +17,7 @@ VALID_EXAMPLES=(
                 )
 
 VALID_EXAMPLES_SRC_DIR="./src/test/examples/valid"
-ASSEMBLY_OUTPUT_DIR="./log/assemble"
+ASSEMBLY_OUTPUT_DIR="./log/assembly"
 
 mkdir log
 mkdir $ASSEMBLY_OUTPUT_DIR

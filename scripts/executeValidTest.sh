@@ -15,7 +15,7 @@ VALID_EXAMPLES=("/advanced"
                 "/while")
 
 VALID_EXAMPLES_SRC_DIR="./src/test/examples/valid"
-ASSEMBLY_OUTPUT_DIR="./log/assemble"
+ASSEMBLY_OUTPUT_DIR="./log/assembly"
 EXECUTE_OUTPUT_DIR="./log/output"
 
 # counters to represent the total number of test files to be processed
