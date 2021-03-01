@@ -114,7 +114,7 @@ public class HelperFunction {
       addPrintSingle(Helper.PRINT_INT, data, helperFunctions, allocator);
     } else if (type.equalToType(CHAR_BASIC_TYPE)) {
       instructions.add(new BL(Helper.PUTCHAR.toString()));
-      addPrintSingle(Helper.PUTCHAR, data, helperFunctions, allocator);
+//      addPrintSingle(Helper.PUTCHAR, data, helperFunctions, allocator);
     } else if (type.equalToType(BOOL_BASIC_TYPE)) {
       instructions.add(new BL(Helper.PRINT_BOOL.toString()));
       addPrintBool(data, helperFunctions, allocator);
@@ -291,8 +291,10 @@ public class HelperFunction {
       alreadyExist.add(helper);
 
       Label msg = addMsg("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"", data);
+      helperFunctions.add(new Label("p_throw_overflow_error"));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDR));
       helperFunctions.add(new BL("p_throw_runtime_error"));
+      addThrowRuntimeError(data, helperFunctions, allocator);
     }
   }
 
@@ -307,7 +309,7 @@ public class HelperFunction {
       alreadyExist.add(helper);
 
       /* add the helper function label */
-      Label label = new Label(helper.toString());
+      Label label = new Label("p_throw_runtime_error");
       helperFunctions.add(label);
       helperFunctions.add(new BL(Helper.PRINT_STRING.toString()));
       helperFunctions.add(new Mov(allocator.get(0), new Operand2(new Immediate(-1, BitNum.CONST8))));

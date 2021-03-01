@@ -106,10 +106,22 @@ public abstract class ArithmeticLogic extends Instruction {
     return list;
   };
 
+  public static UnopAssemble OrdAsm = (rd, rn) -> {
+    List<Instruction> list = new ArrayList<>();
+    return list;
+  };
+
+  public static UnopAssemble ChrAsm = (rd, rn) -> {
+    List<Instruction> list = new ArrayList<>();
+    return list;
+  };
+
   public static final Map<Unop, UnopAssemble> unopInstruction = Map.ofEntries(
     new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.LEN, ArrayLenAsm),
     new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.MINUS, NegationAsm),
-    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, LogicNotAsm)
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, LogicNotAsm),
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, OrdAsm),
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm)
   );
 
   protected Register Rd, Rn;
