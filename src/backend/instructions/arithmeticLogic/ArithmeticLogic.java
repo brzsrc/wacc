@@ -19,31 +19,31 @@ import backend.instructions.operand.Immediate.BitNum;
 import frontend.node.expr.BinopNode.Binop;
 import utils.backend.ARMConcreteRegister;
 import utils.backend.ARMRegisterLabel;
+import utils.backend.Cond;
 import utils.backend.Register;
 
 public abstract class ArithmeticLogic extends Instruction {
 
   public static final ArithmeticLogicAssemble BasicBinopAsm = (rd, rn, op2, b) -> {
-    Map<Binop, ArithmeticLogic> m = Map.of(
-      Binop.PLUS, new Add(rd, rn, op2),
-      Binop.MINUS, new Sub(rd, rn, op2),
+    Map<Binop, Instruction> m = Map.of(
+      Binop.PLUS, new Add(rd, rn, op2, Cond.S),
+      Binop.MINUS, new Sub(rd, rn, op2, Cond.S),
       Binop.MUL, new Mul(rd, rn, op2),
       Binop.AND, new And(rd, rn, op2),
       Binop.OR, new Or(rd, rn, op2)
     );
-
     return List.of(m.get(b));
   };
 
   public static final ArithmeticLogicAssemble DivModAsm = (rd, rn, op2, b) -> {
-    /* op2 will not be used heree */
+    /* op2 will not be used here */
     List<Instruction> list = new ArrayList<>();
 
     Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
     Register r1 = new ARMConcreteRegister(ARMRegisterLabel.R1);
     Operand2 dividend = new Operand2(rd);
     Operand2 dividor = new Operand2(rn);
-   
+
     list.add(new Mov(r0, dividend));
     list.add(new Mov(r1, dividor));
     list.add(new BL("p_check_divide_by_zero"));
@@ -69,7 +69,6 @@ public abstract class ArithmeticLogic extends Instruction {
     /* default as false, set as true in following check */
     list.add(new Mov(rd, zero, MovType.MOV));
     list.add(new Mov(rd, one, Mov.binOpMovMap.get(b)));
-
     return list;
   };
 
@@ -91,28 +90,13 @@ public abstract class ArithmeticLogic extends Instruction {
 
   public static final UnopAssemble ArrayLenAsm = (rd, rn) -> {
     List<Instruction> list = new ArrayList<>();
-    Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
     list.add(new LDR(rd, new AddressingMode2(AddrMode2.OFFSET, rd)));
-    Operand2 len = new Operand2(rd);
-    list.add(new Mov(r0, len));
-    list.add(new BL("p_print_int"));
-    return list;
-  };
-
-  public static UnopAssemble ChrAsm = (rd, rn) -> {
-    List<Instruction> list = new ArrayList<>();
-    Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
-    Operand2 int_ = new Operand2(rd);
-    list.add(new Mov(r0, int_));
-    list.add(new BL("putchar"));
     return list;
   };
 
   public static UnopAssemble NegationAsm = (rd, rn) -> {
     List<Instruction> list = new ArrayList<>();
     list.add(new Rsb(rd, rn, new Operand2(new Immediate(0, BitNum.CONST8))));
-    /* TODO: not sure if the Mov instruction needs to be added or not
-    list.add(new Mov(new ARMConcreteRegister(ARMRegisterLabel.R0), new Operand2(rd))); */
     return list;
   };
 
@@ -124,19 +108,20 @@ public abstract class ArithmeticLogic extends Instruction {
 
   public static UnopAssemble OrdAsm = (rd, rn) -> {
     List<Instruction> list = new ArrayList<>();
-    Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
-    Operand2 chr = new Operand2(rd);
-    list.add(new Mov(r0, chr));
-    list.add(new BL("p_print_int"));
+    return list;
+  };
+
+  public static UnopAssemble ChrAsm = (rd, rn) -> {
+    List<Instruction> list = new ArrayList<>();
     return list;
   };
 
   public static final Map<Unop, UnopAssemble> unopInstruction = Map.ofEntries(
     new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.LEN, ArrayLenAsm),
-      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm),
     new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.MINUS, NegationAsm),
     new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, LogicNotAsm),
-    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, OrdAsm)
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, OrdAsm),
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm)
   );
 
   protected Register Rd, Rn;

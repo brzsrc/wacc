@@ -9,6 +9,7 @@ import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
+import backend.instructions.arithmeticLogic.ArithmeticLogicAssemble;
 import backend.instructions.arithmeticLogic.Sub;
 import backend.instructions.memory.Pop;
 import backend.instructions.memory.Push;
@@ -200,6 +201,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     if(operator == Binop.DIV || operator == Binop.MOD) {
       HelperFunction.addCheckDivByZero(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
+
+    ArithmeticLogicAssemble ass = ArithmeticLogic.binopInstruction.get(operator);
+    if(ass == ArithmeticLogic.CmpAsm || ass == ArithmeticLogic.BasicBinopAsm) {
+      instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
+      HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
+    }
     if (expr1.getWeight() < expr2.getWeight()) {
       instructions.add(new Mov(e2reg, new Operand2(e1reg)));
     }
@@ -229,7 +236,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitIntegerNode(IntegerNode node) {
-    // todo: same as visitCharNode
     ARMConcreteRegister reg = armRegAllocator.allocate();
 
     Immediate immed = new Immediate(node.getVal(), BitNum.SHIFT32);
@@ -415,6 +421,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getExpr());
     Register reg = armRegAllocator.curr();
     Unop operator = node.getOperator();
+
     List<Instruction> insList = ArithmeticLogic.unopInstruction
         .get(operator)
         .unopAssemble(reg, reg);
