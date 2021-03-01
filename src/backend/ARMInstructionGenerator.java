@@ -506,8 +506,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitReadNode(ReadNode node) {
-    /* TODO: visit the "address" of node.getInputExpr() and Mov r4 int or0 */
+    isLhs = true;
+    visit(node.getInputExpr());
+    isLhs = false;
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
     HelperFunction.addRead(node.getInputExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+    armRegAllocator.free();
     return null;
   }
 
