@@ -16,8 +16,8 @@ public class ImmediateAddressing extends Addressing {
     @Override
     public String toString() {
         if (immed.isChar()) {
-          return "#\'" + (char) immed.getVal() + "\'";
+          return immed.toString();
         }
-        return "=" + immed.getVal();
+        return "=" + String.valueOf(immed.getVal());
     }
 }

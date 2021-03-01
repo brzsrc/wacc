@@ -63,6 +63,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   /* mark if we are visiting a lhs or rhs of an expr */
   private boolean isLhs;
 
+  /* offset used when pushing variable in stack in visitFunctionCall 
+   * USED FOR evaluating function parameters, not for changing parameters' offset in function body*/
+  private int stackOffset;
+
   /* constant fields */
   private Register SP;
 
@@ -76,6 +80,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public ARMInstructionGenerator() {
     currSymbolTable = null;
     labelGenerator = new LabelGenerator("L");
+    stackOffset = 0;
     isLhs = false;
     /* initialise constant fields */
     SP = armRegAllocator.get(ARMRegisterLabel.SP);
@@ -85,7 +90,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitArrayElemNode(ArrayElemNode node) {
     /* get the address of this array and store it in an available register */
     Register addrReg = armRegAllocator.allocate();
-    Operand2 operand2 = new Operand2(new Immediate(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()), BitNum.CONST8));
+    Operand2 operand2 = new Operand2(new Immediate(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) + stackOffset, BitNum.CONST8));
     instructions.add(new Add(addrReg, SP, operand2));
 
     HelperFunction.addCheckArrayBound(dataSegmentMessages, helperFunctions, armRegAllocator);
@@ -99,12 +104,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       if (!(index instanceof IntegerNode)) {
         visit(index);
         indexReg = armRegAllocator.curr();
-        if (isLhs) {
+        if (!isLhs) {
           instructions.add(new LDR(indexReg, new AddressingMode2(AddrMode2.OFFSET, indexReg)));
         }
       } else {
         indexReg = armRegAllocator.allocate();
-        if (isLhs) {
+        if (!isLhs) {
           instructions.add(new LDR(indexReg, new ImmediateAddressing(new Immediate(((IntegerNode) index).getVal(), BitNum.CONST8))));
         }
       }
@@ -239,7 +244,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
      */
     List<ExprNode> params = node.getParams();
     int paramSize = 0;
-    for (ExprNode expr : params) {
+    stackOffset = 0;
+    int paramNum = params.size();
+
+    for (int i = paramNum - 1; i >= 0; i--) {
+      ExprNode expr = params.get(i);
       Register reg = armRegAllocator.next();
       visit(expr);
       int size = expr.getType().getSize();
@@ -247,16 +256,20 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       armRegAllocator.free();
 
       paramSize += size;
+      stackOffset += size;
     }
+    stackOffset = 0;
 
     /* 2 call function with B instruction */
     instructions.add(new BL("f_" + node.getFunction().getFunctionName()));
 
     /* 3 add back stack pointer */
-    instructions.add(new Add(SP, SP, new Operand2(new Immediate(paramSize, BitNum.SHIFT32))));
+    if (paramSize > 0) {
+      instructions.add(new Add(SP, SP, new Operand2(new Immediate(paramSize, BitNum.SHIFT32))));
+    }
 
     /* 4 get result, put in register */
-    instructions.add(new Mov(armRegAllocator.get(ARMRegisterLabel.R0), new Operand2(armRegAllocator.allocate())));
+    instructions.add(new Mov(armRegAllocator.allocate(), new Operand2(armRegAllocator.get(ARMRegisterLabel.R0))));
 
     return null;
   }
@@ -265,8 +278,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitIdentNode(IdentNode node) {
 
     /* put pointer that point to ident's value in stack to next available register */
-    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol());
-    LdrMode mode = node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRB;
+    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) + stackOffset;
+    LdrMode mode;
+    if (node.getType().getSize() > 1) {
+       mode = LdrMode.LDR;
+    } else if (node.getType().equalToType(BOOL_BASIC_TYPE)) {
+      mode = LdrMode.LDRSB;
+    } else {
+      mode = LdrMode.LDRB;
+    }
 
     Immediate immed = new Immediate(offset, BitNum.CONST8);
 
@@ -424,6 +444,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getRhs());
     StrMode strMode = node.getRhs().getType().getSize() == 1 ? StrMode.STRB : StrMode.STR;
     // int offset = currSymbolTable.getSize() - (node.getScope().lookup(node.getIdentifier()).getStackOffset() + node.getRhs().getType().getSize());
+    // System.out.println("in declare node");
     instructions.add(new STR(armRegAllocator.curr(),
         new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.SP),
             new Immediate(node.getScope().lookup(node.getIdentifier()).getStackOffset(), BitNum.CONST8)), strMode));
@@ -446,7 +467,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitFreeNode(FreeNode node) {
-    currSymbolTable = node.getScope();
+    // currSymbolTable = node.getScope();
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
     armRegAllocator.free();
@@ -513,9 +534,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitReturnNode(ReturnNode node) {
+    visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
-    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(15))));
-    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(15))));
+    armRegAllocator.free();
     return null;
   }
 
@@ -585,29 +606,30 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitFuncNode(FuncNode node) {
+    /* cannot call get stack size on function body, as that will return 0 */
     int stackSize = node.getFunctionBody().getScope().getSize();
-    for (IdentNode ident : node.getParamList()) {
-      stackSize -= ident.getType().getSize();
-    }
+    stackSize -= node.paramListStackSize();
     instructions.add(new Label("f_" + node.getFunctionName()));
     instructions.add(new Push(Collections.singletonList(armRegAllocator.get(14))));
     if (stackSize != 0) {
       instructions.add(new Sub(SP, SP,
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
     }
-    currSymbolTable = node.getFunctionBody().getScope();
+    // currSymbolTable = node.getFunctionBody().getScope();
     visit(node.getFunctionBody());
     if (stackSize != 0) {
       instructions.add(new Add(SP, SP,
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
     }
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
     instructions.add(new LTORG());
     return null;
   }
 
   @Override
   public Void visitProgramNode(ProgramNode node) {
-    currSymbolTable = node.getBody().getScope();
+    // currSymbolTable = node.getBody().getScope();
 
     for (FuncNode func : node.getFunctions().values()) {
       visitFuncNode(func);
