@@ -9,6 +9,7 @@ import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
+import backend.instructions.arithmeticLogic.ArithmeticLogicAssemble;
 import backend.instructions.arithmeticLogic.Sub;
 import backend.instructions.memory.Pop;
 import backend.instructions.memory.Push;
@@ -193,6 +194,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.addAll(insList);
     if(operator == Binop.DIV || operator == Binop.MOD) {
       HelperFunction.addCheckDivByZero(dataSegmentMessages, helperFunctions, armRegAllocator);
+    }
+
+    ArithmeticLogicAssemble ass = ArithmeticLogic.binopInstruction.get(operator);
+    if(ass == ArithmeticLogic.CmpAsm || ass == ArithmeticLogic.BasicBinopAsm) {
+      instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
+      HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
     if (expr1.getWeight() < expr2.getWeight()) {
       instructions.add(new Mov(e2reg, new Operand2(e1reg)));
@@ -506,9 +513,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitReadNode(ReadNode node) {
+    isLhs = true;
     visit(node.getInputExpr());
+    isLhs = false;
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
     HelperFunction.addRead(node.getInputExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+    armRegAllocator.free();
     return null;
   }
 

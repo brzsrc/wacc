@@ -73,16 +73,24 @@ public class Compiler {
           ARMCodeGenerator printer = new ARMCodeGenerator(data, text, code, OptimizationLevel.NONE);
 
           File asmFile = new File(file.getName().replaceFirst("[.][^.]+$", "") + ".s");
-          if (asmFile.createNewFile()) {
-            System.out.println("Assembly file created!");
-            try (FileWriter asmWriter = new FileWriter(asmFile)) {
-              asmWriter.write(printer.translate());
-              asmWriter.close();
-              System.out.println("Assembly has been written to the file!");
-            }
-          } else {
-            System.out.println("File already exists");
+
+          System.out.println("Assembly file created!");
+          try (FileWriter asmWriter = new FileWriter(asmFile)) {
+            asmWriter.write(printer.translate());
+            asmWriter.close();
+            System.out.println("Assembly has been written to the file!");
           }
+
+//          if (asmFile.createNewFile()) {
+//            System.out.println("Assembly file created!");
+//            try (FileWriter asmWriter = new FileWriter(asmFile)) {
+//              asmWriter.write(printer.translate());
+//              asmWriter.close();
+//              System.out.println("Assembly has been written to the file!");
+//            }
+//          } else {
+//            System.out.println("File already exists");
+//          }
         }
       }
     } catch (FileNotFoundException e) {

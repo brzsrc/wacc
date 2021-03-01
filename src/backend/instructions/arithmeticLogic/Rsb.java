@@ -1,6 +1,7 @@
 package backend.instructions.arithmeticLogic;
 
 import backend.instructions.operand.Operand2;
+import utils.backend.Cond;
 import utils.backend.Register;
 
 public class Rsb extends ArithmeticLogic {

@@ -19,19 +19,19 @@ import backend.instructions.operand.Immediate.BitNum;
 import frontend.node.expr.BinopNode.Binop;
 import utils.backend.ARMConcreteRegister;
 import utils.backend.ARMRegisterLabel;
+import utils.backend.Cond;
 import utils.backend.Register;
 
 public abstract class ArithmeticLogic extends Instruction {
 
   public static final ArithmeticLogicAssemble BasicBinopAsm = (rd, rn, op2, b) -> {
-    Map<Binop, ArithmeticLogic> m = Map.of(
-      Binop.PLUS, new Add(rd, rn, op2),
-      Binop.MINUS, new Sub(rd, rn, op2),
+    Map<Binop, Instruction> m = Map.of(
+      Binop.PLUS, new Add(rd, rn, op2, Cond.S),
+      Binop.MINUS, new Sub(rd, rn, op2, Cond.S),
       Binop.MUL, new Mul(rd, rn, op2),
       Binop.AND, new And(rd, rn, op2),
       Binop.OR, new Or(rd, rn, op2)
     );
-
     return List.of(m.get(b));
   };
 
@@ -43,7 +43,7 @@ public abstract class ArithmeticLogic extends Instruction {
     Register r1 = new ARMConcreteRegister(ARMRegisterLabel.R1);
     Operand2 dividend = new Operand2(rd);
     Operand2 dividor = new Operand2(rn);
-   
+
     list.add(new Mov(r0, dividend));
     list.add(new Mov(r1, dividor));
     list.add(new BL("p_check_divide_by_zero"));
@@ -69,7 +69,6 @@ public abstract class ArithmeticLogic extends Instruction {
     /* default as false, set as true in following check */
     list.add(new Mov(rd, zero, MovType.MOV));
     list.add(new Mov(rd, one, Mov.binOpMovMap.get(b)));
-
     return list;
   };
 

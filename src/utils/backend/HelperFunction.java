@@ -284,13 +284,13 @@ public class HelperFunction {
 
   public static void addThrowOverflowError(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
-    Helper helper = Helper.CHECK_ARRAY_BOUND;
-
-    Label msg = addMsg("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\n\"", data);
+    Helper helper = Helper.THROW_OVERFLOW_ERROR;
 
     if (!alreadyExist.contains(helper)) {
       /* add this helper into alreadyExist list */
       alreadyExist.add(helper);
+
+      Label msg = addMsg("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\n\"", data);
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDR));
       helperFunctions.add(new BL("p_throw_runtime_error"));
     }
