@@ -104,6 +104,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* visit the body of the program and create the root SymbolTable here */
     isMainFunction = true;
     currSymbolTable = new SymbolTable(currSymbolTable);
+    stackAddrCounter = 0;
     StatNode body = visit(ctx.stat()).asStatNode();
     // body.setScope(currSymbolTable);
     if (!(body instanceof ScopeNode)) {
