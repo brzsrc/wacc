@@ -113,7 +113,7 @@ public class HelperFunction {
       instructions.add(new BL(Helper.PRINT_INT.toString()));
       addPrintSingle(Helper.PRINT_INT, data, helperFunctions, allocator);
     } else if (type.equalToType(CHAR_BASIC_TYPE)) {
-      instructions.add(new BL(Helper.PUTCHAR.toString()));
+      instructions.add(new BL("putchar"));
 //      addPrintSingle(Helper.PUTCHAR, data, helperFunctions, allocator);
     } else if (type.equalToType(BOOL_BASIC_TYPE)) {
       instructions.add(new BL(Helper.PRINT_BOOL.toString()));
