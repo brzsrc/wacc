@@ -290,7 +290,7 @@ public class HelperFunction {
       /* add this helper into alreadyExist list */
       alreadyExist.add(helper);
 
-      Label msg = addMsg("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\n\"", data);
+      Label msg = addMsg("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"", data);
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDR));
       helperFunctions.add(new BL("p_throw_runtime_error"));
     }
