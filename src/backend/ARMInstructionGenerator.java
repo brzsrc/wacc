@@ -103,8 +103,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
         indexReg = armRegAllocator.allocate();
       }
 
-      instructions.add(new LDR(indexReg, new AddressingMode2(AddrMode2.OFFSET, indexReg)));
-
+      if (isLhs) {
+        instructions.add(new LDR(indexReg, new AddressingMode2(AddrMode2.OFFSET, indexReg)));
+      }
+      
       /* check array bound */
       instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
       instructions.add(new Mov(armRegAllocator.get(0), new Operand2(indexReg)));
