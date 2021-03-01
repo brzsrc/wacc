@@ -3,7 +3,6 @@ package frontend.node.expr;
 import frontend.type.Type;
 import utils.NodeVisitor;
 import utils.frontend.symbolTable.Symbol;
-import utils.frontend.symbolTable.SymbolTable;
 
 public class IdentNode extends ExprNode {
 

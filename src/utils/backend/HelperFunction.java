@@ -262,12 +262,13 @@ public class HelperFunction {
       ARMConcreteRegisterAllocator allocator) {
     Helper helper = Helper.CHECK_ARRAY_BOUND;
 
-    Label negativeIndexLabel = addMsg("\"ArrayIndexOutOfBoundsError: negative index\\n\\0\"", data);
-    Label indexOutOfBoundLabel = addMsg("\"ArrayIndexOutOfBoundsError: index too large\\n\\0\"", data);
-
     if (!alreadyExist.contains(helper)) {
       /* add this helper into alreadyExist list */
       alreadyExist.add(helper);
+
+      Label negativeIndexLabel = addMsg("\"ArrayIndexOutOfBoundsError: negative index\\n\\0\"", data);
+      Label indexOutOfBoundLabel = addMsg("\"ArrayIndexOutOfBoundsError: index too large\\n\\0\"", data);
+
       helperFunctions.add(new Label("p_check_array_bounds"));
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));

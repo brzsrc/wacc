@@ -88,6 +88,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Operand2 operand2 = new Operand2(new Immediate(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()), BitNum.CONST8));
     instructions.add(new Add(addrReg, SP, operand2));
 
+    HelperFunction.addCheckArrayBound(dataSegmentMessages, helperFunctions, armRegAllocator);
+    HelperFunction.addThrowRuntimeError(dataSegmentMessages, helperFunctions, armRegAllocator);
+
     /* TODO: make a helper function out of this */
     Register indexReg;
     for (int i = 0; i < node.getDepth(); i++) {
@@ -98,9 +101,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
         indexReg = armRegAllocator.curr();
       } else {
         indexReg = armRegAllocator.allocate();
-        instructions.add(new LDR(indexReg, new ImmediateAddressing(new Immediate(((IntegerNode) index).getVal(), BitNum.CONST8))));
       }
 
+      instructions.add(new LDR(indexReg, new AddressingMode2(AddrMode2.OFFSET, indexReg)));
 
       /* check array bound */
       instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
@@ -138,29 +141,20 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     instructions.add(new Mov(addrReg, new Operand2(armRegAllocator.get(0))));
 
-    /* then allocate the content of the array to the corresponding address */
-    // Register reg = armRegAllocator.allocate();
-
     /* STR mode used to indicate whether to store a byte or a word */
     StrMode mode = node.getContentSize() > 1 ? StrMode.STR : StrMode.STRB;
 
     for (int i = 0; i < node.getLength(); i++) {
       visit(node.getElem(i));
-      int STRIndex = i * WORD_SIZE + WORD_SIZE;
-      // instructions.add(new Mov(reg, new Operand2(armRegAllocator.curr())));
+      int STRIndex = i * node.getContentSize() + WORD_SIZE;
       instructions.add(new STR(armRegAllocator.curr(), new AddressingMode2(AddrMode2.OFFSET, addrReg, new Immediate(STRIndex, BitNum.CONST8)), mode));
       armRegAllocator.free();
     }
-
-    // armRegAllocator.free();
 
     Register sizeReg = armRegAllocator.allocate();
     /* STR the size of the array in the first byte */
     instructions.add(new LDR(sizeReg, new ImmediateAddressing(new Immediate(node.getLength(), BitNum.CONST8))));
     instructions.add(new STR(sizeReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
-
-    HelperFunction.addCheckArrayBound(dataSegmentMessages, helperFunctions, armRegAllocator);
-    HelperFunction.addThrowRuntimeError(dataSegmentMessages, helperFunctions, armRegAllocator);
 
     armRegAllocator.free();
 
@@ -219,7 +213,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     ARMConcreteRegister reg = armRegAllocator.allocate();
 
     Immediate immed = new Immediate(node.getAsciiValue(), BitNum.SHIFT32, true);
-    instructions.add(new LDR(reg, new ImmediateAddressing(immed)));
+    instructions.add(new Mov(reg, new Operand2(immed)));
     return null;
   }
 
@@ -405,12 +399,14 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitAssignNode(AssignNode node) {
     /* visit rhs */
     visit(node.getRhs());
-    ARMConcreteRegister reg = armRegAllocator.curr();
 
     /* visit lhs */
     isLhs = true;
     visit(node.getLhs());
     isLhs = false;
+
+    ARMConcreteRegister reg = armRegAllocator.last();
+
     instructions.add(new STR(reg,
         new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.curr())));
     armRegAllocator.free();
@@ -422,6 +418,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitDeclareNode(DeclareNode node) {
     visit(node.getRhs());
     StrMode strMode = node.getRhs().getType().getSize() == 1 ? StrMode.STRB : StrMode.STR;
+    // int offset = currSymbolTable.getSize() - (node.getScope().lookup(node.getIdentifier()).getStackOffset() + node.getRhs().getType().getSize());
     instructions.add(new STR(armRegAllocator.curr(),
         new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.SP),
             new Immediate(node.getScope().lookup(node.getIdentifier()).getStackOffset(), BitNum.CONST8)), strMode));
