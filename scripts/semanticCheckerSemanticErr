@@ -1,24 +1,48 @@
-#!/bin/sh
+#!/bin/bash
 
-INVALID_SEMANTIC_ERR="./src/test/examples/invalid/semanticErr"
+INVALID_SEMANTIC_ERR=("./src/test/examples/invalid/semanticErr/exit"
+                      "./src/test/examples/invalid/semanticErr/expressions"
+                      "./src/test/examples/invalid/semanticErr/function"
+                      "./src/test/examples/invalid/semanticErr/if"
+                      "./src/test/examples/invalid/semanticErr/IO"
+                      "./src/test/examples/invalid/semanticErr/multiple"
+                      "./src/test/examples/invalid/semanticErr/pairs"
+                      "./src/test/examples/invalid/semanticErr/print"
+                      "./src/test/examples/invalid/semanticErr/read"
+                      "./src/test/examples/invalid/semanticErr/scope"
+                      "./src/test/examples/invalid/semanticErr/variables"
+                      "./src/test/examples/invalid/semanticErr/while")
+
 INVALID_CHECKER_SEMANTIC_ERR_LOG="./log/checker_invalid_semantic_error.log"
-
 > $INVALID_CHECKER_SEMANTIC_ERR_LOG
 
-for file in $(find $INVALID_SEMANTIC_ERR -name "*.wacc")
-do
-  ./compile $file 2>> $INVALID_CHECKER_SEMANTIC_ERR_LOG
-  ret=$?
-  echo "exit status: " $ret
-  if [ $ret -ne 200 ]; then
-    echo "status code incorrect: " $ret
-    exit 1
-  fi
-  
-  if ! grep "line [0-9]*:[0-9]*" $INVALID_CHECKER_SEMANTIC_ERR_LOG > /dev/null; then
-    echo "expecting error but the following has none:"
-    cat $INVALID_CHECKER_SEMANTIC_ERR_LOG
-    echo $file
-    exit 1
-  fi
+# counters to represent the total number of test files to be processed
+TOTAL_COUNT=$(find ${INVALID_SEMANTIC_ERR[@]} -name "*.wacc" | wc -l)
+COUNTER=0
+
+for folder in ${INVALID_SEMANTIC_ERR[@]}; do
+  for file in $(find $folder -name "*.wacc")
+  do
+    ./compile $file 2>> $INVALID_CHECKER_SEMANTIC_ERR_LOG
+    ret=$?
+    echo "exit status: " $ret
+    if [ $ret -ne 200 ]; then
+      echo "status code incorrect: " $ret
+      exit 1
+    fi
+    
+    if ! grep "line [0-9]*:[0-9]*" $INVALID_CHECKER_SEMANTIC_ERR_LOG > /dev/null; then
+      echo "expecting error but the following has none:"
+      cat $INVALID_CHECKER_SEMANTIC_ERR_LOG
+      echo $file
+      exit 1
+    fi
+    (( COUNTER += 1 ))
+    echo "$COUNTER / $(($TOTAL_COUNT)) finished"
+    echo ""
+  done
+
+  echo "========================================================================================"
+  echo "Test Folder" $folder "has been processed" "($COUNTER / $(($TOTAL_COUNT)))"
+  echo "========================================================================================"
 done

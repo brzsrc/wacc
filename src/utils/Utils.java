@@ -1,18 +1,26 @@
 package utils;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import node.expr.BinopNode.Binop;
-import node.expr.UnopNode.Unop;
+import frontend.node.expr.BinopNode.Binop;
+import frontend.node.expr.IdentNode;
+import frontend.node.expr.UnopNode.Unop;
 import org.antlr.v4.runtime.ParserRuleContext;
 
-import node.expr.ExprNode;
-import type.ArrayType;
-import type.BasicType;
-import type.BasicTypeEnum;
-import type.PairType;
-import type.Type;
+import frontend.node.expr.ExprNode;
+import frontend.type.ArrayType;
+import frontend.type.BasicType;
+import frontend.type.BasicTypeEnum;
+import frontend.type.PairType;
+import frontend.type.Type;
+import utils.frontend.SemanticErrorHandler;
+import utils.frontend.symbolTable.Symbol;
+import utils.frontend.symbolTable.SymbolTable;
 
 public class Utils {
 
@@ -29,40 +37,68 @@ public class Utils {
   public static final Type PAIR_TYPE = new PairType();
 
   /* a list of allowed types in read, free, cmp statement */
-  public static final Set<Type> readStatAllowedTypes = Set
-      .of(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE);
-  public static final Set<Type> freeStatAllowedTypes = Set.of(ARRAY_TYPE, PAIR_TYPE);
-  public static final Set<Type> cmpStatAllowedTypes = Set
-      .of(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE);
+  public static final Set<Type> readStatAllowedTypes = new HashSet<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
+  public static final Set<Type> freeStatAllowedTypes = new HashSet<>(Arrays.asList(ARRAY_TYPE, PAIR_TYPE));
+  public static final Set<Type> cmpStatAllowedTypes = new HashSet<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
 
   /* mapping from string literals to internal representations of UnopEnum and Type */
-  public static final Map<String, Unop> unopEnumMapping = Map.of("-", Unop.MINUS,
-      "chr", Unop.CHR,
-      "!", Unop.NOT,
-      "len", Unop.LEN,
-      "ord", Unop.ORD);
-  public static final Map<String, Type> unopTypeMapping = Map.of("-", INT_BASIC_TYPE,
-      "chr", INT_BASIC_TYPE,
-      "!", BOOL_BASIC_TYPE,
-      "len", ARRAY_TYPE,
-      "ord", CHAR_BASIC_TYPE);
-  public static final Map<String, Binop> binopEnumMapping = Map.of("+", Binop.PLUS,
-      "-", Binop.MINUS,
-      "*", Binop.MUL,
-      "/", Binop.DIV,
-      "%", Binop.MOD);
-  public static final Map<String, Binop> EqEnumMapping = Map
-      .of("==", Binop.EQUAL, "!=", Binop.INEQUAL);
-  public static final Map<String, Binop> LogicOpEnumMapping = Map
-      .of("&&", Binop.AND, "||", Binop.OR);
-  public static final Map<String, Binop> CmpEnumMapping = Map
-      .of(">", Binop.GREATER, ">=", Binop.GREATER_EQUAL,
-          "<", Binop.LESS, "<=", Binop.LESS_EQUAL);
+  public static final Map<String, Unop> unopEnumMapping = new HashMap<String, Unop>(){{
+    put("-", Unop.MINUS);
+    put("chr", Unop.CHR);
+    put("!", Unop.NOT);
+    put("len", Unop.LEN);
+    put("ord", Unop.ORD);
+  }};
+  public static final Map<String, Type> unopTypeMapping = new HashMap<String, Type>(){{
+    put("-", INT_BASIC_TYPE);
+    put("chr", INT_BASIC_TYPE);
+    put("!", BOOL_BASIC_TYPE);
+    put("len", ARRAY_TYPE);
+    put("ord", CHAR_BASIC_TYPE);
+  }};
+  public static final Map<String, Binop> binopEnumMapping = new HashMap<String, Binop>(){{
+    put("+", Binop.PLUS);
+    put("-", Binop.MINUS);
+    put("*", Binop.MUL);
+    put("/", Binop.DIV);
+    put("%", Binop.MOD);
+  }};
+  public static final Map<String, Binop> EqEnumMapping = new HashMap<String, Binop>(){{
+    put("==", Binop.EQUAL);
+    put("!=", Binop.INEQUAL);
+  }};
+  public static final Map<String, Binop> LogicOpEnumMapping = new HashMap<String, Binop>(){{
+    put("&&", Binop.AND);
+    put("||", Binop.OR);
+  }};
+  public static final Map<String, Binop> CmpEnumMapping = new HashMap<String, Binop>(){{
+    put(">", Binop.GREATER);
+    put(">=", Binop.GREATER_EQUAL);
+    put("<", Binop.LESS);
+    put("<=", Binop.LESS_EQUAL);
+  }};
+  public static final Map<Character, Character> escCharMap = new HashMap<Character, Character>(){{
+    put('0', '\0');
+    put('b', '\b');
+    put('t', '\t');
+    put('n', '\n');
+    put('f', '\f');
+    put('r', '\r');
+    put('\"', '\"');
+    put('\'', '\'');
+    put('\\', '\\');
+  }};
 
   /* error code used in ErrorHandlers */
   public static final int SYNTAX_ERROR_CODE = 100;
   public static final int SEMANTIC_ERROR_CODE = 200;
   public static final int INTERNAL_ERROR_CODE = 300;
+
+  /* word, byte size in unit: byte */
+  public static final int WORD_SIZE = 4, BYTE_SIZE = 1, POINTER_SIZE = WORD_SIZE;
+
+  public static final int TRUE = 1;
+  public static final int FALSE = 0;
 
   /* adding a private constructor to override the default public constructor in order to 
      indicate Utils class cannot be instantiated */
@@ -97,9 +133,9 @@ public class Utils {
     return false;
   }
 
-  public static ExprNode lookUpWithNotFoundException(ParserRuleContext ctx, SymbolTable table,
+  public static Symbol lookUpWithNotFoundException(ParserRuleContext ctx, SymbolTable table,
       String varName) {
-    ExprNode value = table.lookupAll(varName);
+    Symbol value = table.lookupAll(varName);
     if (value == null) {
       SemanticErrorHandler.symbolNotFound(ctx, varName);
     }

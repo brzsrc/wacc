@@ -1,12 +1,16 @@
 #ignore generated binary files and auto-generated ANTLR code
 bin
-src/antlr
+src/frontend/antlr/
 
 #ignore Java class files
 *.class
 
 #ignore other junk files
 *~
+
+#ignore the log output
+log
+log/*
 
 #ignore the .idea folder created by intellij or MacOS
 .idea

@@ -14,7 +14,7 @@ details below).
   
 > lib <
 
-The lib directory contains the ANTLR library files in antlr-4.9.1-complete.jar. 
+The lib directory contains the ANTLR library files in antlr-4.9.1-complete.jar.
 You should not need to make any changes in this directory.
   
 > src < 
@@ -48,7 +48,7 @@ Using the provided scripts
 
 This script takes a pair of ANTLR lexer and parser configuration files (set 
 within the script) and creates the corresponding Java classes that you can use
-in your compiler. The Java files are written to the src/antlr directory and 
+in your compiler. The Java files are written to the src/antlr directory and
 should not be modified by hand. By default this script is set up to generate a
 parse tree and a listerner pattern for traversing this tree, but you can modify
 the compilation options within the script if you want to produce different 
@@ -71,7 +71,7 @@ will run the TestRig using the 'Basic' grammar, starting from the rule for
 'prog' and outputting the tokens seen by the lexer. To see how the parser groups 
 these tokens you can use the -tree or -gui options instead, such as:
   ./grun antlr.Basic prog -gui
-In either case you will need to type in your input program and then close the 
+In either case you will need to type in your input program and then close the
 input stream with ctrl-D.
 
 Rather than typing your input programs in by hand, you can pass the TestRig a 

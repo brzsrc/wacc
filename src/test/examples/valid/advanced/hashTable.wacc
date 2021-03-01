@@ -1,8 +1,8 @@
 # This program is interactive. We implement a hash table containing integers and we play with it.
 # 
-# A hash table is represented by an array of node lists. Each node in a node list is represented 
-# by pair(int, pair). The first element of the pair is the integer at that node, the second element 
-# is the pointer to the next node (or null if no more node). 
+# A hash table is represented by an array of node lists. Each node in a node list is represented
+# by pair(int, pair). The first element of the pair is the integer at that node, the second element
+# is the pointer to the next node (or null if no more node).
 # 
 # Integers those mapped to the same index are stored on the list (in any order) in that index.
 
@@ -124,7 +124,7 @@ begin
 	end
 
 	# A helper function.
-	# Given a list of nodes and a node to remove, remove that node from the 
+	# Given a list of nodes and a node to remove, remove that node from the
 	# list and return the new list.
 	pair(int, pair) removeNode(pair(int, pair) head, pair(int, pair) toRemove) is
 		if head == null then

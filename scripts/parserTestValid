@@ -1,23 +1,47 @@
-#!/bin/sh
+#!/bin/bash
 
-VALID_EXAMPLES="./src/test/examples/valid"
+VALID_EXAMPLES=("./src/test/examples/valid/advanced"
+                "./src/test/examples/valid/array"
+                "./src/test/examples/valid/basic"
+                "./src/test/examples/valid/expressions"
+                "./src/test/examples/valid/function"
+                "./src/test/examples/valid/if"
+                "./src/test/examples/valid/IO"
+                "./src/test/examples/valid/pairs"
+                "./src/test/examples/valid/runtimeErr"
+                "./src/test/examples/valid/scope"
+                "./src/test/examples/valid/sequence"
+                "./src/test/examples/valid/variables"
+                "./src/test/examples/valid/while")
+
 VALID_PARSER_EXAMPLES_LOG="./log/parse_valid_error.log"
-
 > $VALID_PARSER_EXAMPLES_LOG
 
-for file in $(find $VALID_EXAMPLES -name "*.wacc")
-do
-  ./compile $file 2>> $VALID_PARSER_EXAMPLES_LOG
-  ret=$?
-  echo "exit status: " $ret
-  if [ $ret -ne 0 ]; then
-    echo "status code incorrect: " $ret
-    exit 1
-  fi
-  
-  if grep "line [0-9]*:[0-9]*" $VALID_PARSER_EXAMPLES_LOG > /dev/null; then
-    echo "expecting no error but found the following:"
-    cat $VALID_PARSER_EXAMPLES_LOG
-    exit 1
-  fi
+# counters to represent the total number of test files to be processed
+TOTAL_COUNT=$(find ${VALID_EXAMPLES[@]} -name "*.wacc" | wc -l)
+COUNTER=0
+
+for folder in ${VALID_EXAMPLES[@]}; do
+  for file in $(find $folder -name "*.wacc"); do
+    ./compile $file 2>> $VALID_PARSER_EXAMPLES_LOG
+    ret=$?
+    echo "exit status: " $ret
+    if [ $ret -ne 0 ]; then
+      echo "status code incorrect: " $ret
+      exit 1
+    fi
+    
+    if grep "line [0-9]*:[0-9]*" $VALID_PARSER_EXAMPLES_LOG > /dev/null; then
+      echo "expecting no error but found the following:"
+      cat $VALID_PARSER_EXAMPLES_LOG
+      exit 1
+    fi
+    (( COUNTER += 1 ))
+    echo "$COUNTER / $(($TOTAL_COUNT)) finished"
+    echo ""
+  done
+
+  echo "========================================================================================"
+  echo "Test Folder" $folder "has been processed" "($COUNTER / $(($TOTAL_COUNT)))"
+  echo "========================================================================================"
 done

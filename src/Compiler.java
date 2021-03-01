@@ -1,6 +1,14 @@
+import backend.ARMCodeGenerator;
+import backend.ARMInstructionGenerator;
+import backend.ARMCodeGenerator.OptimizationLevel;
+import backend.directives.CodeSegment;
+import backend.directives.DataSegment;
+import backend.directives.TextSegment;
+import frontend.ASTPrinter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,10 +17,11 @@ import java.util.List;
 
 import org.antlr.v4.runtime.*;
 
-import antlr.*;
-import antlr.WACCParser.ProgramContext;
-import node.Node;
-import utils.ParserErrorHandler;
+import frontend.antlr.*;
+import frontend.antlr.WACCParser.ProgramContext;
+import frontend.node.Node;
+import utils.frontend.ParserErrorHandler;
+import frontend.SemanticChecker;
 
 public class Compiler {
 
@@ -29,7 +38,7 @@ public class Compiler {
     // Creating the file instance for the .wacc file
     File file = new File(args[0]);
 
-    System.out.println(file.getName());
+    // System.out.println(file.getName());
     // try-with-resources so that fis can be closed properly even when error occurs
     try (FileInputStream fis = new FileInputStream(file)) {
       // Input stream of the file
@@ -44,14 +53,40 @@ public class Compiler {
       // Start parsing using the `program` rule defined in antlr_config/WACCParser.g4
       ProgramContext tree = parser.program();
 
+      Node program;
       // If the `--parse_only` flag is specified, then we do not run semantic analysis
       if (!cmd_ops.contains("--parse_only")) {
         SemanticChecker semanticChecker = new SemanticChecker();
-        Node program = semanticChecker.visitProgram(tree);
-      }
+        program = semanticChecker.visitProgram(tree);
 
-      if (cmd_ops.contains("--print_ast")) {
-        System.out.println(tree.toStringTree(parser));
+        if (cmd_ops.contains("--print_ast")) {
+          ASTPrinter painter = new ASTPrinter();
+          painter.visit(program);
+        }
+
+        if (cmd_ops.contains("--assembly")) {
+          ARMInstructionGenerator generator = new ARMInstructionGenerator();
+          generator.visit(program);
+          DataSegment data = new DataSegment(generator.getDataSegmentMessages());
+          TextSegment text = new TextSegment();
+          CodeSegment code = new CodeSegment(generator.getInstructions());
+          ARMCodeGenerator printer = new ARMCodeGenerator(data, text, code, OptimizationLevel.NONE);
+          
+          System.out.println(printer.translate());
+
+          /* DO NOT DELETE THIS. WE DO NOT OUTPUT TO FILE DURING DEBUGGING! */
+          // File asmFile = new File(file.getName() + ".s");
+          // if (asmFile.createNewFile()) {
+          //   System.out.println("Assembly file created!");
+          //   try (FileWriter asmWriter = new FileWriter(asmFile)) {
+          //     asmWriter.write(printer.translate());
+          //     asmWriter.close();
+          //     System.out.println("Assembly has been written to the file!");
+          //   }
+          // } else {
+          //   System.out.println("File already exists");
+          // }
+        }
       }
     } catch (FileNotFoundException e) {
       System.out.println("ERROR in Compile.java: the given file '" + args[0] + "' is not found.");

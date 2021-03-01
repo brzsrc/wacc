@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # execute all tests
 ./scripts/parserTestValid
@@ -6,3 +6,5 @@
 ./scripts/parserTestSemanticErr
 ./scripts/semanticCheckerValid
 ./scripts/semanticCheckerSemanticErr
+./scripts/assembleTest.sh
+./scripts/executeTest.sh
