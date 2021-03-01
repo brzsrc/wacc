@@ -2,6 +2,8 @@ package frontend.node.expr;
 
 import frontend.type.Type;
 import utils.NodeVisitor;
+import utils.frontend.symbolTable.Symbol;
+import utils.frontend.symbolTable.SymbolTable;
 
 public class IdentNode extends ExprNode {
 
@@ -12,10 +14,20 @@ public class IdentNode extends ExprNode {
 
   private final String name;
 
+  private Symbol symbol;
+
   public IdentNode(Type type, String name) {
     this.type = type;
     this.name = name;
     this.weight = 1;
+  }
+
+  public void setSymbol(Symbol symbol) {
+    this.symbol = symbol;
+  }
+
+  public Symbol getSymbol() {
+    return symbol;
   }
 
   public String getName() {

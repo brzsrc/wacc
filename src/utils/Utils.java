@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import frontend.node.expr.BinopNode.Binop;
+import frontend.node.expr.IdentNode;
 import frontend.node.expr.UnopNode.Unop;
 import org.antlr.v4.runtime.ParserRuleContext;
 
@@ -132,13 +133,13 @@ public class Utils {
     return false;
   }
 
-  public static ExprNode lookUpWithNotFoundException(ParserRuleContext ctx, SymbolTable table,
+  public static Symbol lookUpWithNotFoundException(ParserRuleContext ctx, SymbolTable table,
       String varName) {
     Symbol value = table.lookupAll(varName);
     if (value == null) {
       SemanticErrorHandler.symbolNotFound(ctx, varName);
     }
-    return value.getExprNode();
+    return value;
   }
 
   /* parse an integer from @param String intExt */
