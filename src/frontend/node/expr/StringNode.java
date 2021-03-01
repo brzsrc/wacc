@@ -16,6 +16,7 @@ public class StringNode extends ExprNode {
   public StringNode(String string) {
     this.string = string;
     this.type = new BasicType(BasicTypeEnum.STRING);
+    this.weight = 1;
   }
 
   public int getLength() {

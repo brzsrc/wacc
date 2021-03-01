@@ -23,6 +23,7 @@ public class FunctionCallNode extends ExprNode {
     this.params = params;
     this.funcSymbolTable = new SymbolTable(currScope);
     this.type = function.getReturnType();
+    this.weight = 1;
   }
 
   public FuncNode getFunction() {

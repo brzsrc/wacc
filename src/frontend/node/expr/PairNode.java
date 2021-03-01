@@ -24,12 +24,14 @@ public class PairNode extends ExprNode {
     this.fst = fst;
     this.snd = snd;
     this.type = new PairType(fst.type, snd.type);
+    this.weight = 1;
   }
 
   public PairNode() {
     this.fst = null;
     this.snd = null;
     this.type = new PairType();
+    this.weight = 1;
   }
 
   public ExprNode getFst() {

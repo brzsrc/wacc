@@ -12,6 +12,6 @@ public class Or extends ArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "OR " + Rd + ", " + Rn + ", " + operand2;
+    return "ORR " + Rd + ", " + Rn + ", " + operand2;
   }
 }

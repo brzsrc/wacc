@@ -14,6 +14,6 @@ public class Push extends Instruction {
 
   @Override
   public String assemble() {
-    return "PUSH {" + reglist + "}";
+    return "PUSH {" + reglist.stream().map(Register::toString).reduce((i, j) -> i + ", " + j).get() + "}";
   }
 }

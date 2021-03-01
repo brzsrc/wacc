@@ -14,6 +14,7 @@ public class BL extends B {
 
   @Override
   public String assemble() {
-    return "BL " + label;
+    return "BL" + cond + " " + label.getName();
   }
+
 }

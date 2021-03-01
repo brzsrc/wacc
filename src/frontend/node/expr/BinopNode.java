@@ -38,6 +38,7 @@ public class BinopNode extends ExprNode {
       default:
         type = new BasicType(BasicTypeEnum.BOOLEAN);
     }
+    weight = expr1.getWeight() + expr2.getWeight() + 2;
   }
 
   public ExprNode getExpr1() {

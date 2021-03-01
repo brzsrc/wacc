@@ -20,7 +20,6 @@ import org.antlr.v4.runtime.*;
 import frontend.antlr.*;
 import frontend.antlr.WACCParser.ProgramContext;
 import frontend.node.Node;
-import utils.NodeVisitor;
 import utils.frontend.ParserErrorHandler;
 import frontend.SemanticChecker;
 
@@ -39,7 +38,7 @@ public class Compiler {
     // Creating the file instance for the .wacc file
     File file = new File(args[0]);
 
-    System.out.println(file.getName());
+    // System.out.println(file.getName());
     // try-with-resources so that fis can be closed properly even when error occurs
     try (FileInputStream fis = new FileInputStream(file)) {
       // Input stream of the file

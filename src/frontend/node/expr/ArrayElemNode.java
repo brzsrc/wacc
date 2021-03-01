@@ -3,6 +3,8 @@ package frontend.node.expr;
 import frontend.type.Type;
 
 import utils.NodeVisitor;
+import utils.frontend.symbolTable.Symbol;
+
 import java.util.List;
 
 import static utils.frontend.SemanticErrorHandler.arrayDepthError;
@@ -23,17 +25,25 @@ public class ArrayElemNode extends ExprNode {
   /* record the arrayDepth and indexDepth to decide if the indexing has too many layers */
   private final int arrayDepth, indexDepth;
 
-  public ArrayElemNode(ExprNode array, List<ExprNode> index, Type type, String ident) {
+  private final Symbol symbol;
+
+  public ArrayElemNode(ExprNode array, List<ExprNode> index, Type type, String ident, Symbol symbol) {
     this.array = array;
     this.index = index;
     this.type = type;
     this.arrayDepth = array.getType().asArrayType().getDepth();
     this.indexDepth = index.size();
     this.ident = ident;
+    this.weight = 1;
+    this.symbol = symbol;
 
     if (arrayDepth < indexDepth) {
       arrayDepthError(null, array.getType(), index.size());
     }
+  }
+
+  public Symbol getSymbol() {
+    return symbol;
   }
 
   public String getName() {

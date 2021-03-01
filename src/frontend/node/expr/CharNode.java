@@ -16,6 +16,7 @@ public class CharNode extends ExprNode {
   public CharNode(char c) {
     this.val = c;
     this.type = new BasicType(BasicTypeEnum.CHAR);
+    this.weight = 1;
   }
 
   public int getAsciiValue() {

@@ -31,7 +31,6 @@ public class ARMCodeGenerator {
         }
 
         list.forEach(i -> program.append(i + "\n"));
-        
         return program.toString();
     }
 

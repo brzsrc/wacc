@@ -5,25 +5,27 @@ import utils.backend.Register;
 
 public class LDR extends Instruction {
 
+  public enum LdrMode { LDR, LDRB, LDREQ, LDRNE, LDRLT, LDRCS }
+
   private Register register;
   private Addressing addr;
-  /* 0: LDR, 1: LDREQ, -1: LDRNE */
-  private int cond = 0;
+  private LdrMode mode;
+
+  public LDR(Register register, Addressing addr, LdrMode mode) {
+    this.register = register;
+    this.addr = addr;
+    this.mode = mode;
+  }
 
   public LDR(Register register, Addressing addr) {
-    this.register = register;
-    this.addr = addr;
+    this(register, addr, LdrMode.LDR);
   }
-
-  public LDR(Register register, Addressing addr, boolean isEq) {
-    this.register = register;
-    this.addr = addr;
-    cond = (isEq)? cond + 1 : cond - 1;
-  }
-
 
   @Override
   public String assemble() {
-    return null;
+    StringBuilder str = new StringBuilder();
+    str.append(register + ", ");
+    str.append(addr);
+    return mode.name() + " " + str.toString();
   }
 }

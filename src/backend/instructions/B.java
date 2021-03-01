@@ -3,7 +3,8 @@ package backend.instructions;
 import utils.backend.Cond;
 
 public class B extends Instruction {
-  protected String label;
+
+  protected Label label;
   protected Cond cond;
 
   public B(String label) {
@@ -12,11 +13,11 @@ public class B extends Instruction {
 
   public B(Cond cond, String label) {
     this.cond = cond;
-    this.label = label;
+    this.label = new Label(label);
   }
 
   @Override
   public String assemble() {
-    return "B " + label;
+    return "B" + cond + " " + label.getName();
   }
 }

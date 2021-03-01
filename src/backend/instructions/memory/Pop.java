@@ -14,6 +14,6 @@ public class Pop extends Instruction {
 
   @Override
   public String assemble() {
-    return "POP {" + reglist + "}";
+    return "POP {" + reglist.stream().map(Register::toString).reduce((i, j) -> i + ", " + j).get() + "}";
   }
 }

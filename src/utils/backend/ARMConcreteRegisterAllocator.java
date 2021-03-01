@@ -9,9 +9,12 @@ import static utils.backend.ARMConcreteRegister.*;
 
 public class ARMConcreteRegisterAllocator {
 
-    public static final int GENERAL_REG_START = 4;
-    public static final Map<ARMRegisterLabel, Integer> ARMspecialRegMapping = Map.of(ARMRegisterLabel.SP, 13,
-            ARMRegisterLabel.SLR, 14, ARMRegisterLabel.PC, 15);
+    public static final int GENERAL_REG_START = 4, GENERAL_REG_END = 12;
+    public static final Map<ARMRegisterLabel, Integer> ARMspecialRegMapping = Map.of(
+            ARMRegisterLabel.R0, 0,
+            ARMRegisterLabel.SP, 13,
+            ARMRegisterLabel.LR, 14,
+            ARMRegisterLabel.PC, 15);
 
     private List<ARMConcreteRegister> registers;
     private int registerCounter;
@@ -23,11 +26,11 @@ public class ARMConcreteRegisterAllocator {
     }
 
     public ARMConcreteRegister curr() {
-        return registers.get(registerCounter - 1);
+        return registers.get(registerCounter > GENERAL_REG_START ? registerCounter - 1 : registerCounter);
     }
 
     public ARMConcreteRegister last() {
-        return registers.get(registerCounter - 2);
+        return registers.get(registerCounter > GENERAL_REG_START ? registerCounter - 2 : registerCounter);
     }
 
     public ARMConcreteRegister next() {
@@ -35,23 +38,27 @@ public class ARMConcreteRegisterAllocator {
     }
 
     public ARMConcreteRegister get(int counter) {
+
         return registers.get(counter);
     }
 
     public ARMConcreteRegister get(ARMRegisterLabel label) {
-        return registers.get(ARMspecialRegMapping.get(label));
+        return get(ARMspecialRegMapping.get(label));
     }
 
     public ARMConcreteRegister allocate() {
+        if (registerCounter < GENERAL_REG_START || registerCounter > GENERAL_REG_END) {
+            throw new IllegalArgumentException("cannot allocate register number: " + registerCounter);
+        }
         return registers.get(registerCounter++);
     }
 
     public ARMConcreteRegister free() {
-        return registers.get(registerCounter--);
+        return registers.get(--registerCounter);
     }
 
     private boolean isFull() {
-        return registerCounter < MAX_ARM_REGISTER;
+        return registerCounter > MAX_ARM_REGISTER;
     }
 
 }

@@ -1,7 +1,6 @@
 package backend.instructions.arithmeticLogic;
 
 import backend.instructions.LDR;
-import backend.instructions.Label;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import frontend.node.expr.UnopNode.Unop;
@@ -63,11 +62,10 @@ public abstract class ArithmeticLogic extends Instruction {
   public static final ArithmeticLogicAssemble CmpAsm = (rd, rn, op2, b) -> {
     List<Instruction> list = new ArrayList<>();
 
-    Operand2 rnop2 = new Operand2(rn);
     Operand2 one = new Operand2(new Immediate(1, BitNum.CONST8));
     Operand2 zero = new Operand2(new Immediate(0, BitNum.CONST8));
     
-    list.add(new Cmp(rd, rnop2));
+    list.add(new Cmp(rd, op2));
     /* default as false, set as true in following check */
     list.add(new Mov(rd, zero, MovType.MOV));
     list.add(new Mov(rd, one, Mov.binOpMovMap.get(b)));
