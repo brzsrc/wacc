@@ -9,8 +9,7 @@ variables:
 stages:
   - build
   - frontend-test
-  - backend-assemble
-  - backend-execute
+  - backend-test
 
 build-job:
   stage: build
@@ -53,26 +52,13 @@ test-semantics-check-semantic-err:
     - make && mkdir log
     - ./scripts/semanticCheckerSemanticErr
 
-test-assemble-valid:
-  stage: backend-assemble
-  script:
-    - echo "Testing whether files can be correctly assembled without any Java runtime error..."
-    - make && mkdir log
-    - cd log && mkdir assemble
-    - cd ..
-    - ./scripts/assembleValidTest.sh
-  artifacts:
-    paths:
-      - assembly.zip
-
 test-execute-valid:
-  stage: backend-execute
+  stage: backend
   script:
     - echo "Making arm executable for each assembly file and trying to execute them..."
     - make && mkdir log
-    - ./scripts/assembleValidTest.sh
-    - ./scripts/executeValidTest.sh
-  needs: ["test-assemble-valid"]
+    - ./scripts/assembleExecuteTest
   artifacts:
     paths:
+      - assembly.zip
       - output.zip
