@@ -138,10 +138,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     instructions.add(new Mov(addrReg, new Operand2(armRegAllocator.get(0))));
 
-    armRegAllocator.free();
-
     /* then allocate the content of the array to the corresponding address */
-    Register reg = armRegAllocator.allocate();
+    // Register reg = armRegAllocator.allocate();
 
     /* STR mode used to indicate whether to store a byte or a word */
     StrMode mode = node.getContentSize() > 1 ? StrMode.STR : StrMode.STRB;
@@ -149,10 +147,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     for (int i = 0; i < node.getLength(); i++) {
       visit(node.getElem(i));
       int STRIndex = i * WORD_SIZE + WORD_SIZE;
-      instructions.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.curr())));
-      instructions.add(new STR(addrReg, new AddressingMode2(AddrMode2.OFFSET, reg, new Immediate(STRIndex, BitNum.CONST8)), mode));
+      // instructions.add(new Mov(reg, new Operand2(armRegAllocator.curr())));
+      instructions.add(new STR(armRegAllocator.curr(), new AddressingMode2(AddrMode2.OFFSET, addrReg, new Immediate(STRIndex, BitNum.CONST8)), mode));
       armRegAllocator.free();
     }
+
+    // armRegAllocator.free();
 
     Register sizeReg = armRegAllocator.allocate();
     /* STR the size of the array in the first byte */
