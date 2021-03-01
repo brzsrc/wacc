@@ -53,7 +53,7 @@ test-semantics-check-semantic-err:
     - ./scripts/semanticCheckerSemanticErr
 
 test-execute-valid:
-  stage: backend
+  stage: backend-test
   script:
     - echo "Making arm executable for each assembly file and trying to execute them..."
     - make && mkdir log
