@@ -76,7 +76,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public ARMInstructionGenerator() {
     currSymbolTable = null;
     labelGenerator = new LabelGenerator("L");
-    isLhs = true;
+    isLhs = false;
     /* initialise constant fields */
     SP = armRegAllocator.get(ARMRegisterLabel.SP);
   }
@@ -171,10 +171,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitBinopNode(BinopNode node) {
     ExprNode expr1 = node.getExpr1();
     ExprNode expr2 = node.getExpr2();
-    Register e2reg;
-    Register e1reg;
+    Register e1reg, e2reg;
 
-    if(expr1.getWeight() > expr2.getWeight()) {
+    /* potential optimise here */
+    if(expr1.getWeight() >= expr2.getWeight()) {
       visit(expr1);
       visit(expr2);
       e2reg = armRegAllocator.curr();
@@ -196,6 +196,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     if(operator == Binop.DIV || operator == Binop.MOD) {
       HelperFunction.addCheckDivByZero(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
+    if (expr1.getWeight() < expr2.getWeight()) {
+      instructions.add(new Mov(e2reg, new Operand2(e1reg)));
+    }
     armRegAllocator.free();
     
     return null;
@@ -215,7 +218,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitCharNode(CharNode node) {
     ARMConcreteRegister reg = armRegAllocator.allocate();
 
-    Immediate immed = new Immediate(node.getAsciiValue(), BitNum.SHIFT32);
+    Immediate immed = new Immediate(node.getAsciiValue(), BitNum.SHIFT32, true);
     instructions.add(new LDR(reg, new ImmediateAddressing(immed)));
     return null;
   }

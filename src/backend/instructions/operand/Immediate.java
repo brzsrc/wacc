@@ -6,10 +6,20 @@ public class Immediate {
 
   private int val;
   private BitNum bitNum;
+  private boolean isChar;
 
   public Immediate(int val, BitNum bitNum) {
+    this(val, bitNum, false);
+  }
+  
+  public Immediate(int val, BitNum bitNum, boolean isChar) {
     this.val = val;
     this.bitNum = bitNum;
+    this.isChar = isChar;
+  }
+
+  public boolean isChar() {
+    return isChar;
   }
 
   public int getVal() {
