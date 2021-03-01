@@ -21,7 +21,6 @@ import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
-import frontend.type.ArrayType;
 import frontend.type.Type;
 
 import java.util.LinkedHashMap;
@@ -34,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.*;
 
 import static backend.instructions.operand.Immediate.BitNum;
 import static utils.Utils.*;
@@ -48,6 +46,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   /* use linkedHashMap to ensure the correct ordering */
   private static Map<Label, String> dataSegmentMessages = new LinkedHashMap<>();
   private static List<String> textSegmentMessages = new ArrayList<>();
+  /* maximum of bytes that can be added/subtracted from the stack pointer */
+  public static int MAX_STACK_STEP = 1024;
+
   /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
   /* call getLabel on labelGenerator to get label in format LabelN */
@@ -303,7 +304,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     *    no need to check whether child has initialised, as it is in lhs */
     AddressingMode2 addrMode;
     Operand2 operand2;
-    if (node.isFist()) {
+    if (node.isFirst()) {
       addrMode = new AddressingMode2(AddrMode2.OFFSET, reg);
       operand2 = new Operand2(new Immediate(0, BitNum.CONST8));
     } else {
@@ -315,6 +316,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       instructions.add(new Add(reg, reg, operand2));
     } else {
       instructions.add(new LDR(reg, addrMode));
+      instructions.add(new Mov(armRegAllocator.get(ARMRegisterLabel.R0), new Operand2(reg)));
+      instructions.add(new BL("p_check_null_pointer"));
+      instructions.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, reg)));
     }
 
     return null;
@@ -341,14 +345,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(pairPointer, new Operand2(armRegAllocator.get(ARMRegisterLabel.R0))));
 
     /* 2 visit both child */
-    visitPairChildExpr(node.getFst(), pairPointer, true);
-
-    visitPairChildExpr(node.getSnd(), pairPointer, false);
+    visitPairChildExpr(node.getFst(), pairPointer, 0);
+    visitPairChildExpr(node.getSnd(), pairPointer, node.getFst().getType().getSize());
 
     return null;
   }
 
-  private void visitPairChildExpr(ExprNode child, Register pairPointer, boolean isFst) {
+  private void visitPairChildExpr(ExprNode child, Register pairPointer, int offset) {
     /* 1 visit fst expression, get result in general register */
     Register fstVal = armRegAllocator.next();
     visit(child);
@@ -360,12 +363,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 3 BL malloc, assign child value and get pointer in heap area pairPointer[0] or [1] */
     instructions.add(new BL(specialInstructions.get(SpecialInstruction.MALLOC)));
-    instructions.add(new STR(fstVal, new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.R0))));
-    if (isFst) {
-      instructions.add(new STR(armRegAllocator.get(ARMRegisterLabel.R0), new AddressingMode2(AddrMode2.OFFSET, pairPointer)));
-    } else {
-      instructions.add(new STR(armRegAllocator.get(ARMRegisterLabel.R0), new AddressingMode2(AddrMode2.OFFSET, pairPointer, new Immediate(POINTER_SIZE, BitNum.CONST8))));
-    }
+
+    StrMode mode = child.getType().getSize() > 1 ? StrMode.STR : StrMode.STRB;
+    instructions.add(new STR(fstVal, new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.R0)), mode));
+    instructions.add(new STR(armRegAllocator.get(ARMRegisterLabel.R0), new AddressingMode2(AddrMode2.OFFSET, pairPointer, new Immediate(offset, BitNum.CONST8))));
 
     /* free register used for storing child's value */
     armRegAllocator.free();
@@ -409,9 +410,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     isLhs = false;
 
     ARMConcreteRegister reg = armRegAllocator.last();
+    StrMode mode = node.getRhs().getType().getSize() > 1 ? StrMode.STR : StrMode.STRB ;
 
     instructions.add(new STR(reg,
-        new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.curr())));
+        new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.curr()), mode));
     armRegAllocator.free();
     armRegAllocator.free();
     return null;
@@ -522,20 +524,27 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     List<StatNode> list = node.getBody();
 
     int stackSize = node.getStackSize();
-    /* if necessary, change stack pointer for storing variable */
-    if (stackSize != 0) {
+
+    int temp = stackSize;
+    while (temp > 0) {
+      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
       instructions.add(new Sub(SP, SP,
-              new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
+              new Operand2(new Immediate(realStackSize, BitNum.SHIFT32))));
+      temp = temp - realStackSize;
     }
+
     currSymbolTable = node.getScope();
     for (StatNode elem : list) {
       visit(elem);
     }
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
-    if (stackSize != 0) {
+    temp = stackSize;
+    while (temp > 0) {
+      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
       instructions.add(new Add(SP, SP,
-              new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
+              new Operand2(new Immediate(realStackSize, BitNum.SHIFT32))));
+      temp = temp - realStackSize;
     }
 
     return null;

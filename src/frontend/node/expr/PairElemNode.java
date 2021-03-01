@@ -11,16 +11,16 @@ public class PairElemNode extends ExprNode {
    */
 
   private final ExprNode pair;
-  private final boolean isFist;
+  private final boolean isFirst;
 
   public PairElemNode(ExprNode pair, Type type, boolean isFirst) {
     this.pair = pair;
     this.type = type;
-    this.isFist = isFirst;
+    this.isFirst = isFirst;
   }
 
-  public boolean isFist() {
-    return isFist;
+  public boolean isFirst() {
+    return isFirst;
   }
 
   public ExprNode getPair() {

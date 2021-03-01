@@ -223,7 +223,7 @@ public class HelperFunction {
     helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
     helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
     helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
-    helperFunctions.add(new BL(Cond.EQ, Helper.CHECK_NULL_POINTER.toString()));
+    helperFunctions.add(new BL(Cond.EQ, Helper.THROW_RUNTIME_ERROR.toString()));
     helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
     addThrowRuntimeError(data, helperFunctions, allocator);
 

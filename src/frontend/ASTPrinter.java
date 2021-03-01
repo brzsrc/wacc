@@ -95,7 +95,7 @@ public class ASTPrinter implements NodeVisitor<Void> {
 
   @Override
   public Void visitPairElemNode(PairElemNode node) {
-    System.out.print(node.isFist() ? "fst " : "snd ");
+    System.out.print(node.isFirst() ? "fst " : "snd ");
     visit(node.getPair());
     return null;
 
