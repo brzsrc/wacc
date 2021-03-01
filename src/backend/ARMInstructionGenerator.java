@@ -444,6 +444,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     currSymbolTable = node.getScope();
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
+    armRegAllocator.free();
     Type type = node.getExpr().getType();
     if(type.equalToType(ARRAY_TYPE)) {
       instructions.add(new BL("p_free_array"));
