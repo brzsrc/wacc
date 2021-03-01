@@ -64,7 +64,7 @@ public class Compiler {
           painter.visit(program);
         }
 
-        if (cmd_ops.contains("--assembly")) {
+        if (cmd_ops.contains("--assembly") || cmd_ops.contains("--execute")) {
           ARMInstructionGenerator generator = new ARMInstructionGenerator();
           generator.visit(program);
           DataSegment data = new DataSegment(generator.getDataSegmentMessages());
@@ -82,6 +82,10 @@ public class Compiler {
             }
           } else {
             System.out.println("File already exists");
+          }
+
+          if (cmd_ops.contains("--assembly")) {
+            System.out.println(printer.translate());
           }
         }
       }

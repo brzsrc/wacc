@@ -41,7 +41,7 @@ public class FuncNode implements Node {
   public void setFunctionBody(StatNode functionBody) {
     int bodyStackSize = functionBody.getScope().getSize() - paramListStackSize() + POINTER_SIZE;
     for (IdentNode param : parameters) {
-      functionBody.getScope().pushIdentStackOffset(bodyStackSize, param.getName());
+      // functionBody.getScope().pushIdentStackOffset(bodyStackSize, param.getName());
     }
     this.functionBody = functionBody;
   }
