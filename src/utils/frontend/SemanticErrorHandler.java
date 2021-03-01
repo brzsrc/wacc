@@ -24,33 +24,21 @@ public class SemanticErrorHandler {
 
   public static void typeMismatch(ParserRuleContext ctx, Type expected, Type actual) {
     String msg =
-<<<<<<< HEAD:src/utils/SemanticErrorHandler.java
-        "Incompatible type at " + ctx.getText() + ": Expected type " + expected + 
-=======
         "Incompatible type at '" + ctx.getText() + "'': Expected type " + expected +
->>>>>>> develop:src/utils/frontend/SemanticErrorHandler.java
         ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
 
   public static void typeMismatch(ParserRuleContext ctx, Set<Type> expected, Type actual) {
     String msg = 
-<<<<<<< HEAD:src/utils/SemanticErrorHandler.java
-        "Incompatible type at " + ctx.getText() + ": Expected types are " + expected + 
-=======
         "Incompatible type at '" + ctx.getText() + "'': Expected types are " + expected +
->>>>>>> develop:src/utils/frontend/SemanticErrorHandler.java
         ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
 
   public static void typeMismatch(ParserRuleContext ctx, String ident, Type expected, Type actual) {
     String msg =
-<<<<<<< HEAD:src/utils/SemanticErrorHandler.java
-        "Incompatible type at " + ctx.getText() + ": Expected type " + expected + 
-=======
         "Incompatible type at '" + ctx.getText() + "'': Expected type " + expected +
->>>>>>> develop:src/utils/frontend/SemanticErrorHandler.java
         " for variable " + ident + ", but the actual type is " + actual;
     errorHandler(ctx, msg);
   }
