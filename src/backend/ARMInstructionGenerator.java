@@ -99,12 +99,14 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       if (!(index instanceof IntegerNode)) {
         visit(index);
         indexReg = armRegAllocator.curr();
+        if (isLhs) {
+          instructions.add(new LDR(indexReg, new AddressingMode2(AddrMode2.OFFSET, indexReg)));
+        }
       } else {
         indexReg = armRegAllocator.allocate();
-      }
-
-      if (isLhs) {
-        instructions.add(new LDR(indexReg, new AddressingMode2(AddrMode2.OFFSET, indexReg)));
+        if (isLhs) {
+          instructions.add(new LDR(indexReg, new ImmediateAddressing(new Immediate(((IntegerNode) index).getVal(), BitNum.CONST8))));
+        }
       }
       
       /* check array bound */

@@ -16,12 +16,8 @@ public class B extends Instruction {
     this.label = new Label(label);
   }
 
-  protected String getRestAssemble() {
-    return cond +  " " + label.getName();
-  }
-
   @Override
   public String assemble() {
-    return "B" + getRestAssemble();
+    return "B" + cond + " " + label.getName();
   }
 }
