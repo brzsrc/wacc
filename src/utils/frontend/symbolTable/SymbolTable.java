@@ -35,7 +35,15 @@ public class SymbolTable {
     return false;
   }
 
+  /* used when update parameters of function,
+   * so that their offset is relative to whole function's stack,
+   * instead of the stack area passing parameters in */
+  public void pushIdentStackOffset(int offset, String ident) {
+    dictionary.get(ident).pushStackOffset(offset);
+  }
+
   public Symbol lookup(String name) {
+    // System.out.println("looking up " + name + dictionary.get(name).getStackOffset());
     return dictionary.get(name);
   }
 

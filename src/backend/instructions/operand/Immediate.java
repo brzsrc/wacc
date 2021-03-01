@@ -32,6 +32,9 @@ public class Immediate {
 
   @Override
   public String toString() {
+    if (isChar) {
+      return "#\'" + (char) val + "\'";
+    }
     return "#" + val;
   }
 }
