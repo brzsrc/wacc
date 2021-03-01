@@ -37,7 +37,7 @@ public class Operand2 {
         StringBuilder res = new StringBuilder();
         /* TODO: need better code quality here */
         if (Rm != null) res.append(Rm.toString());
-        if (operator != Operand2Operator.NONE) res.append(", " + operator.toString() + ", ");
+        if (operator != Operand2Operator.NONE) res.append(", " + operator.toString() + " ");
         if (immed != null) res.append(immed.toString());
         return res.toString();
     }   
