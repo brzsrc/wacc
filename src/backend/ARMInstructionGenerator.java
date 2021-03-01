@@ -508,7 +508,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitReturnNode(ReturnNode node) {
-    /* TODO: xz1919 */
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(15))));
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(15))));
+    instructions.add(new Label(".ltorg"));
     return null;
   }
 
@@ -612,6 +615,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
     }
     currSymbolTable = node.getFunctionBody().getScope();
+    instructions.add(new Push(Collections.singletonList(armRegAllocator.get(14))));
     visit(node.getFunctionBody());
     if (stackSize != 0) {
       instructions.add(new Add(SP, SP,
