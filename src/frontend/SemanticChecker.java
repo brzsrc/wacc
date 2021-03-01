@@ -18,6 +18,7 @@ import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 
 import frontend.type.*;
+import utils.frontend.symbolTable.Symbol;
 import utils.frontend.symbolTable.SymbolTable;
 
 import static utils.frontend.SemanticErrorHandler.*;
@@ -218,11 +219,14 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitScopeStat(ScopeStatContext ctx) {
     /* simply create a new SymbolTable to represent a BEGIN ... END statement */
     currSymbolTable = new SymbolTable(currSymbolTable);
+    int prevStackCounter = stackAddrCounter;
+    stackAddrCounter = 0;
     StatNode body = visit(ctx.stat()).asStatNode();
     ScopeNode scopeNode = new ScopeNode(body);
     if (scopeNode.getScope() == null) {
       scopeNode.setScope(currSymbolTable);
     }
+    stackAddrCounter = prevStackCounter;
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     return scopeNode;
@@ -317,11 +321,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       /* need to set the type of the rhs expression */
       expr.setType(varType);
     }
+    semanticError |= currSymbolTable.add(varName, expr, stackAddrCounter);
 
     StatNode node = new DeclareNode(varName, expr);
     node.setScope(currSymbolTable);
 
-    semanticError |= currSymbolTable.add(varName, expr, stackAddrCounter);
 
     stackAddrCounter += expr.getType().getSize();
 
@@ -372,7 +376,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitArray_elem(Array_elemContext ctx) {
 
     String arrayIdent = ctx.IDENT().getText();
-    ExprNode array = lookUpWithNotFoundException(ctx, currSymbolTable, arrayIdent);
+    Symbol symbol = lookUpWithNotFoundException(ctx, currSymbolTable, arrayIdent);
+    ExprNode array = symbol.getExprNode();
 
     /* special case: if ident is not array, cannot call asArrayType on it, exit directly */
     if (typeCheck(ctx, ARRAY_TYPE, array.getType())) {
@@ -389,7 +394,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       indexList.add(index);
     }
 
-    return new ArrayElemNode(array, indexList, array.getType().asArrayType().getContentType(), arrayIdent);
+    return new ArrayElemNode(array, indexList, array.getType().asArrayType().getContentType(), arrayIdent, symbol);
   }
 
   @Override
@@ -445,9 +450,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitIdent(IdentContext ctx) {
     String varName = ctx.IDENT().getText();
-    ExprNode value = lookUpWithNotFoundException(ctx, currSymbolTable, varName);
+    Symbol symbol = lookUpWithNotFoundException(ctx, currSymbolTable, varName);
 
-    return new IdentNode(value.getType(), varName);
+    IdentNode idNode = new IdentNode(symbol.getExprNode().getType(), varName);
+    idNode.setSymbol(symbol);
+    return idNode;
   }
 
   @Override
@@ -551,8 +558,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitIdExpr(IdExprContext ctx) {
     String name = ctx.IDENT().getText();
-    ExprNode value = lookUpWithNotFoundException(ctx, currSymbolTable, name);
-    return new IdentNode(value.getType(), name);
+    Symbol symbol = lookUpWithNotFoundException(ctx, currSymbolTable, name);
+    IdentNode identNode = new IdentNode(symbol.getExprNode().getType(), name);
+    identNode.setSymbol(symbol);
+
+    return identNode;
   }
 
   @Override

@@ -3,6 +3,7 @@ package utils.frontend.symbolTable;
 import java.util.HashMap;
 
 import frontend.node.expr.ExprNode;
+import frontend.node.expr.IdentNode;
 import utils.frontend.SemanticErrorHandler;
 
 public class SymbolTable {
@@ -57,7 +58,7 @@ public class SymbolTable {
     return parentSymbolTable;
   }
 
-  public int getStackOffset(String ident) {
+  public int getStackOffset(String name, Symbol symbol) {
     /** change from previous implementation:
      *    Offset in map is from top of stack to bottom
      *        +-----------+
@@ -69,12 +70,13 @@ public class SymbolTable {
      *        +-----------+
      */
     /* if ident is defined in current scope, return its offset */
-    if (dictionary.containsKey(ident)) {
-      return dictionary.get(ident).getStackOffset();
+    if (dictionary.containsKey(name)
+            && dictionary.get(name) == symbol) {
+      return symbol.getStackOffset();
     }
     /* else, get its offset from upper scope */
     if (parentSymbolTable != null) {
-      return parentSymbolTable.getStackOffset(ident) + scopeSize;
+      return parentSymbolTable.getStackOffset(name, symbol) + scopeSize;
     }
 
     /* else, unhandled ident undefined error from semantic checker */

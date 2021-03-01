@@ -82,7 +82,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitArrayElemNode(ArrayElemNode node) {
     /* get the address of this array and store it in an available register */
     Register addrReg = armRegAllocator.allocate();
-    Operand2 operand2 = new Operand2(new Immediate(currSymbolTable.getStackOffset(node.getName()), BitNum.CONST8));
+    Operand2 operand2 = new Operand2(new Immediate(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()), BitNum.CONST8));
     instructions.add(new Add(addrReg, SP, operand2));
 
     /* TODO: make a helper function out of this */
@@ -259,10 +259,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitIdentNode(IdentNode node) {
-    String identName = node.getName();
 
     /* put pointer that point to ident's value in stack to next available register */
-    int offset = currSymbolTable.getStackOffset(identName);
+    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol());
     LdrMode mode = node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRB;
 
     Immediate immed = new Immediate(offset, BitNum.CONST8);
@@ -420,7 +419,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     StrMode strMode = node.getRhs().getType().getSize() == 1 ? StrMode.STRB : StrMode.STR;
     instructions.add(new STR(armRegAllocator.curr(),
         new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.SP),
-            new Immediate(node.getScope().getStackOffset(node.getIdentifier()), BitNum.CONST8)), strMode));
+            new Immediate(node.getScope().lookup(node.getIdentifier()).getStackOffset(), BitNum.CONST8)), strMode));
     armRegAllocator.free();
     return null;
   }
