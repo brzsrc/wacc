@@ -26,7 +26,9 @@ public class CodeSegment implements Directive {
         List<String> list = new ArrayList<>();
         list.add("\t.global main");
         for (Instruction i : instructionList) {
-            list.add("\t".repeat(i.getIndentationLevel()) + i.assemble());
+            String tabs = "";
+            for (int j = 0; j < i.getIndentationLevel(); j ++) { tabs += "\t"; }
+            list.add(tabs + i.assemble());
         }
         return list;
     }
