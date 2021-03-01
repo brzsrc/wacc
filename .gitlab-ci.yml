@@ -17,8 +17,9 @@ build-job:
     - echo "Building the WACC compiler..."
     - make && mkdir log
   artifacts:
-    - bin
-    - log
+    paths:
+      - bin
+      - log
 
 test-parser-syntax-valid: 
   stage: frontend-test
