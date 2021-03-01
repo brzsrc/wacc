@@ -66,7 +66,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private Register SP;
 
   /* special instruction mapping */
-  /* TODO: 把这里完善一下 */
   public enum SpecialInstruction { MALLOC, PRINT, PRINT_INT, PRINT_BOOL, PRINTLN, CHECK_ARRAY_BOUND }
   public static final Map<SpecialInstruction, String> specialInstructions = Map.ofEntries(
     new AbstractMap.SimpleEntry<SpecialInstruction, String>(SpecialInstruction.MALLOC, "malloc"),
