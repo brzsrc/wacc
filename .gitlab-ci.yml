@@ -56,13 +56,8 @@ test-execute-valid:
   script:
     - echo "Making arm executable for each assembly file and trying to execute them..."
     - ./scripts/assembleExecuteTest
+    - ./scripts/executeOutputTest
   artifacts:
     paths:
       - log/assembly
       - log/output
-
-test-output-valid:
-  stage: backend-test
-  script:
-    - echo "Comparing the output with the reference compiler..."
-    - ./scripts/executeOutputTest
