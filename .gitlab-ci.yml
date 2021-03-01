@@ -58,8 +58,8 @@ test-execute-valid:
     - ./scripts/assembleExecuteTest
   artifacts:
     paths:
-      - ./log/assembly
-      - ./log/output
+      - log/assembly
+      - log/output
 
 test-output-valid:
   stage: backend-test
