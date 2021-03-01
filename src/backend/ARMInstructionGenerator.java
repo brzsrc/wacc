@@ -21,6 +21,9 @@ import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
+import frontend.type.ArrayType;
+import frontend.type.Type;
+
 import java.util.LinkedHashMap;
 import utils.NodeVisitor;
 import utils.backend.*;
@@ -414,7 +417,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitDeclareNode(DeclareNode node) {
-    /* the returned value is now in r4 */
     visit(node.getRhs());
     StrMode strMode = node.getRhs().getType().getSize() == 1 ? StrMode.STRB : StrMode.STR;
     instructions.add(new STR(armRegAllocator.curr(),
@@ -440,8 +442,17 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitFreeNode(FreeNode node) {
     currSymbolTable = node.getScope();
-    /* TODO: xz1919 */
-    return null;
+    visit(node.getExpr());
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
+    Type type = node.getExpr().getType();
+    if(type.equalToType(ARRAY_TYPE)) {
+      instructions.add(new BL("p_free_array"));
+      HelperFunction.addFree(type, dataSegmentMessages, helperFunctions, armRegAllocator);
+    } else {
+      instructions.add(new BL("p_free_pair"));
+      HelperFunction.addFree(type, dataSegmentMessages, helperFunctions, armRegAllocator);
+    }
+    return null; 
   }
 
   @Override
@@ -557,6 +568,37 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     return null;
   }
 
+
+//  @Override
+//  public Void visitFunctionCallNode(FunctionCallNode node) {
+//    /*
+//     * 1 compute parameters, all parameter in stack also add into function's
+//     * identmap
+//     */
+//    List<ExprNode> params = node.getParams();
+//    int paramSize = 0;
+//    for (ExprNode expr : params) {
+//      Register reg = armRegAllocator.next();
+//      visit(expr);
+//      int size = expr.getType().getSize();
+//      instructions.add(new STR(reg,new AddressingMode2(AddrMode2.PREINDEX, SP, new Immediate(-size, BitNum.CONST8))));
+//      armRegAllocator.free();
+//
+//      paramSize += size;
+//    }
+//
+//    /* 2 call function with B instruction */
+//    instructions.add(new BL("f_" + node.getFunction().getFunctionName()));
+//
+//    /* 3 add back stack pointer */
+//    instructions.add(new Add(SP, SP, new Operand2(new Immediate(paramSize, BitNum.SHIFT32))));
+//
+//    /* 4 get result, put in register */
+//    instructions.add(new Mov(armRegAllocator.get(ARMRegisterLabel.R0), new Operand2(armRegAllocator.allocate())));
+//
+//    return null;
+//  }
+
   @Override
   public Void visitFuncNode(FuncNode node) {
     int stackSize = node.getFunctionBody().getScope().getSize();
@@ -570,7 +612,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
     currSymbolTable = node.getFunctionBody().getScope();
     visit(node.getFunctionBody());
-
     if (stackSize != 0) {
       instructions.add(new Add(SP, SP,
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));

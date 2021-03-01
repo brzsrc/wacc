@@ -6,6 +6,7 @@ import static utils.Utils.INT_BASIC_TYPE;
 import static utils.Utils.STRING_BASIC_TYPE;
 
 import backend.ARMInstructionGenerator.SpecialInstruction;
+import backend.instructions.B;
 import backend.instructions.BL;
 import backend.instructions.Cmp;
 import backend.instructions.Instruction;
@@ -32,12 +33,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static utils.Utils.ARRAY_TYPE;
+import static utils.Utils.PAIR_TYPE;
+
 public class HelperFunction {
 
   /* print char would directly call BL putChar instead */
   private enum Helper {
     READ_INT, READ_CHAR, PRINT_INT, PRINT_CHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
-    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, CHECK_NULL_POINTER;
+    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR, CHECK_NULL_POINTER;
     /* ... continue with some other helpers like runtime_error checker ... */
 
     @Override
@@ -153,6 +157,48 @@ public class HelperFunction {
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(ARMRegisterLabel.PC))));
     }
 
+  }
+
+  public static void addFree(Type type, Map<Label, String> data, List<Instruction> helperFunctions,
+    ARMConcreteRegisterAllocator allocator) {
+      Helper helper = (type.equalToType(ARRAY_TYPE))? Helper.FREE_ARRAY : Helper.FREE_PAIR;
+
+      /* only add the helper if it doesn't exist yet */
+      if (!alreadyExist.contains(helper)) {
+
+        /* add this helper into alreadyExist list */
+        alreadyExist.add(helper);
+
+        Label msg = null;
+        for(Label msg_ : data.keySet()) {
+          if(data.get(msg_).equals("\"NullReferenceError: dereference a null reference\\n\\0\"")) {
+            msg = msg_;
+            break;
+          }
+        }
+        if(msg == null)
+          msg = addMsg("\"NullReferenceError: dereference a null reference\\n\\0\"", data);
+
+        /* add the helper function label */
+        Label label = new Label(helper.toString());
+        helperFunctions.add(label);
+        helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
+        helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(1, BitNum.CONST8))));
+        helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDRNE));
+        helperFunctions.add(new B(Cond.EQ, "p_throw_runtime_error"));
+        if(type.equalToType(PAIR_TYPE)) {
+          helperFunctions.add(new Push(Collections.singletonList(allocator.get(0))));
+          helperFunctions.add(new LDR(allocator.get(0), new RegAddressing(allocator.get(0))));
+          helperFunctions.add(new BL("free"));
+          helperFunctions.add(new LDR(allocator.get(0), new RegAddressing(allocator.get(13))));
+          helperFunctions.add(new LDR(allocator.get(0), new AddressingMode2(AddrMode2.OFFSET, allocator.get(0), new Immediate(4, BitNum.CONST8))));
+          helperFunctions.add(new BL("free"));
+          helperFunctions.add(new Pop(Collections.singletonList(allocator.get(0))));
+        }
+        helperFunctions.add(new BL("free"));
+        helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
+        addThrowRuntimeError(data, helperFunctions, allocator);
+      }
   }
 
   public static void addCheckNullPointer(Map<Label, String> data, List<Instruction> helperFunctions,
