@@ -508,7 +508,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitReturnNode(ReturnNode node) {
-    /* TODO: xz1919 */
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(15))));
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(15))));
     return null;
   }
 
@@ -569,37 +571,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     return null;
   }
 
-
-//  @Override
-//  public Void visitFunctionCallNode(FunctionCallNode node) {
-//    /*
-//     * 1 compute parameters, all parameter in stack also add into function's
-//     * identmap
-//     */
-//    List<ExprNode> params = node.getParams();
-//    int paramSize = 0;
-//    for (ExprNode expr : params) {
-//      Register reg = armRegAllocator.next();
-//      visit(expr);
-//      int size = expr.getType().getSize();
-//      instructions.add(new STR(reg,new AddressingMode2(AddrMode2.PREINDEX, SP, new Immediate(-size, BitNum.CONST8))));
-//      armRegAllocator.free();
-//
-//      paramSize += size;
-//    }
-//
-//    /* 2 call function with B instruction */
-//    instructions.add(new BL("f_" + node.getFunction().getFunctionName()));
-//
-//    /* 3 add back stack pointer */
-//    instructions.add(new Add(SP, SP, new Operand2(new Immediate(paramSize, BitNum.SHIFT32))));
-//
-//    /* 4 get result, put in register */
-//    instructions.add(new Mov(armRegAllocator.get(ARMRegisterLabel.R0), new Operand2(armRegAllocator.allocate())));
-//
-//    return null;
-//  }
-
   @Override
   public Void visitFuncNode(FuncNode node) {
     int stackSize = node.getFunctionBody().getScope().getSize();
@@ -607,6 +578,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       stackSize -= ident.getType().getSize();
     }
     instructions.add(new Label("f_" + node.getFunctionName()));
+    instructions.add(new Push(Collections.singletonList(armRegAllocator.get(14))));
     if (stackSize != 0) {
       instructions.add(new Sub(SP, SP,
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
@@ -617,6 +589,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       instructions.add(new Add(SP, SP,
               new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
     }
+    instructions.add(new LTORG());
     return null;
   }
 
