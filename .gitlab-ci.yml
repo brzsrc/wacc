@@ -16,7 +16,7 @@ build-job:
   script:
     - echo "Building the WACC compiler..."
     - make && mkdir log
-  artifact:
+  artifacts:
     - bin
     - log
 
