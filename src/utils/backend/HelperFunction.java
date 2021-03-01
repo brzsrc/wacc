@@ -41,7 +41,8 @@ public class HelperFunction {
   /* print char would directly call BL putChar instead */
   private enum Helper {
     READ_INT, READ_CHAR, PRINT_INT, PRINT_CHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
-    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR, CHECK_NULL_POINTER;
+    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR, CHECK_NULL_POINTER,
+    THROW_OVERFLOW_ERROR;
     /* ... continue with some other helpers like runtime_error checker ... */
 
     @Override
@@ -277,6 +278,20 @@ public class HelperFunction {
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(negativeIndexLabel), LdrMode.LDRCS));
       helperFunctions.add(new BL(Cond.CS, "p_throw_runtime_error"));
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
+    }
+  }
+
+  public static void addThrowOverflowError(Map<Label, String> data, List<Instruction> helperFunctions,
+      ARMConcreteRegisterAllocator allocator) {
+    Helper helper = Helper.CHECK_ARRAY_BOUND;
+
+    Label msg = addMsg("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\n\"", data);
+
+    if (!alreadyExist.contains(helper)) {
+      /* add this helper into alreadyExist list */
+      alreadyExist.add(helper);
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDR));
+      helperFunctions.add(new BL("p_throw_runtime_error"));
     }
   }
 
