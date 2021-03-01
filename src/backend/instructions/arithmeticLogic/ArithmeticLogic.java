@@ -36,7 +36,7 @@ public abstract class ArithmeticLogic extends Instruction {
   };
 
   public static final ArithmeticLogicAssemble DivModAsm = (rd, rn, op2, b) -> {
-    /* op2 will not be used heree */
+    /* op2 will not be used here */
     List<Instruction> list = new ArrayList<>();
 
     Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
@@ -91,28 +91,13 @@ public abstract class ArithmeticLogic extends Instruction {
 
   public static final UnopAssemble ArrayLenAsm = (rd, rn) -> {
     List<Instruction> list = new ArrayList<>();
-    Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
     list.add(new LDR(rd, new AddressingMode2(AddrMode2.OFFSET, rd)));
-    Operand2 len = new Operand2(rd);
-    list.add(new Mov(r0, len));
-    list.add(new BL("p_print_int"));
-    return list;
-  };
-
-  public static UnopAssemble ChrAsm = (rd, rn) -> {
-    List<Instruction> list = new ArrayList<>();
-    Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
-    Operand2 int_ = new Operand2(rd);
-    list.add(new Mov(r0, int_));
-    list.add(new BL("putchar"));
     return list;
   };
 
   public static UnopAssemble NegationAsm = (rd, rn) -> {
     List<Instruction> list = new ArrayList<>();
     list.add(new Rsb(rd, rn, new Operand2(new Immediate(0, BitNum.CONST8))));
-    /* TODO: not sure if the Mov instruction needs to be added or not
-    list.add(new Mov(new ARMConcreteRegister(ARMRegisterLabel.R0), new Operand2(rd))); */
     return list;
   };
 
@@ -122,21 +107,10 @@ public abstract class ArithmeticLogic extends Instruction {
     return list;
   };
 
-  public static UnopAssemble OrdAsm = (rd, rn) -> {
-    List<Instruction> list = new ArrayList<>();
-    Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
-    Operand2 chr = new Operand2(rd);
-    list.add(new Mov(r0, chr));
-    list.add(new BL("p_print_int"));
-    return list;
-  };
-
   public static final Map<Unop, UnopAssemble> unopInstruction = Map.ofEntries(
     new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.LEN, ArrayLenAsm),
-      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm),
     new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.MINUS, NegationAsm),
-    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, LogicNotAsm),
-    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, OrdAsm)
+    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, LogicNotAsm)
   );
 
   protected Register Rd, Rn;

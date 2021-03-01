@@ -223,7 +223,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitIntegerNode(IntegerNode node) {
-    // todo: same as visitCharNode
     ARMConcreteRegister reg = armRegAllocator.allocate();
 
     Immediate immed = new Immediate(node.getVal(), BitNum.SHIFT32);
@@ -392,6 +391,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getExpr());
     Register reg = armRegAllocator.curr();
     Unop operator = node.getOperator();
+
     List<Instruction> insList = ArithmeticLogic.unopInstruction
         .get(operator)
         .unopAssemble(reg, reg);
@@ -506,7 +506,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitReadNode(ReadNode node) {
-    /* TODO: visit the "address" of node.getInputExpr() and Mov r4 int or0 */
+    visit(node.getInputExpr());
+    instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
     HelperFunction.addRead(node.getInputExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     return null;
   }
