@@ -126,9 +126,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
       instructions.add(new Add(addrReg, addrReg, new Operand2(new Immediate(POINTER_SIZE, BitNum.CONST8))));
       
-      // Map<Integer, Integer> arrayElemLSLMapping = Map.of(4, 2, 2, 1, 1, 0);
-      // int elemSize = arrayElemLSLMapping.get(node.getType().getSize());
-      instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, Operand2Operator.LSL, new Immediate(2, BitNum.CONST8))));
+      Map<Integer, Integer> arrayElemLSLMapping = Map.of(4, 2, 2, 1, 1, 0);
+      int elemSize = arrayElemLSLMapping.get(node.getType().getSize());
+      instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, Operand2Operator.LSL, new Immediate(elemSize, BitNum.CONST8))));
       
       /* free indexReg to make it available for the indexing of the next depth */
       armRegAllocator.free();
@@ -136,7 +136,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* if is not lhs, load the array content to `reg` */
     if (!isLhs) {
-      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
+      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg), node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRSB));
     }
     return null;
   }
