@@ -203,7 +203,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
 
     ArithmeticLogicAssemble ass = ArithmeticLogic.binopInstruction.get(operator);
-    if(ass == ArithmeticLogic.CmpAsm || ass == ArithmeticLogic.BasicBinopAsm) {
+    // todo: is there any case cmp need a throw overflow
+    // if(ass == ArithmeticLogic.CmpAsm || ass == ArithmeticLogic.BasicBinopAsm) {
+    if(ass == ArithmeticLogic.BasicBinopAsm) {
       instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
       HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
