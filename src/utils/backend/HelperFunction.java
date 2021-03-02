@@ -40,7 +40,7 @@ public class HelperFunction {
 
   /* print char would directly call BL putChar instead */
   private enum Helper {
-    READ_INT, READ_CHAR, PRINT_INT, PUTCHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
+    READ_INT, READ_CHAR, PRINT_INT, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
     CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR, CHECK_NULL_POINTER,
     THROW_OVERFLOW_ERROR;
     /* ... continue with some other helpers like runtime_error checker ... */
@@ -63,7 +63,7 @@ public class HelperFunction {
   private static Map<Helper, String> printSingleMap = new HashMap<>() {
     {
       put(Helper.PRINT_INT, "\"%d\\0\"");
-      put(Helper.PUTCHAR, "\"%c\\0\"");
+      // put(Helper.PUTCHAR, "\"%c\\0\"");
       put(Helper.PRINT_REFERENCE, "\"%p\\0\"");
     }
   };
@@ -114,7 +114,7 @@ public class HelperFunction {
       addPrintSingle(Helper.PRINT_INT, data, helperFunctions, allocator);
     } else if (type.equalToType(CHAR_BASIC_TYPE)) {
       instructions.add(new BL("putchar"));
-//      addPrintSingle(Helper.PUTCHAR, data, helperFunctions, allocator);
+      // addPrintSingle(Helper.PRINT_CHAR, data, helperFunctions, allocator);
     } else if (type.equalToType(BOOL_BASIC_TYPE)) {
       instructions.add(new BL(Helper.PRINT_BOOL.toString()));
       addPrintBool(data, helperFunctions, allocator);
@@ -272,11 +272,11 @@ public class HelperFunction {
       helperFunctions.add(new Label("p_check_array_bounds"));
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(indexOutOfBoundLabel), LdrMode.LDRLT));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(negativeIndexLabel), LdrMode.LDRLT));
       helperFunctions.add(new BL(Cond.LT, "p_throw_runtime_error"));
       helperFunctions.add(new LDR(allocator.get(1), new AddressingMode2(AddrMode2.OFFSET, allocator.get(1))));
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(allocator.get(1))));
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(negativeIndexLabel), LdrMode.LDRCS));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(indexOutOfBoundLabel), LdrMode.LDRCS));
       helperFunctions.add(new BL(Cond.CS, "p_throw_runtime_error"));
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
     }

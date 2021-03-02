@@ -83,6 +83,9 @@ public class ASTPrinter implements NodeVisitor<Void> {
   @Override
   public Void visitIdentNode(IdentNode node) {
     System.out.print(node.getName());
+    if (node.getSymbol() != null) {
+      System.out.print(" (" + node.getSymbol().getStackOffset() + ")");
+    }
     return null;
   }
 
@@ -253,8 +256,9 @@ public class ASTPrinter implements NodeVisitor<Void> {
   public Void visitScopeNode(ScopeNode node) {
     /* { */
     appendLeadingSpace();
-    System.out.println("{");
-    System.out.print("scope size = " + node.getStackSize());
+    System.out.println("{scope size = " + node.getStackSize() +
+            " current scope = " + node.getScope() +
+            " parent = " + node.getScope().getParentSymbolTable());
 
     /* stat body */
     leadingSpace += INDENT_SIZE;

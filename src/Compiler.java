@@ -64,7 +64,7 @@ public class Compiler {
           painter.visit(program);
         }
 
-        if (cmd_ops.contains("--assembly")) {
+        if (cmd_ops.contains("--assembly") || cmd_ops.contains("--execute")) {
           ARMInstructionGenerator generator = new ARMInstructionGenerator();
           generator.visit(program);
           DataSegment data = new DataSegment(generator.getDataSegmentMessages());
@@ -81,16 +81,11 @@ public class Compiler {
             System.out.println("Assembly has been written to the file!");
           }
 
-//          if (asmFile.createNewFile()) {
-//            System.out.println("Assembly file created!");
-//            try (FileWriter asmWriter = new FileWriter(asmFile)) {
-//              asmWriter.write(printer.translate());
-//              asmWriter.close();
-//              System.out.println("Assembly has been written to the file!");
-//            }
-//          } else {
-//            System.out.println("File already exists");
-//          }
+          if (cmd_ops.contains("--assembly")) {
+            System.out.println(printer.translate());
+          }
+        } else {
+          System.out.println("File already exists");
         }
       }
     } catch (FileNotFoundException e) {

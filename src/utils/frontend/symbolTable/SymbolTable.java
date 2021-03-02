@@ -37,7 +37,8 @@ public class SymbolTable {
 
   /* used when update parameters of function,
    * so that their offset is relative to whole function's stack,
-   * instead of the stack area passing parameters in */
+   * instead of the stack area passing parameters in 
+   */
   public void pushIdentStackOffset(int offset, String ident) {
     dictionary.get(ident).pushStackOffset(offset);
   }
@@ -84,7 +85,7 @@ public class SymbolTable {
     }
     /* else, get its offset from upper scope */
     if (parentSymbolTable != null) {
-      return parentSymbolTable.getStackOffset(name, symbol) + scopeSize;
+      return parentSymbolTable.getStackOffset(name, symbol) - parentSymbolTable.getSize();
     }
 
     /* else, unhandled ident undefined error from semantic checker */
