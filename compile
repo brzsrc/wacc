@@ -39,4 +39,4 @@ then
 fi
 
 # compile the given wacc file here
-java -cp ./bin:./lib/antlr-4.9.1-complete.jar Compiler $1 $PARSE_ONLY $PRINT_AST $OPTIMIZE $ASSEMBLY $EXECUTE
+java -cp ./bin:./lib/antlr-4.9.1-complete.jar Compiler $1 $PARSE_ONLY $PRINT_AST $OPTIMIZE "--assembly" $EXECUTE
