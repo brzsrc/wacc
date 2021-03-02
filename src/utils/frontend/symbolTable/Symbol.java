@@ -11,8 +11,15 @@ public class Symbol {
       this.stackOffset = stackOffset;
     }
 
+    /** IMPORTANT 
+     *   1 only used when update params 
+     *   2 since operant store offset from top of scope, push means move up stack offset 
+     *     should decrease offset  
+     */
     public void pushStackOffset(int stackOffset) {
-      this.stackOffset += stackOffset;
+      // System.out.println("before stackOffset is " + this.stackOffset);
+      // System.out.println("after stackOffset is " + (this.stackOffset - stackOffset));
+      this.stackOffset -= stackOffset;
     }
   
     public ExprNode getExprNode() {

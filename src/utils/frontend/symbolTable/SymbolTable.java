@@ -37,7 +37,8 @@ public class SymbolTable {
 
   /* used when update parameters of function,
    * so that their offset is relative to whole function's stack,
-   * instead of the stack area passing parameters in */
+   * instead of the stack area passing parameters in 
+   */
   public void pushIdentStackOffset(int offset, String ident) {
     dictionary.get(ident).pushStackOffset(offset);
   }

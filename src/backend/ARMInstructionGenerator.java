@@ -92,7 +92,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitArrayElemNode(ArrayElemNode node) {
     /* get the address of this array and store it in an available register */
     Register addrReg = armRegAllocator.allocate();
-    int offset = currSymbolTable.getSize() - (currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) + node.getType().getSize()) + stackOffset;
+    int offset = currSymbolTable.getSize() 
+                 - currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) 
+                 - POINTER_SIZE 
+                 + stackOffset;
     Operand2 operand2 = new Operand2(new Immediate(offset, BitNum.CONST8));
     instructions.add(new Add(addrReg, SP, operand2));
 
@@ -263,7 +266,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       Register reg = armRegAllocator.next();
       visit(expr);
       int size = expr.getType().getSize();
-      instructions.add(new STR(reg,new AddressingMode2(AddrMode2.PREINDEX, SP, new Immediate(-size, BitNum.CONST8))));
+      StrMode mode = size > 1 ? StrMode.STR : StrMode.STRB;
+      instructions.add(new STR(reg,new AddressingMode2(AddrMode2.PREINDEX, SP, new Immediate(-size, BitNum.CONST8)), mode));
       armRegAllocator.free();
 
       paramSize += size;
@@ -288,15 +292,25 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitIdentNode(IdentNode node) {
 
+    // System.out.println("id:" + node.getName());
+    // System.out.println(currSymbolTable.getSize());
+    // System.out.println(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()));
+    // System.out.println(node.getType().getSize());
+    // System.out.println(stackOffset);
+
+    int identTypeSize = node.getType().getSize();
     /* put pointer that point to ident's value in stack to next available register */
-    int offset = currSymbolTable.getSize() - currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) - node.getType().getSize() + stackOffset;
+    int offset = currSymbolTable.getSize() 
+                 - currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) 
+                 - identTypeSize
+                 + stackOffset;
     LdrMode mode;
-    if (node.getType().getSize() > 1) {
+    if (identTypeSize > 1) {
        mode = LdrMode.LDR;
-    } else if (node.getType().equalToType(BOOL_BASIC_TYPE)) {
-      mode = LdrMode.LDRSB;
+    // } else if (node.getType().equalToType(BOOL_BASIC_TYPE)) {
+    //   mode = LdrMode.LDRSB;
     } else {
-      mode = LdrMode.LDRB;
+      mode = LdrMode.LDRSB;
     }
 
     Immediate immed = new Immediate(offset, BitNum.CONST8);
@@ -460,10 +474,17 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitDeclareNode(DeclareNode node) {
     visit(node.getRhs());
-    StrMode strMode = node.getRhs().getType().getSize() == 1 ? StrMode.STRB : StrMode.STR;
+    int identTypeSize = node.getRhs().getType().getSize();
+    StrMode strMode = identTypeSize == 1 ? StrMode.STRB : StrMode.STR;
+
+    // System.out.println(node.getIdentifier());
+    // System.out.println(currSymbolTable.getSize());
+    // System.out.println(node.getScope().lookup(node.getIdentifier()).getStackOffset());
+    // System.out.println(identTypeSize);
+
     int offset = currSymbolTable.getSize() - 
                   (node.getScope().lookup(node.getIdentifier()).getStackOffset() + 
-                  node.getRhs().getType().getSize());
+                  identTypeSize);
 
     instructions.add(new STR(armRegAllocator.curr(),
         new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.SP),
