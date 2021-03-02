@@ -13,6 +13,6 @@ public class SMull extends ArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "SMULL " + Rd + ", " + Rn + ", " + Rd + ", " + Rn;
+    return "SMULL " + Rd + ", " + operand2 + ", " + Rd + ", " + operand2;
   }
 }

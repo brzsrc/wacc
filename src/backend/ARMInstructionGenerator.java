@@ -67,6 +67,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
    * USED FOR evaluating function parameters, not for changing parameters' offset in function body*/
   private int stackOffset;
 
+  /* used by visitFunc and visitReturn, set how many byte this function used on stack */
+  private int funcStackSize;
+
   /* constant fields */
   private Register SP;
 
@@ -122,8 +125,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       instructions.add(new BL(specialInstructions.get(SpecialInstruction.CHECK_ARRAY_BOUND)));
 
       instructions.add(new Add(addrReg, addrReg, new Operand2(new Immediate(POINTER_SIZE, BitNum.CONST8))));
-      instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, Operand2Operator.LSL, new Immediate(2, BitNum.CONST8))));
-
+      
+      Map<Integer, Integer> arrayElemLSLMapping = Map.of(4, 2, 2, 1, 1, 0);
+      int elemSize = arrayElemLSLMapping.get(node.getType().getSize());
+      instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, Operand2Operator.LSL, new Immediate(elemSize, BitNum.CONST8))));
+      
       /* free indexReg to make it available for the indexing of the next depth */
       armRegAllocator.free();
     }
@@ -202,14 +208,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
 
     Binop binop = operator;
-    if (binop == Binop.PLUS) {
+    if (binop == Binop.PLUS || operator == Binop.MINUS) {
       instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
       HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
 
     if (binop == Binop.MUL) {
-      instructions.add(new Cmp(e1reg, new Operand2(e2reg, Operand2Operator.ASR, new Immediate(31, BitNum.CONST8))));
+      instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, new Immediate(31, BitNum.CONST8))));
       instructions.add(new BL(Cond.NE, "p_throw_overflow_error"));
+      HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
 
     if (expr1.getWeight() < expr2.getWeight()) {
@@ -289,12 +296,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitIdentNode(IdentNode node) {
-
-    // System.out.println("id:" + node.getName());
-    // System.out.println(currSymbolTable.getSize());
-    // System.out.println(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()));
-    // System.out.println(node.getType().getSize());
-    // System.out.println(stackOffset);
 
     int identTypeSize = node.getType().getSize();
     /* put pointer that point to ident's value in stack to next available register */
@@ -446,6 +447,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
         .get(operator)
         .unopAssemble(reg, reg);
     instructions.addAll(insList);
+
+    if (operator == Unop.MINUS) {
+      instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
+      HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
+    }
+
     return null;
   }
 
@@ -474,11 +481,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getRhs());
     int identTypeSize = node.getRhs().getType().getSize();
     StrMode strMode = identTypeSize == 1 ? StrMode.STRB : StrMode.STR;
-
-    // System.out.println(node.getIdentifier());
-    // System.out.println(currSymbolTable.getSize());
-    // System.out.println(node.getScope().lookup(node.getIdentifier()).getStackOffset());
-    // System.out.println(identTypeSize);
 
     int offset = currSymbolTable.getSize() - 
                   (node.getScope().lookup(node.getIdentifier()).getStackOffset() + 
@@ -551,6 +553,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitPrintlnNode(PrintlnNode node) {
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
+    System.out.println(node.getExpr().getType());
     HelperFunction.addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     HelperFunction.addPrintln(instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     armRegAllocator.free();
@@ -582,6 +585,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
     armRegAllocator.free();
+    if (funcStackSize != 0) {
+      instructions.add(new Add(SP, SP,
+              new Operand2(new Immediate(funcStackSize, BitNum.SHIFT32))));
+    }
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
+
     return null;
   }
 
@@ -652,21 +661,16 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitFuncNode(FuncNode node) {
     /* cannot call get stack size on function body, as that will return 0 */
-    int stackSize = node.getFunctionBody().getScope().getSize();
-    stackSize -= node.paramListStackSize();
+    funcStackSize = node.getFunctionBody().getScope().getSize();
+    funcStackSize -= node.paramListStackSize();
     instructions.add(new Label("f_" + node.getFunctionName()));
     instructions.add(new Push(Collections.singletonList(armRegAllocator.get(14))));
-    if (stackSize != 0) {
+    if (funcStackSize != 0) {
       instructions.add(new Sub(SP, SP,
-              new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
+              new Operand2(new Immediate(funcStackSize, BitNum.SHIFT32))));
     }
     // currSymbolTable = node.getFunctionBody().getScope();
     visit(node.getFunctionBody());
-    if (stackSize != 0) {
-      instructions.add(new Add(SP, SP,
-              new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
-    }
-    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
     instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
     instructions.add(new LTORG());
     return null;

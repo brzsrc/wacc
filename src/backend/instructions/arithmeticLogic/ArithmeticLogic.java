@@ -32,11 +32,7 @@ public abstract class ArithmeticLogic extends Instruction {
       Binop.AND, new And(rd, rn, op2),
       Binop.OR, new Or(rd, rn, op2)
     );
-    List<Instruction> list = new ArrayList<>(List.of(m.get(b)));;
-    if (b == Binop.MUL) {
-      list.add(new Cmp(rn, new Operand2(rd, Operand2.Operand2Operator.ASR, new Immediate(31, BitNum.CONST8))));
-    }
-    return list;
+    return List.of(m.get(b));
   };
 
   public static final ArithmeticLogicAssemble DivModAsm = (rd, rn, op2, b) -> {
@@ -72,10 +68,6 @@ public abstract class ArithmeticLogic extends Instruction {
     /* default as false, set as true in following check */
     list.add(new Mov(rd, zero, MovType.MOV));
     list.add(new Mov(rd, one, Mov.binOpMovMap.get(b)));
-
-    /* this compare is for checking the result is true or false, 
-     * true or false value is set by previous 3 operations */
-    list.add(new Cmp(rd, op2));
 
     return list;
   };
