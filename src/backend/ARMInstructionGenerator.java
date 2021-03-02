@@ -343,11 +343,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     if (isLhs) {
       //instructions.add(new Add(reg, reg, operand2));
-      instructions.add(new LDR(reg, new RegAddressing(reg)));
+      instructions.add(new LDR(reg, addrMode));
     } else {
       instructions.add(new LDR(reg, addrMode));
-      // instructions.add(new Mov(armRegAllocator.get(ARMRegisterLabel.R0), new Operand2(reg)));
-      // instructions.add(new BL("p_check_null_pointer"));
       instructions.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, reg)));
     }
 
