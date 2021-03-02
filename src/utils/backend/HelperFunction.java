@@ -40,7 +40,7 @@ public class HelperFunction {
 
   /* print char would directly call BL putChar instead */
   private enum Helper {
-    READ_INT, READ_CHAR, PRINT_INT, PRINT_CHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
+    READ_INT, READ_CHAR, PRINT_INT, PUTCHAR, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
     CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR, CHECK_NULL_POINTER,
     THROW_OVERFLOW_ERROR;
     /* ... continue with some other helpers like runtime_error checker ... */
@@ -63,7 +63,7 @@ public class HelperFunction {
   private static Map<Helper, String> printSingleMap = new HashMap<>() {
     {
       put(Helper.PRINT_INT, "\"%d\\0\"");
-      put(Helper.PRINT_CHAR, "\"%c\\0\"");
+      put(Helper.PUTCHAR, "\"%c\\0\"");
       put(Helper.PRINT_REFERENCE, "\"%p\\0\"");
     }
   };
@@ -113,8 +113,8 @@ public class HelperFunction {
       instructions.add(new BL(Helper.PRINT_INT.toString()));
       addPrintSingle(Helper.PRINT_INT, data, helperFunctions, allocator);
     } else if (type.equalToType(CHAR_BASIC_TYPE)) {
-      instructions.add(new BL(Helper.PRINT_CHAR.toString()));
-      addPrintSingle(Helper.PRINT_CHAR, data, helperFunctions, allocator);
+      instructions.add(new BL("putchar"));
+//      addPrintSingle(Helper.PUTCHAR, data, helperFunctions, allocator);
     } else if (type.equalToType(BOOL_BASIC_TYPE)) {
       instructions.add(new BL(Helper.PRINT_BOOL.toString()));
       addPrintBool(data, helperFunctions, allocator);
@@ -184,8 +184,8 @@ public class HelperFunction {
         Label label = new Label(helper.toString());
         helperFunctions.add(label);
         helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
-        helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(1, BitNum.CONST8))));
-        helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDRNE));
+        helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
+        helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
         helperFunctions.add(new B(Cond.EQ, "p_throw_runtime_error"));
         if(type.equalToType(PAIR_TYPE)) {
           helperFunctions.add(new Push(Collections.singletonList(allocator.get(0))));
@@ -223,7 +223,7 @@ public class HelperFunction {
     helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
     helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
     helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
-    helperFunctions.add(new BL(Cond.EQ, Helper.CHECK_NULL_POINTER.toString()));
+    helperFunctions.add(new BL(Cond.EQ, Helper.THROW_RUNTIME_ERROR.toString()));
     helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
     addThrowRuntimeError(data, helperFunctions, allocator);
 
@@ -284,15 +284,17 @@ public class HelperFunction {
 
   public static void addThrowOverflowError(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
-    Helper helper = Helper.CHECK_ARRAY_BOUND;
-
-    Label msg = addMsg("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\n\"", data);
+    Helper helper = Helper.THROW_OVERFLOW_ERROR;
 
     if (!alreadyExist.contains(helper)) {
       /* add this helper into alreadyExist list */
       alreadyExist.add(helper);
+
+      Label msg = addMsg("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"", data);
+      helperFunctions.add(new Label("p_throw_overflow_error"));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDR));
       helperFunctions.add(new BL("p_throw_runtime_error"));
+      addThrowRuntimeError(data, helperFunctions, allocator);
     }
   }
 
@@ -307,7 +309,7 @@ public class HelperFunction {
       alreadyExist.add(helper);
 
       /* add the helper function label */
-      Label label = new Label(helper.toString());
+      Label label = new Label("p_throw_runtime_error");
       helperFunctions.add(label);
       helperFunctions.add(new BL(Helper.PRINT_STRING.toString()));
       helperFunctions.add(new Mov(allocator.get(0), new Operand2(new Immediate(-1, BitNum.CONST8))));

@@ -34,7 +34,7 @@ public class ARMConcreteRegisterAllocator {
     }
 
     public ARMConcreteRegister next() {
-        return isFull() ? null : registers.get(registerCounter + 1);
+        return isFull() ? null : registers.get(registerCounter);
     }
 
     public ARMConcreteRegister get(int counter) {

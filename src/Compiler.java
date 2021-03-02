@@ -71,21 +71,26 @@ public class Compiler {
           TextSegment text = new TextSegment();
           CodeSegment code = new CodeSegment(generator.getInstructions());
           ARMCodeGenerator printer = new ARMCodeGenerator(data, text, code, OptimizationLevel.NONE);
-          
-          System.out.println(printer.translate());
 
-          /* DO NOT DELETE THIS. WE DO NOT OUTPUT TO FILE DURING DEBUGGING! */
-          // File asmFile = new File(file.getName() + ".s");
-          // if (asmFile.createNewFile()) {
-          //   System.out.println("Assembly file created!");
-          //   try (FileWriter asmWriter = new FileWriter(asmFile)) {
-          //     asmWriter.write(printer.translate());
-          //     asmWriter.close();
-          //     System.out.println("Assembly has been written to the file!");
-          //   }
-          // } else {
-          //   System.out.println("File already exists");
-          // }
+          File asmFile = new File(file.getName().replaceFirst("[.][^.]+$", "") + ".s");
+
+          System.out.println("Assembly file created!");
+          try (FileWriter asmWriter = new FileWriter(asmFile)) {
+            asmWriter.write(printer.translate());
+            asmWriter.close();
+            System.out.println("Assembly has been written to the file!");
+          }
+
+//          if (asmFile.createNewFile()) {
+//            System.out.println("Assembly file created!");
+//            try (FileWriter asmWriter = new FileWriter(asmFile)) {
+//              asmWriter.write(printer.translate());
+//              asmWriter.close();
+//              System.out.println("Assembly has been written to the file!");
+//            }
+//          } else {
+//            System.out.println("File already exists");
+//          }
         }
       }
     } catch (FileNotFoundException e) {
