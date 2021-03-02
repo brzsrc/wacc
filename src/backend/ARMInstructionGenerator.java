@@ -92,7 +92,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitArrayElemNode(ArrayElemNode node) {
     /* get the address of this array and store it in an available register */
     Register addrReg = armRegAllocator.allocate();
-    Operand2 operand2 = new Operand2(new Immediate(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) + stackOffset, BitNum.CONST8));
+    int offset = currSymbolTable.getSize() - (currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) + node.getType().getSize()) + stackOffset;
+    Operand2 operand2 = new Operand2(new Immediate(offset, BitNum.CONST8));
     instructions.add(new Add(addrReg, SP, operand2));
 
     HelperFunction.addCheckArrayBound(dataSegmentMessages, helperFunctions, armRegAllocator);
@@ -199,11 +200,17 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       HelperFunction.addCheckDivByZero(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
 
-    ArithmeticLogicAssemble ass = ArithmeticLogic.binopInstruction.get(operator);
-    if(ass == ArithmeticLogic.CmpAsm || ass == ArithmeticLogic.BasicBinopAsm) {
+    Binop binop = operator;
+    if (binop == Binop.PLUS) {
       instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
       HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
+
+    if (binop == Binop.MUL) {
+      // instructions.add(new Cmp(Rd, operand2));
+      // instructions.add(new BL(Cond.));
+    }
+
     if (expr1.getWeight() < expr2.getWeight()) {
       instructions.add(new Mov(e2reg, new Operand2(e1reg)));
     }
@@ -282,7 +289,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitIdentNode(IdentNode node) {
 
     /* put pointer that point to ident's value in stack to next available register */
-    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) + stackOffset;
+    int offset = currSymbolTable.getSize() - currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) - node.getType().getSize() + stackOffset;
     LdrMode mode;
     if (node.getType().getSize() > 1) {
        mode = LdrMode.LDR;
