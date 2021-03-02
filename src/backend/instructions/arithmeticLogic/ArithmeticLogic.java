@@ -48,11 +48,11 @@ public abstract class ArithmeticLogic extends Instruction {
     list.add(new BL("p_check_divide_by_zero"));
     if (b.equals(Binop.DIV)) {
       list.add(new BL("__aeabi_idiv"));
-      list.add(new Mov(r0, dividend));
+      list.add(new Mov(rd, new Operand2(r0)));
     } else if (b.equals(Binop.MOD)) {
       list.add(new BL("__aeabi_idivmod"));
       /* we only put the remainder in the register and discard the quotient */
-      list.add(new Mov(r1, dividend));
+      list.add(new Mov(rd, new Operand2(r1)));
     }
 
     return list;
