@@ -4,6 +4,8 @@ public enum Cond {
   NULL,
   EQ,
   LT,
+  VS,
+  S,
   CS;
 
   @Override

@@ -10,6 +10,10 @@ public class Symbol {
       this.node = node;
       this.stackOffset = stackOffset;
     }
+
+    public void pushStackOffset(int stackOffset) {
+      this.stackOffset += stackOffset;
+    }
   
     public ExprNode getExprNode() {
       return node;
