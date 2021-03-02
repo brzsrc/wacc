@@ -95,7 +95,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Register addrReg = armRegAllocator.allocate();
     int offset = currSymbolTable.getSize() 
                  - currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) 
-                 - POINTER_SIZE 
                  + stackOffset;
     Operand2 operand2 = new Operand2(new Immediate(offset, BitNum.CONST8));
     instructions.add(new Add(addrReg, SP, operand2));
@@ -301,13 +300,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* put pointer that point to ident's value in stack to next available register */
     int offset = currSymbolTable.getSize() 
                  - currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) 
-                 - identTypeSize
                  + stackOffset;
     LdrMode mode;
     if (identTypeSize > 1) {
        mode = LdrMode.LDR;
-    // } else if (node.getType().equalToType(BOOL_BASIC_TYPE)) {
-    //   mode = LdrMode.LDRSB;
     } else {
       mode = LdrMode.LDRSB;
     }
@@ -362,7 +358,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
 
     if (isLhs) {
-      //instructions.add(new Add(reg, reg, operand2));
       instructions.add(new LDR(reg, addrMode));
     } else {
       instructions.add(new LDR(reg, addrMode));
@@ -394,7 +389,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 2 visit both child */
     visitPairChildExpr(node.getFst(), pairPointer, 0);
-    //visitPairChildExpr(node.getSnd(), pairPointer, node.getFst().getType().getSize());
     /* pair contains two pointers, each with size 4 */
     visitPairChildExpr(node.getSnd(), pairPointer, WORD_SIZE);
 
@@ -483,8 +477,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     StrMode strMode = identTypeSize == 1 ? StrMode.STRB : StrMode.STR;
 
     int offset = currSymbolTable.getSize() - 
-                  (node.getScope().lookup(node.getIdentifier()).getStackOffset() + 
-                  identTypeSize);
+                 node.getScope().lookup(node.getIdentifier()).getStackOffset();
 
     instructions.add(new STR(armRegAllocator.curr(),
         new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.get(ARMRegisterLabel.SP),
@@ -508,7 +501,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitFreeNode(FreeNode node) {
-    // currSymbolTable = node.getScope();
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
     armRegAllocator.free();
@@ -597,8 +589,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitScopeNode(ScopeNode node) {
     List<StatNode> list = node.getBody();
 
+    /* 1 leave space for variables in stack */
     int stackSize = node.getStackSize();
-
     int temp = stackSize;
     while (temp > 0) {
       int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
@@ -607,12 +599,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       temp = temp - realStackSize;
     }
 
+    /* 2 visit statements
+     *   set currentSymbolTable here, eliminate all other set symbol table in other statNode */
     currSymbolTable = node.getScope();
     for (StatNode elem : list) {
       visit(elem);
     }
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
+    /* 3 restore stack */
     temp = stackSize;
     while (temp > 0) {
       int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
@@ -659,17 +654,30 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitFuncNode(FuncNode node) {
-    /* cannot call get stack size on function body, as that will return 0 */
+    /* cannot call get stack size on function body, as that will return 0 
+     * public field used here, so that on visit return statement, return can add stack back */
     funcStackSize = node.getFunctionBody().getScope().getSize();
     funcStackSize -= node.paramListStackSize();
+
+    /* 1 add function label, 
+     *   PUSH {lr}
+     */
     instructions.add(new Label("f_" + node.getFunctionName()));
     instructions.add(new Push(Collections.singletonList(armRegAllocator.get(14))));
+
+    /* 2 decrease stack, leave space for variable in function body
+     *   DOES NOT include parameters' stack area */
     if (funcStackSize != 0) {
       instructions.add(new Sub(SP, SP,
               new Operand2(new Immediate(funcStackSize, BitNum.SHIFT32))));
     }
-    // currSymbolTable = node.getFunctionBody().getScope();
+
+    /* 3 visit function, 
+     *   RETURN are responsible for adding stack back 
+     */
     visit(node.getFunctionBody());
+
+    /* function always add pop and ltorg at the end of function body */
     instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
     instructions.add(new LTORG());
     return null;
@@ -677,19 +685,26 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitProgramNode(ProgramNode node) {
-    // currSymbolTable = node.getBody().getScope();
 
+    /* 1 translate all functions */
     for (FuncNode func : node.getFunctions().values()) {
       visitFuncNode(func);
     }
     
+    /* 2 start of main */
     Label mainLabel = new Label("main");
     instructions.add(mainLabel);
+    /* 3 PUSH {lr} */
     instructions.add(new Push(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.LR))));
-    visit(node.getBody());
-    instructions.add(new LDR(armRegAllocator.get(0), new ImmediateAddressing(new Immediate(0, BitNum.CONST8))));
-    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
 
+    /* 4 main body */
+    visit(node.getBody());
+
+    /* 5 set exit value */
+    instructions.add(new LDR(armRegAllocator.get(0), new ImmediateAddressing(new Immediate(0, BitNum.CONST8))));
+    
+    /* 6 POP {PC} .ltorg */
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
     instructions.add(new LTORG());
     return null;
   }
