@@ -98,7 +98,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     HelperFunction.addCheckArrayBound(dataSegmentMessages, helperFunctions, armRegAllocator);
     HelperFunction.addThrowRuntimeError(dataSegmentMessages, helperFunctions, armRegAllocator);
 
-    /* TODO: make a helper function out of this */
     Register indexReg;
     for (int i = 0; i < node.getDepth(); i++) {
       /* load the index at depth `i` to the next available register */
@@ -106,14 +105,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       if (!(index instanceof IntegerNode)) {
         visit(index);
         indexReg = armRegAllocator.curr();
-        if (!isLhs) {
+        if (isLhs) {
           instructions.add(new LDR(indexReg, new AddressingMode2(AddrMode2.OFFSET, indexReg)));
         }
       } else {
         indexReg = armRegAllocator.allocate();
-        if (!isLhs) {
-          instructions.add(new LDR(indexReg, new ImmediateAddressing(new Immediate(((IntegerNode) index).getVal(), BitNum.CONST8))));
-        }
+        instructions.add(new LDR(indexReg, new ImmediateAddressing(new Immediate(((IntegerNode) index).getVal(), BitNum.CONST8))));
       }
       
       /* check array bound */
