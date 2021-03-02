@@ -42,10 +42,9 @@ public abstract class ArithmeticLogic extends Instruction {
     Register r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
     Register r1 = new ARMConcreteRegister(ARMRegisterLabel.R1);
     Operand2 dividend = new Operand2(rd);
-    Operand2 dividor = new Operand2(rn);
 
     list.add(new Mov(r0, dividend));
-    list.add(new Mov(r1, dividor));
+    list.add(new Mov(r1, op2));
     list.add(new BL("p_check_divide_by_zero"));
     if (b.equals(Binop.DIV)) {
       list.add(new BL("__aeabi_idiv"));
