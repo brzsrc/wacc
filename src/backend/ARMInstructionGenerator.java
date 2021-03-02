@@ -136,7 +136,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* if is not lhs, load the array content to `reg` */
     if (!isLhs) {
-      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
+      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg), node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRSB));
     }
     return null;
   }
@@ -553,7 +553,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitPrintlnNode(PrintlnNode node) {
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
-    System.out.println(node.getExpr().getType());
     HelperFunction.addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     HelperFunction.addPrintln(instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     armRegAllocator.free();

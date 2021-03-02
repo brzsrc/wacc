@@ -5,7 +5,6 @@ import static utils.Utils.CHAR_BASIC_TYPE;
 import static utils.Utils.INT_BASIC_TYPE;
 import static utils.Utils.STRING_BASIC_TYPE;
 
-import backend.ARMInstructionGenerator.SpecialInstruction;
 import backend.instructions.B;
 import backend.instructions.BL;
 import backend.instructions.Cmp;
@@ -88,7 +87,7 @@ public class HelperFunction {
       alreadyExist.add(helper);
 
       /* add the format into the data list */
-      Label msg = addMsg((helper == Helper.READ_INT) ? "\"%d\\0\"" : "\"%c\\0\"", data);
+      Label msg = addMsg((helper == Helper.READ_INT) ? "\"%d\\0\"" : "\" %c\\0\"", data);
 
       /* add the helper function label */
       Label label = new Label(helper.toString());
