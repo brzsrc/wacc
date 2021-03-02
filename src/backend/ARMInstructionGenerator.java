@@ -92,7 +92,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitArrayElemNode(ArrayElemNode node) {
     /* get the address of this array and store it in an available register */
     Register addrReg = armRegAllocator.allocate();
-    int offset = currSymbolTable.getSize() - (currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) + node.getType().getSize()) + stackOffset;
+    int offset = currSymbolTable.getSize() - (currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) + POINTER_SIZE) + stackOffset;
     Operand2 operand2 = new Operand2(new Immediate(offset, BitNum.CONST8));
     instructions.add(new Add(addrReg, SP, operand2));
 
