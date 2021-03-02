@@ -185,7 +185,7 @@ public class HelperFunction {
         helperFunctions.add(label);
         helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
         helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
-        helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDRNE));
+        helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
         helperFunctions.add(new B(Cond.EQ, "p_throw_runtime_error"));
         if(type.equalToType(PAIR_TYPE)) {
           helperFunctions.add(new Push(Collections.singletonList(allocator.get(0))));
