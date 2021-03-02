@@ -6,6 +6,7 @@ import backend.instructions.*;
 import backend.instructions.addressing.Addressing;
 import backend.instructions.addressing.ImmediateAddressing;
 import backend.instructions.addressing.LabelAddressing;
+import backend.instructions.addressing.RegAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
@@ -315,8 +316,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* 1 get pointer to the pair from stack
      *   store into next available register
      *   reg is expected register where visit will put value in */
+
+    //read fst a
     Register reg = armRegAllocator.next();
+    boolean isLhsOutside = isLhs;
+    isLhs = false;
     visit(node.getPair());
+    isLhs = isLhsOutside;
 
     /* 2 move pair pointer to r0, prepare for null pointer check  */
     instructions.add(new Mov(armRegAllocator.get(ARMRegisterLabel.R0), new Operand2(reg)));
@@ -339,7 +345,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
 
     if (isLhs) {
-      instructions.add(new Add(reg, reg, operand2));
+      //instructions.add(new Add(reg, reg, operand2));
+      instructions.add(new LDR(reg, new RegAddressing(reg)));
     } else {
       instructions.add(new LDR(reg, addrMode));
       instructions.add(new Mov(armRegAllocator.get(ARMRegisterLabel.R0), new Operand2(reg)));
@@ -372,7 +379,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 2 visit both child */
     visitPairChildExpr(node.getFst(), pairPointer, 0);
-    visitPairChildExpr(node.getSnd(), pairPointer, node.getFst().getType().getSize());
+    //visitPairChildExpr(node.getSnd(), pairPointer, node.getFst().getType().getSize());
+    /* pair contains two pointers, each with size 4 */
+    visitPairChildExpr(node.getSnd(), pairPointer, WORD_SIZE);
 
     return null;
   }
