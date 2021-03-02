@@ -6,11 +6,9 @@ import backend.instructions.*;
 import backend.instructions.addressing.Addressing;
 import backend.instructions.addressing.ImmediateAddressing;
 import backend.instructions.addressing.LabelAddressing;
-import backend.instructions.addressing.RegAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
-import backend.instructions.arithmeticLogic.ArithmeticLogicAssemble;
 import backend.instructions.arithmeticLogic.Sub;
 import backend.instructions.memory.Pop;
 import backend.instructions.memory.Push;
@@ -210,8 +208,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
 
     if (binop == Binop.MUL) {
-      // instructions.add(new Cmp(Rd, operand2));
-      // instructions.add(new BL(Cond.));
+      instructions.add(new Cmp(e1reg, new Operand2(e2reg, Operand2Operator.ASR, new Immediate(31, BitNum.CONST8))));
+      instructions.add(new BL(Cond.NE, "p_throw_overflow_error"));
     }
 
     if (expr1.getWeight() < expr2.getWeight()) {
@@ -530,6 +528,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 1 condition check, branch */
     visit(node.getCond());
+    Register cond = armRegAllocator.curr();
+    instructions.add(new Cmp(cond, new Operand2(new Immediate(1, BitNum.CONST8))));
     instructions.add(new B(Cond.EQ, ifLabel.getName()));
     armRegAllocator.free();
 
