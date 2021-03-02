@@ -84,7 +84,7 @@ public class SymbolTable {
     }
     /* else, get its offset from upper scope */
     if (parentSymbolTable != null) {
-      return parentSymbolTable.getStackOffset(name, symbol) + scopeSize;
+      return parentSymbolTable.getStackOffset(name, symbol) - parentSymbolTable.getSize();
     }
 
     /* else, unhandled ident undefined error from semantic checker */
