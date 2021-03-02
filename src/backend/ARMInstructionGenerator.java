@@ -550,6 +550,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitPrintlnNode(PrintlnNode node) {
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
+    System.out.println(node.getExpr().getType());
     HelperFunction.addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     HelperFunction.addPrintln(instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
     armRegAllocator.free();

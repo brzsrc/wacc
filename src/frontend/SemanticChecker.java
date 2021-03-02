@@ -397,15 +397,19 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     List<ExprNode> indexList = new ArrayList<>();
 
+    Type type = array.getType();
+
     for (ExprContext index_ : ctx.expr()) {
       ExprNode index = visit(index_).asExprNode();
       // check every expr can evaluate to integer
       Type elemType = index.getType();
       semanticError |= typeCheck(index_, INT_BASIC_TYPE, elemType);
       indexList.add(index);
+
+      type = type.asArrayType().getContentType();
     }
 
-    return new ArrayElemNode(array, indexList, array.getType().asArrayType().getContentType(), arrayIdent, symbol);
+    return new ArrayElemNode(array, indexList, type, arrayIdent, symbol);
   }
 
   @Override
