@@ -32,7 +32,7 @@ public abstract class ArithmeticLogic extends Instruction {
       Binop.AND, new And(rd, rn, op2),
       Binop.OR, new Or(rd, rn, op2)
     );
-    List<Instruction> list = List.of(m.get(b));
+    List<Instruction> list = new ArrayList<>(List.of(m.get(b)));;
     if (b == Binop.MUL) {
       list.add(new Cmp(rn, new Operand2(rd, Operand2.Operand2Operator.ASR, new Immediate(31, BitNum.CONST8))));
     }

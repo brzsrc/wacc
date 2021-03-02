@@ -288,11 +288,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitIdentNode(IdentNode node) {
 
-    System.out.println("id:" + node.getName());
-    System.out.println(currSymbolTable.getSize());
-    System.out.println(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()));
-    System.out.println(node.getType().getSize());
-    System.out.println(stackOffset);
+    // System.out.println("id:" + node.getName());
+    // System.out.println(currSymbolTable.getSize());
+    // System.out.println(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()));
+    // System.out.println(node.getType().getSize());
+    // System.out.println(stackOffset);
 
     int identTypeSize = node.getType().getSize();
     /* put pointer that point to ident's value in stack to next available register */
@@ -473,10 +473,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     int identTypeSize = node.getRhs().getType().getSize();
     StrMode strMode = identTypeSize == 1 ? StrMode.STRB : StrMode.STR;
 
-    System.out.println(node.getIdentifier());
-    System.out.println(currSymbolTable.getSize());
-    System.out.println(node.getScope().lookup(node.getIdentifier()).getStackOffset());
-    System.out.println(identTypeSize);
+    // System.out.println(node.getIdentifier());
+    // System.out.println(currSymbolTable.getSize());
+    // System.out.println(node.getScope().lookup(node.getIdentifier()).getStackOffset());
+    // System.out.println(identTypeSize);
 
     int offset = currSymbolTable.getSize() - 
                   (node.getScope().lookup(node.getIdentifier()).getStackOffset() + 

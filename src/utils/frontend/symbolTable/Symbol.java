@@ -17,8 +17,8 @@ public class Symbol {
      *     should decrease offset  
      */
     public void pushStackOffset(int stackOffset) {
-      System.out.println("before stackOffset is " + this.stackOffset);
-      System.out.println("after stackOffset is " + (this.stackOffset - stackOffset));
+      // System.out.println("before stackOffset is " + this.stackOffset);
+      // System.out.println("after stackOffset is " + (this.stackOffset - stackOffset));
       this.stackOffset -= stackOffset;
     }
   
