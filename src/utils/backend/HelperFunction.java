@@ -272,11 +272,11 @@ public class HelperFunction {
       helperFunctions.add(new Label("p_check_array_bounds"));
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(indexOutOfBoundLabel), LdrMode.LDRLT));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(negativeIndexLabel), LdrMode.LDRLT));
       helperFunctions.add(new BL(Cond.LT, "p_throw_runtime_error"));
       helperFunctions.add(new LDR(allocator.get(1), new AddressingMode2(AddrMode2.OFFSET, allocator.get(1))));
       helperFunctions.add(new Cmp(allocator.get(0), new Operand2(allocator.get(1))));
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(negativeIndexLabel), LdrMode.LDRCS));
+      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(indexOutOfBoundLabel), LdrMode.LDRCS));
       helperFunctions.add(new BL(Cond.CS, "p_throw_runtime_error"));
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
     }
