@@ -205,7 +205,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
 
     Binop binop = operator;
-    if (binop == Binop.PLUS) {
+    if (binop == Binop.PLUS || operator == Binop.MINUS) {
       instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
       HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
@@ -213,6 +213,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     if (binop == Binop.MUL) {
       instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, new Immediate(31, BitNum.CONST8))));
       instructions.add(new BL(Cond.NE, "p_throw_overflow_error"));
+      HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
 
     if (expr1.getWeight() < expr2.getWeight()) {
@@ -292,12 +293,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitIdentNode(IdentNode node) {
-
-    // System.out.println("id:" + node.getName());
-    // System.out.println(currSymbolTable.getSize());
-    // System.out.println(currSymbolTable.getStackOffset(node.getName(), node.getSymbol()));
-    // System.out.println(node.getType().getSize());
-    // System.out.println(stackOffset);
 
     int identTypeSize = node.getType().getSize();
     /* put pointer that point to ident's value in stack to next available register */
@@ -449,6 +444,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
         .get(operator)
         .unopAssemble(reg, reg);
     instructions.addAll(insList);
+
+    if (operator == Unop.MINUS) {
+      instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
+      HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
+    }
+
     return null;
   }
 
@@ -477,11 +478,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getRhs());
     int identTypeSize = node.getRhs().getType().getSize();
     StrMode strMode = identTypeSize == 1 ? StrMode.STRB : StrMode.STR;
-
-    // System.out.println(node.getIdentifier());
-    // System.out.println(currSymbolTable.getSize());
-    // System.out.println(node.getScope().lookup(node.getIdentifier()).getStackOffset());
-    // System.out.println(identTypeSize);
 
     int offset = currSymbolTable.getSize() - 
                   (node.getScope().lookup(node.getIdentifier()).getStackOffset() + 
