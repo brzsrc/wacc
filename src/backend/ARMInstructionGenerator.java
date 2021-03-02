@@ -67,6 +67,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
    * USED FOR evaluating function parameters, not for changing parameters' offset in function body*/
   private int stackOffset;
 
+  /* used by visitFunc and visitReturn, set how many byte this function used on stack */
+  private int funcStackSize;
+
   /* constant fields */
   private Register SP;
 
@@ -582,6 +585,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
     armRegAllocator.free();
+    if (funcStackSize != 0) {
+      instructions.add(new Add(SP, SP,
+              new Operand2(new Immediate(funcStackSize, BitNum.SHIFT32))));
+    }
+    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
+
     return null;
   }
 
@@ -652,21 +661,16 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitFuncNode(FuncNode node) {
     /* cannot call get stack size on function body, as that will return 0 */
-    int stackSize = node.getFunctionBody().getScope().getSize();
-    stackSize -= node.paramListStackSize();
+    funcStackSize = node.getFunctionBody().getScope().getSize();
+    funcStackSize -= node.paramListStackSize();
     instructions.add(new Label("f_" + node.getFunctionName()));
     instructions.add(new Push(Collections.singletonList(armRegAllocator.get(14))));
-    if (stackSize != 0) {
+    if (funcStackSize != 0) {
       instructions.add(new Sub(SP, SP,
-              new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
+              new Operand2(new Immediate(funcStackSize, BitNum.SHIFT32))));
     }
     // currSymbolTable = node.getFunctionBody().getScope();
     visit(node.getFunctionBody());
-    if (stackSize != 0) {
-      instructions.add(new Add(SP, SP,
-              new Operand2(new Immediate(stackSize, BitNum.SHIFT32))));
-    }
-    instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
     instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
     instructions.add(new LTORG());
     return null;

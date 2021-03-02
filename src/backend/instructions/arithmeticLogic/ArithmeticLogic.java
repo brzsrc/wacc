@@ -69,10 +69,6 @@ public abstract class ArithmeticLogic extends Instruction {
     list.add(new Mov(rd, zero, MovType.MOV));
     list.add(new Mov(rd, one, Mov.binOpMovMap.get(b)));
 
-    /* this compare is for checking the result is true or false, 
-     * true or false value is set by previous 3 operations */
-    list.add(new Cmp(rd, op2));
-
     return list;
   };
 
