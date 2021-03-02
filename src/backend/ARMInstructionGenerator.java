@@ -208,7 +208,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
 
     if (binop == Binop.MUL) {
-      instructions.add(new Cmp(e1reg, new Operand2(e2reg, Operand2Operator.ASR, new Immediate(31, BitNum.CONST8))));
+      instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, new Immediate(31, BitNum.CONST8))));
       instructions.add(new BL(Cond.NE, "p_throw_overflow_error"));
     }
 
