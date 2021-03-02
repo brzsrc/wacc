@@ -690,6 +690,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new LDR(armRegAllocator.get(0), new ImmediateAddressing(new Immediate(0, BitNum.CONST8))));
     instructions.add(new Pop(Collections.singletonList(armRegAllocator.get(ARMRegisterLabel.PC))));
 
+    instructions.add(new LTORG());
     return null;
   }
 
