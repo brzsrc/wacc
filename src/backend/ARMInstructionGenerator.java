@@ -507,6 +507,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 1 condition check, branch */
     visit(node.getCond());
+    Register cond = armRegAllocator.curr();
+    instructions.add(new Cmp(cond, new Operand2(new Immediate(1, BitNum.CONST8))));
     instructions.add(new B(Cond.EQ, ifLabel.getName()));
     armRegAllocator.free();
 
