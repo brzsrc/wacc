@@ -202,7 +202,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
 
     Binop binop = operator;
-    if (binop == Binop.PLUS) {
+    if (binop == Binop.PLUS || operator == Binop.MINUS) {
       instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
       HelperFunction.addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
     }
