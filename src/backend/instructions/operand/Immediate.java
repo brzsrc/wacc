@@ -2,7 +2,7 @@ package backend.instructions.operand;
 
 public class Immediate {
 
-  public enum BitNum {SHIFT10, CONST8, SHIFT32}
+  public enum BitNum {SHIFT10, SHIFT32, CONST8, CONST5, CONST12, CONST16}
 
   private int val;
   private BitNum bitNum;

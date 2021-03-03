@@ -1,12 +1,13 @@
 package backend.instructions.addressing;
 
 import backend.instructions.operand.Immediate;
+import backend.instructions.operand.Immediate.BitNum;
 
 public class ImmediateAddressing extends Addressing {
     private Immediate immed;
 
-    public ImmediateAddressing(Immediate immed) {
-        this.immed = immed;
+    public ImmediateAddressing(int val) {
+        this.immed = new Immediate(val, BitNum.CONST16);
     }
 
     public Immediate getImmed() {

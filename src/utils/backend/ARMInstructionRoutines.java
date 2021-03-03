@@ -13,16 +13,12 @@ import backend.instructions.addressing.RegAddressing;
 import backend.instructions.addressing.addressingMode2.AddressingMode2;
 import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
-import backend.instructions.arithmeticLogic.ArithmeticLogicAssemble;
 import backend.instructions.memory.Pop;
 import backend.instructions.memory.Push;
-import backend.instructions.operand.Immediate;
-import backend.instructions.operand.Immediate.BitNum;
 import backend.instructions.operand.Operand2;
 
 import java.util.*;
 
-import frontend.node.expr.BinopNode;
 import utils.Utils;
 import utils.Utils.RoutineInstruction;
 import utils.Utils.SystemCallInstruction;
@@ -133,7 +129,7 @@ public class ARMInstructionRoutines {
       instructions.add(new LDR(r0, new RegAddressing(r0)));
       instructions.add(new BL(SystemCallInstruction.FREE.toString()));
       instructions.add(new LDR(r0, new RegAddressing(SP)));
-      instructions.add(new LDR(r0, new AddressingMode2(AddrMode2.OFFSET, r0, new Immediate(4, BitNum.CONST8))));
+      instructions.add(new LDR(r0, new AddressingMode2(AddrMode2.OFFSET, r0, 4)));
       instructions.add(new BL(SystemCallInstruction.FREE.toString()));
       instructions.add(new Pop(Collections.singletonList(r0)));
     }
@@ -157,7 +153,7 @@ public class ARMInstructionRoutines {
     Label label = new Label(routineInstruction.toString());
     instructions.add(label);
     instructions.add(new Push(Collections.singletonList(LR)));
-    instructions.add(new Cmp(r0, new Operand2(new Immediate(0, BitNum.CONST8))));
+    instructions.add(new Cmp(r0, new Operand2(0)));
     instructions.add(new LDR(r0, new LabelAddressing(msgLabel), LdrMode.LDREQ));
     instructions.add(new BL(Cond.EQ, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
     instructions.add(new Pop(Collections.singletonList(PC)));
@@ -203,7 +199,7 @@ public class ARMInstructionRoutines {
 
     instructions.add(new Label(routine.toString()));
     instructions.add(new Push(Collections.singletonList(LR)));
-    instructions.add(new Cmp(r0, new Operand2(new Immediate(0, BitNum.CONST8))));
+    instructions.add(new Cmp(r0, new Operand2(0)));
     instructions.add(new LDR(r0, new LabelAddressing(negativeIndexLabel), LdrMode.LDRLT));
     instructions.add(new BL(Cond.LT, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
     instructions.add(new LDR(r1, new AddressingMode2(AddrMode2.OFFSET, r1)));
@@ -243,7 +239,7 @@ public class ARMInstructionRoutines {
     /* put the string length into r1 as snd arg */
     instructions.add(new LDR(r1, new RegAddressing(r0)));
     /* skip the fst 4 bytes which is the length of the string */
-    instructions.add(new Add(r2, r0, new Operand2(new Immediate(4, BitNum.CONST8))));
+    instructions.add(new Add(r2, r0, new Operand2(4)));
     instructions.add(new LDR(r0, new LabelAddressing(msgLabel)));
 
     instructions.addAll(addCommonPrint());

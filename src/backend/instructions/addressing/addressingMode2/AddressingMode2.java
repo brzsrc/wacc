@@ -2,6 +2,7 @@ package backend.instructions.addressing.addressingMode2;
 
 import backend.instructions.addressing.*;
 import backend.instructions.operand.Immediate;
+import backend.instructions.operand.Immediate.BitNum;
 import utils.backend.Register;
 
 public class AddressingMode2 extends Addressing {
@@ -16,7 +17,7 @@ public class AddressingMode2 extends Addressing {
     private AddrMode2Operator operator;
     private Immediate immed;
 
-    public AddressingMode2(AddrMode2 mode, Register Rn, Register Rm, AddrMode2Operator operator, Immediate immed) {
+    private AddressingMode2(AddrMode2 mode, Register Rn, Register Rm, AddrMode2Operator operator, Immediate immed) {
         this.mode = mode;
         this.Rn = Rn;
         this.Rm = Rm;
@@ -24,12 +25,20 @@ public class AddressingMode2 extends Addressing {
         this.immed = immed;
     }
 
+    public AddressingMode2(AddrMode2 mode, Register Rn, Register Rm, AddrMode2Operator operator, int val) {
+        this(mode, Rn, Rm, operator, new Immediate(val, BitNum.CONST5));
+    }
+
+    public AddressingMode2(AddrMode2 mode, Register Rn, Register Rm, AddrMode2Operator operator) {
+        this(mode, Rn, Rm, operator, null);
+    }
+
     public AddressingMode2(AddrMode2 mode, Register Rn, Register Rm) {
         this(mode, Rn, Rm, null, null);
     }
 
-    public AddressingMode2(AddrMode2 mode, Register Rn, Immediate immed) {
-        this(mode, Rn, null, null, immed);
+    public AddressingMode2(AddrMode2 mode, Register Rn, int val) {
+        this(mode, Rn, null, null, new Immediate(val, BitNum.CONST12));
     }
 
     public AddressingMode2(AddrMode2 mode, Register Rn) {
