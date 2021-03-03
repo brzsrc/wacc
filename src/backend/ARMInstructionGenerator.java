@@ -207,10 +207,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     if (binop == Binop.MUL) {
       instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, 31)));
       instructions.add(new BL(Cond.NE, RoutineInstruction.THROW_OVERFLOW_ERROR.toString()));
-      Label overflowMsgLabel = msgLabelGenerator.getLabel();
-      dataSegmentMessages.put(overflowMsgLabel, "\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"");
-      Label printMultipleLabel = msgLabelGenerator.getLabel();
-      dataSegmentMessages.put(printMultipleLabel, "\"%.*s\\0\"");
+      // Label overflowMsgLabel = msgLabelGenerator.getLabel();
+      // dataSegmentMessages.put(overflowMsgLabel, "\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"");
+      // Label printMultipleLabel = msgLabelGenerator.getLabel();
+      // dataSegmentMessages.put(printMultipleLabel, "\"%.*s\\0\"");
       checkAndAddRoutine(RoutineInstruction.THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 

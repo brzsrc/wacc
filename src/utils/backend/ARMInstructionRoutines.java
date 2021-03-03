@@ -115,8 +115,8 @@ public class ARMInstructionRoutines {
   public static RoutineFunction addThrowRuntimeError = (routine, labelGenerator, dataSegment) ->  {
     List<Instruction> instructions = new ArrayList<>();
 
-    Label printMultipleLabel = labelGenerator.getLabel();
-    dataSegment.put(printMultipleLabel, Utils.routineMsgMapping.get(RoutineInstruction.CHECK_DIVIDE_BY_ZERO).get(1));
+    // Label printMultipleLabel = labelGenerator.getLabel();
+    // dataSegment.put(printMultipleLabel, "\"%.*s\\0\"");
 
     /* add the helper function label */
     Label label = new Label(Utils.RoutineInstruction.THROW_RUNTIME_ERROR.toString());
@@ -173,8 +173,8 @@ public class ARMInstructionRoutines {
 
     Label msgLabel = labelGenerator.getLabel();
     dataSegment.put(msgLabel, "\"NullReferenceError: dereference a null reference\\n\\0\"");
-    Label printlnLabel = labelGenerator.getLabel();
-    dataSegment.put(printlnLabel, Utils.routineMsgMapping.get(RoutineInstruction.CHECK_NULL_POINTER).get(1));
+    // Label printlnLabel = labelGenerator.getLabel();
+    // dataSegment.put(printlnLabel, "\"%.*s\\0\"");
 
     /* add the helper function label */
     Label label = new Label(RoutineInstruction.CHECK_NULL_POINTER.toString());
@@ -218,9 +218,9 @@ public class ARMInstructionRoutines {
     List<Instruction> instructions = new ArrayList<>();
 
     Label negativeIndexLabel = labelGenerator.getLabel();
-    dataSegment.put(negativeIndexLabel, Utils.routineMsgMapping.get(routine).get(0));
+    dataSegment.put(negativeIndexLabel, "\"ArrayIndexOutOfBoundsError: negative index\\n\\0\"");
     Label indexOutOfBoundLabel = labelGenerator.getLabel();
-    dataSegment.put(indexOutOfBoundLabel, Utils.routineMsgMapping.get(routine).get(1));
+    dataSegment.put(indexOutOfBoundLabel, "\"ArrayIndexOutOfBoundsError: index too large\\n\\0\"");
 
     instructions.add(new Label(routine.toString()));
     instructions.add(new Push(Collections.singletonList(LR)));
