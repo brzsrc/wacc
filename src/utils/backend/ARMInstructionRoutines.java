@@ -37,8 +37,8 @@ public class ARMInstructionRoutines {
   /* map for addPrintSingle */
   private static Map<RoutineInstruction, String> printSingleMap = new HashMap<>() {
     {
-      put(RoutineInstruction.PRINT_INT, "\"%d\\0\"");
-      put(RoutineInstruction.PRINT_REFERENCE, "\"%p\\0\"");
+      put(PRINT_INT, "\"%d\\0\"");
+      put(PRINT_REFERENCE, "\"%p\\0\"");
     }
   };
 
@@ -73,9 +73,9 @@ public class ARMInstructionRoutines {
         return new ArrayList<>();
       case PRINT_BOOL:
         /* add the printing true into .data section */
-//        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(0));
+//        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(PRINT_BOOL).get(0));
 //        Label sndLabel = labelGenerator.getLabel();
-//        dataSegment.put(sndLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(1));
+//        dataSegment.put(sndLabel, Utils.routineMsgMapping.get(PRINT_BOOL).get(1));
         return addPrintBool(dataSegment, labelGenerator);
       case PRINT_STRING:
         return addPrintMultiple(dataSegment, labelGenerator);
@@ -90,7 +90,7 @@ public class ARMInstructionRoutines {
 
   public static RoutineFunction addPrintln = (routine, labelGenerator, dataSegment) -> {
     /* overwrite, routine has to be PRINTLN */
-    routine = RoutineInstruction.PRINT_LN;
+    routine = PRINT_LN;
 
     Label printlnMsgLabel = labelGenerator.getLabel();
     dataSegment.put(printlnMsgLabel, "\"\\0\"");
@@ -115,13 +115,19 @@ public class ARMInstructionRoutines {
   public static RoutineFunction addThrowRuntimeError = (routine, labelGenerator, dataSegment) ->  {
     List<Instruction> instructions = new ArrayList<>();
 
+    if (alreadyExist.contains(THROW_RUNTIME_ERROR)) {
+      return new ArrayList();
+    }
+
+    alreadyExist.add(THROW_RUNTIME_ERROR);
+
     // Label printMultipleLabel = labelGenerator.getLabel();
     // dataSegment.put(printMultipleLabel, "\"%.*s\\0\"");
 
     /* add the helper function label */
-    Label label = new Label(Utils.RoutineInstruction.THROW_RUNTIME_ERROR.toString());
+    Label label = new Label(THROW_RUNTIME_ERROR.toString());
     instructions.add(label);
-    instructions.add(new BL(RoutineInstruction.PRINT_STRING.toString()));
+    instructions.add(new BL(PRINT_STRING.toString()));
     instructions.add(new Mov(r0, new Operand2(-1)));
     instructions.add(new BL(SystemCallInstruction.EXIT.toString()));
     instructions.addAll(addPrintMultiple(dataSegment, labelGenerator));
@@ -150,9 +156,9 @@ public class ARMInstructionRoutines {
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r0, new Operand2(0)));
     instructions.add(new LDR(r0, new LabelAddressing(msg), LdrMode.LDREQ));
-    instructions.add(new B(Cond.EQ, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
+    instructions.add(new B(Cond.EQ, THROW_RUNTIME_ERROR.toString()));
 
-    if(routine.equals(RoutineInstruction.FREE_PAIR)) {
+    if(routine.equals(FREE_PAIR)) {
       instructions.add(new Push(Collections.singletonList(r0)));
       instructions.add(new LDR(r0, new RegAddressing(r0)));
       instructions.add(new BL(SystemCallInstruction.FREE.toString()));
@@ -163,7 +169,7 @@ public class ARMInstructionRoutines {
     }
     instructions.add(new BL(SystemCallInstruction.FREE.toString()));
     instructions.add(new Pop(Collections.singletonList(PC)));
-    instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(RoutineInstruction.THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
+    instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
 
     return instructions;
   };
@@ -177,14 +183,14 @@ public class ARMInstructionRoutines {
     // dataSegment.put(printlnLabel, "\"%.*s\\0\"");
 
     /* add the helper function label */
-    Label label = new Label(RoutineInstruction.CHECK_NULL_POINTER.toString());
+    Label label = new Label(CHECK_NULL_POINTER.toString());
     instructions.add(label);
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r0, new Operand2(0)));
     instructions.add(new LDR(r0, new LabelAddressing(msgLabel), LdrMode.LDREQ));
-    instructions.add(new BL(Cond.EQ, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
+    instructions.add(new BL(Cond.EQ, THROW_RUNTIME_ERROR.toString()));
     instructions.add(new Pop(Collections.singletonList(PC)));
-    instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(RoutineInstruction.THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
+    instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
 
     return instructions;
   };
@@ -193,7 +199,7 @@ public class ARMInstructionRoutines {
     List<Instruction> instructions = new ArrayList<>();
 
     /* overwrite, routine has to be check divide by zero */
-    routine = RoutineInstruction.CHECK_DIVIDE_BY_ZERO;
+    routine = CHECK_DIVIDE_BY_ZERO;
 
     Label msgLabel = labelGenerator.getLabel();
     dataSegment.put(msgLabel, "\"DivideByZeroError: divide or modulo by zero\\n\\0\"");
@@ -204,9 +210,9 @@ public class ARMInstructionRoutines {
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r1, new Operand2(0)));
     instructions.add(new LDR(r0, new LabelAddressing(msgLabel), LdrMode.LDREQ));
-    instructions.add(new BL(Cond.EQ, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
+    instructions.add(new BL(Cond.EQ, THROW_RUNTIME_ERROR.toString()));
     instructions.add(new Pop(Collections.singletonList(PC)));
-    instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(RoutineInstruction.THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
+    instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
 
     return instructions;
   };
@@ -214,7 +220,7 @@ public class ARMInstructionRoutines {
   public static RoutineFunction addCheckArrayBound = (routine, labelGenerator, dataSegment) ->  {
 
     /* overwrite, routine has to be check array bound */
-    routine = RoutineInstruction.CHECK_ARRAY_BOUND;
+    routine = CHECK_ARRAY_BOUND;
     List<Instruction> instructions = new ArrayList<>();
 
     Label negativeIndexLabel = labelGenerator.getLabel();
@@ -226,11 +232,11 @@ public class ARMInstructionRoutines {
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r0, new Operand2(0)));
     instructions.add(new LDR(r0, new LabelAddressing(negativeIndexLabel), LdrMode.LDRLT));
-    instructions.add(new BL(Cond.LT, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
+    instructions.add(new BL(Cond.LT, THROW_RUNTIME_ERROR.toString()));
     instructions.add(new LDR(r1, new AddressingMode2(AddrMode2.OFFSET, r1)));
     instructions.add(new Cmp(r0, new Operand2(r1)));
     instructions.add(new LDR(r0, new LabelAddressing(indexOutOfBoundLabel), LdrMode.LDRCS));
-    instructions.add(new BL(Cond.CS, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
+    instructions.add(new BL(Cond.CS, THROW_RUNTIME_ERROR.toString()));
     instructions.add(new Pop(Collections.singletonList(PC)));
 
     return instructions;
@@ -245,7 +251,7 @@ public class ARMInstructionRoutines {
     instructions.add(new Label("p_throw_overflow_error"));
     instructions.add(new LDR(r0, new LabelAddressing(overflowMsgLabel), LdrMode.LDR));
     instructions.add(new BL("p_throw_runtime_error"));
-    instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(RoutineInstruction.THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
+    instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
 
     return instructions;
   };
