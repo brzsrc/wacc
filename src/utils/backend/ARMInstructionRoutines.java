@@ -15,6 +15,7 @@ import backend.instructions.addressing.addressingMode2.AddressingMode2.AddrMode2
 import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.memory.Pop;
 import backend.instructions.memory.Push;
+import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
 
 import java.util.*;
@@ -27,6 +28,19 @@ import static utils.backend.ARMConcreteRegister.*;
 import static utils.Utils.RoutineInstruction.*;
 
 public class ARMInstructionRoutines {
+  /*
+   * record which helpers already exist, we don't want repeated helper functions
+   */
+  private static Set<RoutineInstruction> alreadyExist = new HashSet<>();
+
+
+  /* map for addPrintSingle */
+  private static Map<RoutineInstruction, String> printSingleMap = new HashMap<>() {
+    {
+      put(RoutineInstruction.PRINT_INT, "\"%d\\0\"");
+      put(RoutineInstruction.PRINT_REFERENCE, "\"%p\\0\"");
+    }
+  };
 
   public static RoutineFunction addRead = (routine, labelGenerator, dataSegment) -> {
     /* add the helper function label */
@@ -37,7 +51,8 @@ public class ARMInstructionRoutines {
     Label msgLabel = labelGenerator.getLabel();
     dataSegment.put(msgLabel, ascii);
 
-    List<Instruction> instructions = List.of(readLabel,
+    List<Instruction> instructions = List.of(
+            readLabel,
             new Push(Collections.singletonList(LR)),
     /* fst arg of read is the snd arg of scanf (storing address) */
             new Mov(r1, new Operand2(r0)),
@@ -51,28 +66,25 @@ public class ARMInstructionRoutines {
   };
 
   public static RoutineFunction addPrint = (routine, labelGenerator, dataSegment) -> {
+
     Label msgLabel = labelGenerator.getLabel();
-    List<Instruction> instructions = new ArrayList<>();
     switch (routine) {
       case PRINT_CHAR:
-        return List.of(new BL(SystemCallInstruction.PUTCHAR.toString()));
+        return new ArrayList<>();
       case PRINT_BOOL:
         /* add the printing true into .data section */
-        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(0));
-        Label sndLabel = labelGenerator.getLabel();
-        dataSegment.put(sndLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(1));
-        return addPrintBool(msgLabel, sndLabel);
+//        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(0));
+//        Label sndLabel = labelGenerator.getLabel();
+//        dataSegment.put(sndLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(1));
+        return addPrintBool(dataSegment, labelGenerator);
       case PRINT_STRING:
-        dataSegment.put(msgLabel, "\"%.*s\\0\"");
-        return addPrintMultiple(msgLabel);
+        return addPrintMultiple(dataSegment, labelGenerator);
       case PRINT_INT:
-        instructions.add(new BL(PRINT_INT.toString()));
-        addPrintSingle(PRINT_INT, data, helperFunctions, allocator);
-
+        return addPrintSingle(PRINT_INT, dataSegment, labelGenerator);
       case PRINT_REFERENCE:
       default:
-        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(routine).get(0));
-        return addPrintSingle(routine, msgLabel);
+        dataSegment.put(msgLabel, "\"%p\\0\"");
+        return addPrintSingle(PRINT_REFERENCE, dataSegment, labelGenerator);
     }
   };
 
@@ -81,19 +93,20 @@ public class ARMInstructionRoutines {
     routine = RoutineInstruction.PRINT_LN;
 
     Label printlnMsgLabel = labelGenerator.getLabel();
-    dataSegment.put(printlnMsgLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_LN).get(0));
+    dataSegment.put(printlnMsgLabel, "\"\\0\"");
 
     /* add the helper function label */
     Label label = new Label(routine.toString());
     List<Instruction> instructions = List.of(
-        label, new Push(Collections.singletonList(LR)), new LDR(r0, new LabelAddressing(printlnMsgLabel)),
-        /* skip the first 4 byte of the msg which is the length of it */
-        new Add(r0, r0, new Operand2(4)), 
-        new BL(SystemCallInstruction.PUTS.toString()),
-        /* refresh the r0 and buffer */
-        new Mov(r0, new Operand2(0)), 
-        new BL(SystemCallInstruction.FFLUSH.toString()),
-        new Pop(Collections.singletonList(PC))
+            label,
+            new Push(Collections.singletonList(LR)), new LDR(r0, new LabelAddressing(printlnMsgLabel)),
+            /* skip the first 4 byte of the msg which is the length of it */
+            new Add(r0, r0, new Operand2(4)),
+            new BL(SystemCallInstruction.PUTS.toString()),
+            /* refresh the r0 and buffer */
+            new Mov(r0, new Operand2(0)),
+            new BL(SystemCallInstruction.FFLUSH.toString()),
+            new Pop(Collections.singletonList(PC))
     );
 
     return instructions;
@@ -111,7 +124,7 @@ public class ARMInstructionRoutines {
     instructions.add(new BL(RoutineInstruction.PRINT_STRING.toString()));
     instructions.add(new Mov(r0, new Operand2(-1)));
     instructions.add(new BL(SystemCallInstruction.EXIT.toString()));
-    instructions.addAll(addPrintMultiple(printMultipleLabel));
+    instructions.addAll(addPrintMultiple(dataSegment, labelGenerator));
 
     return instructions;
   };
@@ -119,11 +132,16 @@ public class ARMInstructionRoutines {
   public static RoutineFunction addFree = (routine, labelGenerator, dataSegment)->{
     List<Instruction> instructions = new ArrayList<>();
 
-    Label msgLabel = labelGenerator.getLabel();
-    dataSegment.put(msgLabel, Utils.routineMsgMapping.get(routine).get(0));
-
-    Label printlnLabel = labelGenerator.getLabel();
-    dataSegment.put(printlnLabel, Utils.routineMsgMapping.get(routine).get(1));
+    Label msg = null;
+    for(Label msg_ : dataSegment.keySet()) {
+      if(dataSegment.get(msg_).equals("\"NullReferenceError: dereference a null reference\\n\\0\"")) {
+        msg = msg_;
+        break;
+      }
+    }
+    if(msg == null) {
+      msg = addMsg("\"NullReferenceError: dereference a null reference\\n\\0\"", dataSegment, labelGenerator);
+    }
 
     /* add the helper function label */
     Label freeLabel = new Label(routine.toString());
@@ -131,7 +149,7 @@ public class ARMInstructionRoutines {
     instructions.add(freeLabel);
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r0, new Operand2(0)));
-    instructions.add(new LDR(r0, new LabelAddressing(msgLabel), LdrMode.LDREQ));
+    instructions.add(new LDR(r0, new LabelAddressing(msg), LdrMode.LDREQ));
     instructions.add(new B(Cond.EQ, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
 
     if(routine.equals(RoutineInstruction.FREE_PAIR)) {
@@ -152,15 +170,14 @@ public class ARMInstructionRoutines {
 
   public static RoutineFunction addCheckNullPointer = (routine, labelGenerator, dataSegment) ->  {
     List<Instruction> instructions = new ArrayList<>();
-    RoutineInstruction routineInstruction = RoutineInstruction.CHECK_NULL_POINTER;
 
     Label msgLabel = labelGenerator.getLabel();
-    dataSegment.put(msgLabel, Utils.routineMsgMapping.get(RoutineInstruction.CHECK_NULL_POINTER).get(0));
+    dataSegment.put(msgLabel, "\"NullReferenceError: dereference a null reference\\n\\0\"");
     Label printlnLabel = labelGenerator.getLabel();
     dataSegment.put(printlnLabel, Utils.routineMsgMapping.get(RoutineInstruction.CHECK_NULL_POINTER).get(1));
 
     /* add the helper function label */
-    Label label = new Label(routineInstruction.toString());
+    Label label = new Label(RoutineInstruction.CHECK_NULL_POINTER.toString());
     instructions.add(label);
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r0, new Operand2(0)));
@@ -179,9 +196,7 @@ public class ARMInstructionRoutines {
     routine = RoutineInstruction.CHECK_DIVIDE_BY_ZERO;
 
     Label msgLabel = labelGenerator.getLabel();
-    dataSegment.put(msgLabel, Utils.routineMsgMapping.get(routine).get(0));
-    Label printMultipleLabel = labelGenerator.getLabel();
-    dataSegment.put(printMultipleLabel, Utils.routineMsgMapping.get(routine).get(1));
+    dataSegment.put(msgLabel, "\"DivideByZeroError: divide or modulo by zero\\n\\0\"");
 
     /* add the helper function label */
     Label label = new Label(routine.toString());
@@ -225,9 +240,7 @@ public class ARMInstructionRoutines {
     List<Instruction> instructions = new ArrayList<>();
 
     Label overflowMsgLabel = labelGenerator.getLabel();
-    dataSegment.put(overflowMsgLabel, Utils.routineMsgMapping.get(RoutineInstruction.THROW_OVERFLOW_ERROR).get(0));
-    Label printMultipleLabel = labelGenerator.getLabel();
-    dataSegment.put(printMultipleLabel, Utils.routineMsgMapping.get(RoutineInstruction.THROW_OVERFLOW_ERROR).get(1));
+    dataSegment.put(overflowMsgLabel, "\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"");
 
     instructions.add(new Label("p_throw_overflow_error"));
     instructions.add(new LDR(r0, new LabelAddressing(overflowMsgLabel), LdrMode.LDR));
@@ -238,59 +251,91 @@ public class ARMInstructionRoutines {
   };
 
   /* print string (char array included) */
-  private static List<Instruction> addPrintMultiple(Label msgLabel) {
+  private static List<Instruction> addPrintMultiple(Map<Label, String> dataSegment, LabelGenerator labelGenerator) {
       List<Instruction> instructions = new ArrayList<>();
-    RoutineInstruction routineInstruction = RoutineInstruction.PRINT_STRING;
 
-    /* add the helper function label */
-    Label label = new Label(routineInstruction.toString());
-    instructions.add(label);
-    instructions.add(new Push(Collections.singletonList(LR)));
-    /* put the string length into r1 as snd arg */
-    instructions.add(new LDR(r1, new RegAddressing(r0)));
-    /* skip the fst 4 bytes which is the length of the string */
-    instructions.add(new Add(r2, r0, new Operand2(4)));
-    instructions.add(new LDR(r0, new LabelAddressing(msgLabel)));
+    /* only add the helper if it doesn't exist yet */
+    if (!alreadyExist.contains(PRINT_STRING)) {
 
-    instructions.addAll(addCommonPrint());
+      /* add this helper into alreadyExist list */
+      alreadyExist.add(PRINT_STRING);
+
+      /* add the format into the data list */
+      Label msg = addMsg("\"%.*s\\0\"", dataSegment, labelGenerator);
+
+      /* add the helper function label */
+      Label label = new Label(PRINT_STRING.toString());
+      instructions.add(label);
+      instructions.add(new Push(Collections.singletonList(LR)));
+      /* put the string length into r1 as snd arg */
+      instructions.add(new LDR(r1, new RegAddressing(r0)));
+      /* skip the fst 4 bytes which is the length of the string */
+      instructions.add(new Add(r2, r0, new Operand2(4)));
+      instructions.add(new LDR(r0, new LabelAddressing(msg)));
+
+      instructions.addAll(addCommonPrint());
+    }
 
     return instructions;
   }
 
   /* print int, print char or print reference */
-  private static List<Instruction> addPrintSingle (RoutineInstruction routine, Label msgLabel) {
+  private static List<Instruction> addPrintSingle (RoutineInstruction routine, Map<Label, String> dataSegment, LabelGenerator labelGenerator) {
     List<Instruction> instructions = new ArrayList<>();
 
-    /* add the helper function label */
-    Label label = new Label(routine.toString());
-    instructions.add(label);
-    instructions.add(new Push(Collections.singletonList(LR)));
-    /* put the content in r0 int o r1 as the snd arg of printf */
-    instructions.add(new Mov(r1, new Operand2(r0)));
-    /* fst arg of printf is the format */
-    instructions.add(new LDR(r0, new LabelAddressing(msgLabel)));
 
-    instructions.addAll(addCommonPrint());
+    /* only add the helper if it doesn't exist yet */
+    if (!alreadyExist.contains(routine)) {
+
+      /* add this helper into alreadyExist list */
+      alreadyExist.add(routine);
+
+      /* add the format into the data list */
+      Label msg = addMsg(printSingleMap.get(routine), dataSegment, labelGenerator);
+
+      /* add the helper function label */
+      Label label = new Label(routine.toString());
+      instructions.add(label);
+      instructions.add(new Push(Collections.singletonList(LR)));
+      /* put the content in r0 int o r1 as the snd arg of printf */
+      instructions.add(new Mov(r1, new Operand2(r0)));
+      /* fst arg of printf is the format */
+      instructions.add(new LDR(r0, new LabelAddressing(msg)));
+
+      instructions.addAll(addCommonPrint());
+    }
 
     return instructions;
   }
 
   /* print bool */
-  private static List<Instruction> addPrintBool(Label trueLabel, Label falseLabel) {
+  private static List<Instruction> addPrintBool(Map<Label, String> dataSegment, LabelGenerator labelGenerator) {
     List<Instruction> instructions = new ArrayList<>();
 
-    /* add the helper function label */
-    Label label = new Label(RoutineInstruction.PRINT_BOOL.toString());
-    instructions.add(label);
-    instructions.add(new Push(Collections.singletonList(LR)));
-    /* cmp the content in r0 with 0 */
-    instructions.add(new Cmp(r0, new Operand2(0)));
-    /* if not equal to 0 LDR true */
-    instructions.add(new LDR(r0, new LabelAddressing(trueLabel), LdrMode.LDRNE));
-    /* otherwise equal to 0 LDR false */
-    instructions.add(new LDR(r0, new LabelAddressing(falseLabel), LdrMode.LDREQ));
+    /* only add the helper if it doesn't exist yet */
+    if (!alreadyExist.contains(PRINT_BOOL)) {
 
-    instructions.addAll(addCommonPrint());
+      /* add this helper into alreadyExist list */
+      alreadyExist.add(PRINT_BOOL);
+
+      /* add the msgTrue into the data list */
+      Label msgTrue = addMsg("\"true\\0\"", dataSegment, labelGenerator);
+      /* add the msgFalse into the data list */
+      Label msgFalse = addMsg("\"false\\0\"", dataSegment, labelGenerator);
+
+      /* add the helper function label */
+      Label label = new Label(PRINT_BOOL.toString());
+      instructions.add(label);
+      instructions.add(new Push(Collections.singletonList(LR)));
+      /* cmp the content in r0 with 0 */
+      instructions.add(new Cmp(r0, new Operand2(0)));
+      /* if not equal to 0 LDR true */
+      instructions.add(new LDR(r0, new LabelAddressing(msgTrue), LdrMode.LDRNE));
+      /* otherwise equal to 0 LDR false */
+      instructions.add(new LDR(r0, new LabelAddressing(msgFalse), LdrMode.LDREQ));
+
+      instructions.addAll(addCommonPrint());
+    }
 
     return instructions;
   }
@@ -324,5 +369,12 @@ public class ARMInstructionRoutines {
           new AbstractMap.SimpleEntry<>(CHECK_NULL_POINTER, addCheckNullPointer),
           new AbstractMap.SimpleEntry<>(THROW_OVERFLOW_ERROR, addThrowOverflowError)
           );
+
+  private static Label addMsg(String msgAscii, Map<Label, String> data, LabelGenerator labelGenerator) {
+    /* add a Msg into the data list */
+    Label msgLabel = labelGenerator.getLabel();
+    data.put(msgLabel, msgAscii);
+    return msgLabel;
+  }
 
 }

@@ -119,6 +119,9 @@ public class Utils {
 
     @Override
     public String toString() {
+      if (this == PRINT_CHAR) {
+        return "putchar";
+      }
       return "p_" + name().toLowerCase();
     }
   }
