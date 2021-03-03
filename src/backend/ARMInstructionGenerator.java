@@ -27,7 +27,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 import utils.NodeVisitor;
-import utils.Utils;
 import utils.backend.*;
 import utils.frontend.symbolTable.SymbolTable;
 
@@ -44,8 +43,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   /* a list of instructions for storing different helper functions
    * would be appended to the end of instructions list while printing */
-  private static List<Instruction> helperFunctions = new ArrayList<>();
-
+  private Map<RoutineInstruction, List<Instruction>> helperFunctions = new LinkedHashMap<>();
   /* constant fields */
   private static Register SP = new ARMConcreteRegister(ARMRegisterLabel.SP);
 
@@ -62,11 +60,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private final List<String> textSegmentMessages;
   /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
-  /* call getLabel on labelGenerator to get label in the format of "L0, L1, L2, ..." */
-  private final LabelGenerator labelGenerator;
-  /* ARMInstructionRoutine class used in generatign routine instructions */
-  private final ARMInstructionRoutines armInstructionRoutines;
-
+  /* call getLabel() on branchLabelGenerator to get label in the format of "L0, L1, L2, ..." */
+  private final LabelGenerator branchLabelGenerator;
+  /* call getLabel() on msgLabelGenerator to get label in the format of "msg_0, msg_1, msg_2, ..."*/
+  private final LabelGenerator msgLabelGenerator;
   /* mark if we are visiting a lhs or rhs of an expr */
   private boolean isLhs;
 
@@ -87,10 +84,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     dataSegmentMessages = new LinkedHashMap<>();
     textSegmentMessages = new LinkedList<>();
     currSymbolTable = null;
-    labelGenerator = new LabelGenerator("L");
+    branchLabelGenerator = new LabelGenerator("L");
+    msgLabelGenerator = new LabelGenerator("msg_");
     stackOffset = 0;
     isLhs = false;
-    armInstructionRoutines = new ARMInstructionRoutines(dataSegmentMessages);
   }
 
   @Override
@@ -103,9 +100,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Operand2 operand2 = new Operand2(new Immediate(offset, BitNum.CONST8));
     instructions.add(new Add(addrReg, SP, operand2));
 
-    ARMInstructionRoutines.addCheckArrayBound(dataSegmentMessages, helperFunctions, armRegAllocator);
-    ARMInstructionRoutines
-        .addThrowRuntimeError(dataSegmentMessages, helperFunctions, armRegAllocator);
+    checkAndAddRoutine(RoutineInstruction.CHECK_ARRAY_BOUND, ARMInstructionRoutines.addCheckArrayBound(msgLabelGenerator, dataSegmentMessages));
+    checkAndAddRoutine(RoutineInstruction.THROW_RUNTIME_ERROR, ARMInstructionRoutines.addThrowRuntimeError(msgLabelGenerator, dataSegmentMessages));
 
     Register indexReg;
     for (int i = 0; i < node.getDepth(); i++) {
@@ -208,21 +204,23 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
                                                .binopAssemble(e1reg, e1reg, op2, operator);
     instructions.addAll(insList);
     if(operator == Binop.DIV || operator == Binop.MOD) {
-      ARMInstructionRoutines.addCheckDivByZero(dataSegmentMessages, helperFunctions, armRegAllocator);
+      checkAndAddRoutine(RoutineInstruction.CHECK_DIVIDE_BY_ZERO, ARMInstructionRoutines.addCheckDivByZero(msgLabelGenerator, dataSegmentMessages));
     }
 
     Binop binop = operator;
     if (binop == Binop.PLUS || operator == Binop.MINUS) {
-      instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
-      ARMInstructionRoutines
-          .addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
+      instructions.add(new BL(Cond.VS,RoutineInstruction.THROW_OVERFLOW_ERROR.toString()));
+      checkAndAddRoutine(RoutineInstruction.THROW_OVERFLOW_ERROR, ARMInstructionRoutines.addThrowOverflowError(msgLabelGenerator, dataSegmentMessages));
     }
 
     if (binop == Binop.MUL) {
       instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, new Immediate(31, BitNum.CONST8))));
-      instructions.add(new BL(Cond.NE, "p_throw_overflow_error"));
-      ARMInstructionRoutines
-          .addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
+      instructions.add(new BL(Cond.NE, RoutineInstruction.THROW_OVERFLOW_ERROR.toString()));
+      Label overflowMsgLabel = msgLabelGenerator.getLabel();
+      dataSegmentMessages.put(overflowMsgLabel, "\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"");
+      Label printMultipleLabel = msgLabelGenerator.getLabel();
+      dataSegmentMessages.put(printMultipleLabel, "\"%.*s\\0\"");
+      checkAndAddRoutine(RoutineInstruction.THROW_OVERFLOW_ERROR, ARMInstructionRoutines.addThrowOverflowError(msgLabelGenerator, dataSegmentMessages));
     }
 
     if (expr1.getWeight() < expr2.getWeight()) {
@@ -349,19 +347,19 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 3 BL null pointer check */
     instructions.add(new BL("p_check_null_pointer"));
-    ARMInstructionRoutines.addCheckNullPointer(dataSegmentMessages, helperFunctions, armRegAllocator);
+
+
+    checkAndAddRoutine(RoutineInstruction.CHECK_NULL_POINTER, ARMInstructionRoutines.addCheckNullPointer(msgLabelGenerator, dataSegmentMessages));
 
     /* 4 get pointer to child
-    *    store in the same register, save register space
-    *    no need to check whether child has initialised, as it is in lhs */
+     *   store in the same register, save register space
+     *   no need to check whether child has initialised, as it is in lhs */
     AddressingMode2 addrMode;
     Operand2 operand2;
     if (node.isFirst()) {
       addrMode = new AddressingMode2(AddrMode2.OFFSET, reg);
-      operand2 = new Operand2(new Immediate(0, BitNum.CONST8));
     } else {
       addrMode = new AddressingMode2(AddrMode2.OFFSET, reg, new Immediate(POINTER_SIZE, BitNum.CONST8));
-      operand2 = new Operand2(new Immediate(POINTER_SIZE, BitNum.CONST8));
     }
 
     if (isLhs) {
@@ -453,8 +451,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     if (operator == Unop.MINUS) {
       instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
-      ARMInstructionRoutines
-          .addThrowOverflowError(dataSegmentMessages, helperFunctions, armRegAllocator);
+      Label msgLabel = msgLabelGenerator.getLabel();
+      dataSegmentMessages.put(msgLabel, "\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"");
+      Label printMultipleLabel = msgLabelGenerator.getLabel();
+      dataSegmentMessages.put(printMultipleLabel, "\"%.*s\\0\"");
+      checkAndAddRoutine(RoutineInstruction.THROW_OVERFLOW_ERROR, ARMInstructionRoutines.addThrowOverflowError(msgLabelGenerator, dataSegmentMessages));
     }
 
     return null;
@@ -514,21 +515,20 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
     armRegAllocator.free();
+
     Type type = node.getExpr().getType();
-    if(type.equalToType(ARRAY_TYPE)) {
-      instructions.add(new BL("p_free_array"));
-      ARMInstructionRoutines.addFree(type, dataSegmentMessages, helperFunctions, armRegAllocator);
-    } else {
-      instructions.add(new BL("p_free_pair"));
-      ARMInstructionRoutines.addFree(type, dataSegmentMessages, helperFunctions, armRegAllocator);
-    }
-    return null; 
+    RoutineInstruction routine = type.equalToType(ARRAY_TYPE) ? RoutineInstruction.FREE_ARRAY : RoutineInstruction.FREE_PAIR;
+
+    instructions.add(new BL(routine.toString()));
+    checkAndAddRoutine(routine, ARMInstructionRoutines.addFree(routine, msgLabelGenerator, dataSegmentMessages));
+
+    return null;
   }
 
   @Override
   public Void visitIfNode(IfNode node) {
-    Label ifLabel = labelGenerator.getLabel();
-    Label exitLabel = labelGenerator.getLabel();
+    Label ifLabel = branchLabelGenerator.getLabel();
+    Label exitLabel = branchLabelGenerator.getLabel();
 
     /* 1 condition check, branch */
     visit(node.getCond());
@@ -555,10 +555,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitPrintlnNode(PrintlnNode node) {
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
-    ARMInstructionRoutines
-        .addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
-    ARMInstructionRoutines
-        .addPrintln(instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+
+    Type type = node.getExpr().getType();
+    RoutineInstruction routine = printTypeRoutineMapping.get(type);
+
+    instructions.add(new BL(routine.toString()));
+    checkAndAddRoutine(routine, ARMInstructionRoutines.addPrint(routine, msgLabelGenerator, dataSegmentMessages));
+    instructions.add(new BL(routine.toString()));
+    checkAndAddRoutine(routine, ARMInstructionRoutines.addPrintln(msgLabelGenerator, dataSegmentMessages));
+
     armRegAllocator.free();
     return null;
   }
@@ -567,8 +572,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitPrintNode(PrintNode node) {
     visit(node.getExpr());
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
-    ARMInstructionRoutines
-        .addPrint(node.getExpr().getType(), instructions, dataSegmentMessages, helperFunctions, armRegAllocator);
+
+    Type type = node.getExpr().getType();
+    RoutineInstruction routine = printTypeRoutineMapping.get(type);
+
+    instructions.add(new BL(routine.toString()));
+    checkAndAddRoutine(routine, ARMInstructionRoutines.addPrint(routine, msgLabelGenerator, dataSegmentMessages));
+
     armRegAllocator.free();
     return null;
   }
@@ -587,11 +597,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     RoutineInstruction routine = (type.equalToType(INT_BASIC_TYPE)) ? RoutineInstruction.READ_INT : RoutineInstruction.READ_CHAR;
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
     instructions.add(new BL(routine.toString()));
-    helperFunctions.addAll(armInstructionRoutines.addRead(routine));
-    String ascii = routine == RoutineInstruction.READ_INT ? "\"%d\\0\"" : "\" %c\\0\"";
-    Label readLabel = new Label(ascii);
-    dataSegmentMessages.put(readLabel, ascii);
+
+    checkAndAddRoutine(routine, ARMInstructionRoutines.addRead(routine, msgLabelGenerator, dataSegmentMessages));
     armRegAllocator.free();
+
     return null;
   }
 
@@ -652,11 +661,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitWhileNode(WhileNode node) {
     
     /* 1 unconditional jump to end of loop, where conditional branch exists */
-    Label testLabel = labelGenerator.getLabel();
+    Label testLabel = branchLabelGenerator.getLabel();
     instructions.add(new B(Cond.NULL, testLabel.getName()));
 
     /* 2 get a label, mark the start of the loop */
-    Label startLabel = labelGenerator.getLabel();
+    Label startLabel = branchLabelGenerator.getLabel();
     instructions.add(startLabel);
 
     /* 3 loop body */
@@ -733,10 +742,18 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     return null;
   }
 
+  /* below are helper functions used in this class */
+  private void checkAndAddRoutine(RoutineInstruction routine, List<Instruction> list) {
+    if (!helperFunctions.containsKey(routine)) {
+      helperFunctions.put(routine, list);
+    }
+  }
+
+
   /* below are getter and setter of this class */
 
   public List<Instruction> getInstructions() {
-    instructions.addAll(helperFunctions);
+    helperFunctions.values().forEach(instructions::addAll);
     return instructions;
   }
 
