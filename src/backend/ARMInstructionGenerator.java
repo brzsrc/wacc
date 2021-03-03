@@ -530,7 +530,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new BL(RoutineInstruction.PRINT_LN.toString()));
     checkAndAddRoutine(RoutineInstruction.PRINT_LN, msgLabelGenerator, dataSegmentMessages);
 
-    armRegAllocator.free();
     return null;
   }
 

@@ -57,7 +57,7 @@ public class ARMInstructionRoutines {
     /* fst arg of read is the snd arg of scanf (storing address) */
             new Mov(r1, new Operand2(r0)),
     /* fst arg of scanf is the format */
-            new LDR(r0, new LabelAddressing(readLabel)),
+            new LDR(r0, new LabelAddressing(msgLabel)),
     /* skip the first 4 byte of the msg which is the length of it */
             new Add(r0, r0, new Operand2(4)), new BL(SystemCallInstruction.SCANF.toString()),
             new Pop(Collections.singletonList(PC)));
