@@ -9,5 +9,5 @@ import frontend.node.expr.BinopNode.Binop;
 import utils.backend.Register;
 
 public interface ArithmeticLogicAssemble {
-    public List<Instruction> binopAssemble(Register rd, Register rn, Operand2 op2, Binop binop);
+    List<Instruction> binopAssemble(Register rd, Register rn, Operand2 op2, Binop binop);
 }
