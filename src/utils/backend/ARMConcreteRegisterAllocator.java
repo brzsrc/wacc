@@ -3,18 +3,12 @@ package utils.backend;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static utils.backend.ARMConcreteRegister.*;
 
 public class ARMConcreteRegisterAllocator {
 
     public static final int GENERAL_REG_START = 4, GENERAL_REG_END = 12;
-    public static final Map<ARMRegisterLabel, Integer> ARMspecialRegMapping = Map.of(
-            ARMRegisterLabel.R0, 0,
-            ARMRegisterLabel.SP, 13,
-            ARMRegisterLabel.LR, 14,
-            ARMRegisterLabel.PC, 15);
 
     private List<ARMConcreteRegister> registers;
     private int registerCounter;
@@ -35,15 +29,6 @@ public class ARMConcreteRegisterAllocator {
 
     public ARMConcreteRegister next() {
         return isFull() ? null : registers.get(registerCounter);
-    }
-
-    public ARMConcreteRegister get(int counter) {
-
-        return registers.get(counter);
-    }
-
-    public ARMConcreteRegister get(ARMRegisterLabel label) {
-        return get(ARMspecialRegMapping.get(label));
     }
 
     public ARMConcreteRegister allocate() {
