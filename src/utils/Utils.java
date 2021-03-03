@@ -147,10 +147,10 @@ public class Utils {
     }
   };
 
-  public static final Map<Type, RoutineInstruction> printTypeRoutineMapping = Map.of(INT_BASIC_TYPE, RoutineInstruction.PRINT_INT,
-      CHAR_BASIC_TYPE, RoutineInstruction.PRINT_CHAR, BOOL_BASIC_TYPE, RoutineInstruction.PRINT_BOOL,
-      STRING_BASIC_TYPE, RoutineInstruction.PRINT_STRING, CHAR_ARRAY_TYPE, RoutineInstruction.PRINT_STRING,
-      ARRAY_TYPE, RoutineInstruction.PRINT_REFERENCE, PAIR_TYPE, RoutineInstruction.PRINT_REFERENCE);
+  // public static final Map<Type, RoutineInstruction> printTypeRoutineMapping = Map.of(INT_BASIC_TYPE, RoutineInstruction.PRINT_INT,
+  //     CHAR_BASIC_TYPE, RoutineInstruction.PRINT_CHAR, BOOL_BASIC_TYPE, RoutineInstruction.PRINT_BOOL,
+  //     STRING_BASIC_TYPE, RoutineInstruction.PRINT_STRING, CHAR_ARRAY_TYPE, RoutineInstruction.PRINT_STRING,
+  //     ARRAY_TYPE, RoutineInstruction.PRINT_REFERENCE, PAIR_TYPE, RoutineInstruction.PRINT_REFERENCE);
 
   /* adding a private constructor to override the default public constructor in order to 
      indicate Utils class cannot be instantiated */

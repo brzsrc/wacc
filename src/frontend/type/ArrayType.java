@@ -2,6 +2,8 @@ package frontend.type;
 
 import static utils.Utils.POINTER_SIZE;
 
+import java.util.Objects;
+
 public class ArrayType implements Type {
 
   private final Type contentType;
@@ -62,5 +64,25 @@ public class ArrayType implements Type {
   @Override
   public int getSize() {
     return POINTER_SIZE;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof Type) {
+      return this.equalToType((Type) obj);
+    }
+    
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    int hash = 20;
+    if (contentType == null) {
+      hash += POINTER_SIZE;
+    } else {
+      hash += contentType.getSize();
+    }
+    return hash;
   }
 }

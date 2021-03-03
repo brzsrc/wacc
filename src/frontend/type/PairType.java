@@ -4,6 +4,8 @@ import frontend.node.expr.ExprNode;
 
 import static utils.Utils.*;
 
+import java.util.Objects;
+
 public class PairType implements Type {
 
   private final Type fstType;
@@ -84,5 +86,19 @@ public class PairType implements Type {
   @Override
   public int getSize() {
     return POINTER_SIZE;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof Type) {
+      return this.equalToType((Type) obj);
+    }
+
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return 10;
   }
 }

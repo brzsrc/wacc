@@ -355,7 +355,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
      *   store in the same register, save register space
      *   no need to check whether child has initialised, as it is in lhs */
     AddressingMode2 addrMode;
-    Operand2 operand2;
+
     if (node.isFirst()) {
       addrMode = new AddressingMode2(AddrMode2.OFFSET, reg);
     } else {
@@ -419,14 +419,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* free register used for storing child's value */
     armRegAllocator.free();
-
   }
 
   @Override
   public Void visitStringNode(StringNode node) {
     /* Add msg into the data list */
     String str = node.getString();
-    Label msgLabel = new Label(str);
+    Label msgLabel = msgLabelGenerator.getLabel();
     dataSegmentMessages.put(msgLabel, str);
 
     /* Add the instructions */
@@ -557,11 +556,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
 
     Type type = node.getExpr().getType();
-    RoutineInstruction routine = printTypeRoutineMapping.get(type);
+    RoutineInstruction routine = getPrintRoutine(type); //printTypeRoutineMapping.get(type);
 
     instructions.add(new BL(routine.toString()));
     checkAndAddRoutine(routine, ARMInstructionRoutines.addPrint(routine, msgLabelGenerator, dataSegmentMessages));
-    instructions.add(new BL(routine.toString()));
     checkAndAddRoutine(routine, ARMInstructionRoutines.addPrintln(msgLabelGenerator, dataSegmentMessages));
 
     armRegAllocator.free();
@@ -574,7 +572,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(armRegAllocator.get(0), new Operand2(armRegAllocator.curr())));
 
     Type type = node.getExpr().getType();
-    RoutineInstruction routine = printTypeRoutineMapping.get(type);
+    RoutineInstruction routine = getPrintRoutine(type); // printTypeRoutineMapping.get(type);
 
     instructions.add(new BL(routine.toString()));
     checkAndAddRoutine(routine, ARMInstructionRoutines.addPrint(routine, msgLabelGenerator, dataSegmentMessages));
@@ -749,6 +747,27 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
   }
 
+  private RoutineInstruction getPrintRoutine(Type type) {
+    RoutineInstruction routine = null;
+
+    if (type.equalToType(INT_BASIC_TYPE)) {
+      routine = RoutineInstruction.PRINT_INT;
+    } else if (type.equalToType(CHAR_BASIC_TYPE)) {
+      routine = RoutineInstruction.PRINT_CHAR;
+    } else if (type.equalToType(BOOL_BASIC_TYPE)) {
+      routine = RoutineInstruction.PRINT_BOOL;
+    } else if (type.equalToType(STRING_BASIC_TYPE)) {
+      routine = RoutineInstruction.PRINT_STRING;
+    } else if (type.equalToType(CHAR_ARRAY_TYPE)) {
+      routine = RoutineInstruction.PRINT_STRING;
+    } else if (type.equalToType(ARRAY_TYPE)) {
+      routine = RoutineInstruction.PRINT_REFERENCE;
+    } else if (type.equalToType(PAIR_TYPE)) {
+      routine = RoutineInstruction.PRINT_REFERENCE;
+    }
+
+    return routine;
+  }
 
   /* below are getter and setter of this class */
 

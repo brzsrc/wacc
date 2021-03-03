@@ -82,7 +82,7 @@ public class Compiler {
           }
 
           if (cmd_ops.contains("--assembly")) {
-            System.out.println(printer.translate());
+            // System.out.println(printer.translate());
           }
         } else {
           System.out.println("File already exists");

@@ -2,6 +2,8 @@ package frontend.type;
 
 import static utils.Utils.*;
 
+import java.util.Objects;
+
 public class BasicType implements Type {
 
   private final BasicTypeEnum basicTypeEnum;
@@ -51,5 +53,19 @@ public class BasicType implements Type {
       default:
         throw new IllegalArgumentException("getSize on Illegal basicTypeNum" + basicTypeEnum);
     }
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof Type) {
+      return this.equalToType((Type) obj);
+    }
+    
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(basicTypeEnum);
   }
 }

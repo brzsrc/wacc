@@ -53,6 +53,28 @@ public class ARMInstructionRoutines {
     return instructions;
   }
 
+  public static List<Instruction> addPrint(RoutineInstruction routine, LabelGenerator labelGenerator, Map<Label, String> dataSegment) {
+    Label msgLabel = labelGenerator.getLabel();
+    switch (routine) {
+      case PRINT_CHAR:
+        return List.of(new BL(SystemCallInstruction.PUTCHAR.toString()));
+      case PRINT_BOOL:
+        /* add the printing true into .data section */
+        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(0));
+        Label sndLabel = labelGenerator.getLabel();
+        dataSegment.put(sndLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(1));
+        return addPrintBool(msgLabel, sndLabel);
+      case PRINT_STRING:
+        dataSegment.put(msgLabel, "\"%.*s\\0\"");
+        return addPrintMultiple(msgLabel);
+      case PRINT_INT:
+      case PRINT_REFERENCE:
+      default:
+        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(routine).get(0));
+        return addPrintSingle(routine, msgLabel);
+    }
+  }
+
   public static List<Instruction> addPrintln(LabelGenerator labelGenerator, Map<Label, String> dataSegment) {
     List<Instruction> instructions = new ArrayList<>();
     RoutineInstruction routine = RoutineInstruction.PRINT_LN;
@@ -62,16 +84,14 @@ public class ARMInstructionRoutines {
 
     /* add the helper function label */
     Label label = new Label(routine.toString());
-    instructions.add(label);
-    instructions.add(new Push(Collections.singletonList(LR)));
-    instructions.add(new LDR(r0, new LabelAddressing(printlnMsgLabel)));
-    /* skip the first 4 byte of the msg which is the length of it */
-    instructions.add(new Add(r0, r0, new Operand2(4)));
-    instructions.add(new BL(SystemCallInstruction.PUTS.toString()));
-    /* refresh the r0 and buffer */
-    instructions.add(new Mov(r0, new Operand2(0)));
-    instructions.add(new BL(SystemCallInstruction.FFLUSH.toString()));
-    instructions.add(new Pop(Collections.singletonList(PC)));
+    instructions = List.of(
+        label, new Push(Collections.singletonList(LR)), new LDR(r0, new LabelAddressing(printlnMsgLabel)),
+        /* skip the first 4 byte of the msg which is the length of it */
+        new Add(r0, r0, new Operand2(4)), new BL(SystemCallInstruction.PUTS.toString()),
+        /* refresh the r0 and buffer */
+        new Mov(r0, new Operand2(0)), new BL(SystemCallInstruction.FFLUSH.toString()),
+        new Pop(Collections.singletonList(PC))
+    );
 
     return instructions;
   }
@@ -87,11 +107,13 @@ public class ARMInstructionRoutines {
 
     /* add the helper function label */
     Label freeLabel = new Label(routine.toString());
+
     instructions.add(freeLabel);
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r0, new Operand2(0)));
     instructions.add(new LDR(r0, new LabelAddressing(msgLabel), LdrMode.LDREQ));
     instructions.add(new B(Cond.EQ, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
+
     if(routine.equals(RoutineInstruction.FREE_PAIR)) {
       instructions.add(new Push(Collections.singletonList(r0)));
       instructions.add(new LDR(r0, new RegAddressing(r0)));
@@ -198,7 +220,7 @@ public class ARMInstructionRoutines {
     dataSegment.put(printMultipleLabel, Utils.routineMsgMapping.get(RoutineInstruction.CHECK_DIVIDE_BY_ZERO).get(1));
 
     /* add the helper function label */
-    Label label = new Label(Utils.routineMsgMapping.get(RoutineInstruction.THROW_RUNTIME_ERROR).get(0));
+    Label label = new Label(Utils.RoutineInstruction.THROW_RUNTIME_ERROR.toString());
     instructions.add(label);
     instructions.add(new BL(RoutineInstruction.PRINT_STRING.toString()));
     instructions.add(new Mov(r0, new Operand2(-1)));
@@ -206,28 +228,6 @@ public class ARMInstructionRoutines {
     instructions.addAll(addPrintMultiple(printMultipleLabel));
 
     return instructions;
-  }
-
-  public static List<Instruction> addPrint(RoutineInstruction routine, LabelGenerator labelGenerator, Map<Label, String> dataSegment) {
-    Label msgLabel = labelGenerator.getLabel();
-    switch (routine) {
-      case PRINT_CHAR:
-        return List.of(new BL(SystemCallInstruction.PUTCHAR.toString()));
-      case PRINT_BOOL:
-        /* add the printing true into .data section */
-        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(0));
-        Label sndLabel = labelGenerator.getLabel();
-        dataSegment.put(sndLabel, Utils.routineMsgMapping.get(RoutineInstruction.PRINT_BOOL).get(1));
-        return addPrintBool(msgLabel, sndLabel);
-      case PRINT_STRING:
-        dataSegment.put(msgLabel, "\"%.*s\\0\"");
-        return addPrintMultiple(msgLabel);
-      case PRINT_INT:
-      case PRINT_REFERENCE:
-      default:
-        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(routine).get(0));
-        return addPrintSingle(routine, msgLabel);
-    }
   }
 
   /* print string (char array included) */

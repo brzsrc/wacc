@@ -15,4 +15,10 @@ public interface Type {
   void showType();
 
   int getSize();
+
+  @Override
+  public boolean equals(Object obj);
+
+  @Override
+  public int hashCode(); 
 }
