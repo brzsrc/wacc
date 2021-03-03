@@ -1,6 +1,5 @@
-package backend.instructions.addressing.addressingMode2;
+package backend.instructions.addressing;
 
-import backend.instructions.addressing.*;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Immediate.BitNum;
 import utils.backend.Register;
