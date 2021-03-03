@@ -26,7 +26,7 @@ public class Operand2 {
     }
 
     public Operand2(int intVal) {
-        this(null, null, new Immediate(intVal, BitNum.CONST8));
+        this(null, Operand2Operator.NONE, new Immediate(intVal, BitNum.CONST8));
     }
 
     public Operand2(Register Rm) {
