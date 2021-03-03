@@ -132,15 +132,15 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     expectedFunctionReturn = funcNode.getReturnType();
     currSymbolTable = new SymbolTable(currSymbolTable);
 
-    int tempStackAddr = 0;
+    int tempStackAddr = -POINTER_SIZE;
     stackAddrCounter = funcNode.paramListStackSize();
     List<IdentNode> params = funcNode.getParamList();
     int paramNum = params.size();
 
     for (int i = paramNum - 1; i >= 0; i--) {
       IdentNode param = params.get(i);
-      currSymbolTable.add(param.getName(), param, tempStackAddr);
       tempStackAddr += param.getType().getSize();
+      currSymbolTable.add(param.getName(), param, tempStackAddr);
     }
 
     StatNode functionBody = visit(ctx.stat()).asStatNode();
@@ -332,13 +332,12 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       /* need to set the type of the rhs expression */
       expr.setType(varType);
     }
+    stackAddrCounter += expr.getType().getSize();
+
     semanticError |= currSymbolTable.add(varName, expr, stackAddrCounter);
 
     StatNode node = new DeclareNode(varName, expr);
     node.setScope(currSymbolTable);
-
-
-    stackAddrCounter += expr.getType().getSize();
 
     return node;
   }

@@ -24,12 +24,8 @@ public class FuncNode implements Node {
   private StatNode functionBody;
 
   public FuncNode(String functionName, Type returnType, List<IdentNode> params) {
-    this(functionName, returnType, null, params);
-  }
-
-  public FuncNode(String functionName, Type returnType, StatNode functionBody, List<IdentNode> params) {
     this.returnType = returnType;
-    this.functionBody = functionBody;
+    this.functionBody = null;
     this.parameters = params;
     this.functionName = functionName;
   }
@@ -39,10 +35,6 @@ public class FuncNode implements Node {
   }
 
   public void setFunctionBody(StatNode functionBody) {
-    /* pointer size here is used for PUSH {lr} */
-    for (IdentNode param : parameters) {
-       functionBody.getScope().pushIdentStackOffset(POINTER_SIZE, param.getName());
-    }
     this.functionBody = functionBody;
   }
 
