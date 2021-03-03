@@ -125,36 +125,6 @@ public class Utils {
       return "p_" + name().toLowerCase();
     }
   }
-
-  /* map for addPrintSingle */
-  public static final Map<RoutineInstruction, List<String>> routineMsgMapping = new HashMap<>() {
-    {
-      String strPrint = "\"%.*s\\0\"";
-      String nullRefPrint = "\"NullReferenceError: dereference a null reference\\n\\0\"";
-
-      put(RoutineInstruction.READ_INT, List.of("\"%d\\0\""));
-      put(RoutineInstruction.READ_CHAR, List.of("\" %c\\0\""));
-      put(RoutineInstruction.PRINT_INT, List.of("\"%d\\0\""));
-      put(RoutineInstruction.PRINT_BOOL, List.of("\"true\\0\"", "\"false\\0\""));
-      put(RoutineInstruction.PRINT_CHAR, List.of());
-      put(RoutineInstruction.PRINT_STRING, List.of(strPrint));
-      put(RoutineInstruction.PRINT_REFERENCE, List.of("\"%p\\0\""));
-      put(RoutineInstruction.PRINT_LN, List.of("\"\\0\""));
-      put(RoutineInstruction.CHECK_DIVIDE_BY_ZERO, List.of("\"DivideByZeroError: divide or modulo by zero\\n\\0\"", strPrint));
-      put(RoutineInstruction.THROW_RUNTIME_ERROR, List.of(strPrint));
-      put(RoutineInstruction.CHECK_ARRAY_BOUND, List.of("\"ArrayIndexOutOfBoundsError: negative index\\n\\0\"", "\"ArrayIndexOutOfBoundsError: index too large\\n\\0\""));
-      put(RoutineInstruction.FREE_ARRAY, List.of(nullRefPrint, strPrint));
-      put(RoutineInstruction.FREE_PAIR, List.of(nullRefPrint, strPrint));
-      put(RoutineInstruction.CHECK_NULL_POINTER, List.of(nullRefPrint, strPrint));
-      put(RoutineInstruction.THROW_OVERFLOW_ERROR, List.of("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"", strPrint));
-    }
-  };
-
-  // public static final Map<Type, RoutineInstruction> printTypeRoutineMapping = Map.of(INT_BASIC_TYPE, RoutineInstruction.PRINT_INT,
-  //     CHAR_BASIC_TYPE, RoutineInstruction.PRINT_CHAR, BOOL_BASIC_TYPE, RoutineInstruction.PRINT_BOOL,
-  //     STRING_BASIC_TYPE, RoutineInstruction.PRINT_STRING, CHAR_ARRAY_TYPE, RoutineInstruction.PRINT_STRING,
-  //     ARRAY_TYPE, RoutineInstruction.PRINT_REFERENCE, PAIR_TYPE, RoutineInstruction.PRINT_REFERENCE);
-
   
   /* adding a private constructor to override the default public constructor in order to 
      indicate Utils class cannot be instantiated */

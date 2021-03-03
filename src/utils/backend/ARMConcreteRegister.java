@@ -6,8 +6,8 @@ public class ARMConcreteRegister extends Register {
     /* static ARM register references */
     public static final ARMConcreteRegister r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
     public static final ARMConcreteRegister r1 = new ARMConcreteRegister(ARMRegisterLabel.R1);
-    public static final ARMConcreteRegister r3 = new ARMConcreteRegister(ARMRegisterLabel.R2);
-    public static final ARMConcreteRegister r2 = new ARMConcreteRegister(ARMRegisterLabel.R3);
+    public static final ARMConcreteRegister r2 = new ARMConcreteRegister(ARMRegisterLabel.R2);
+    public static final ARMConcreteRegister r3 = new ARMConcreteRegister(ARMRegisterLabel.R3);
     public static final ARMConcreteRegister r4 = new ARMConcreteRegister(ARMRegisterLabel.R4);
     public static final ARMConcreteRegister r5 = new ARMConcreteRegister(ARMRegisterLabel.R5);
     public static final ARMConcreteRegister r6 = new ARMConcreteRegister(ARMRegisterLabel.R6);

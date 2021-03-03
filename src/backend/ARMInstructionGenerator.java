@@ -116,9 +116,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
       instructions.add(new Add(addrReg, addrReg, new Operand2(POINTER_SIZE)));
 
-      // todo: change to mathematical representation
-      Map<Integer, Integer> arrayElemLSLMapping = Map.of(4, 2, 2, 1, 1, 0);
-      int elemSize = arrayElemLSLMapping.get(node.getType().getSize());
+      int elemSize = (int) Math.sqrt(node.getType().getSize());
       instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, Operand2Operator.LSL, elemSize)));
       
       /* free indexReg to make it available for the indexing of the next depth */
@@ -207,10 +205,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     if (binop == Binop.MUL) {
       instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, 31)));
       instructions.add(new BL(Cond.NE, RoutineInstruction.THROW_OVERFLOW_ERROR.toString()));
-      // Label overflowMsgLabel = msgLabelGenerator.getLabel();
-      // dataSegmentMessages.put(overflowMsgLabel, "\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"");
-      // Label printMultipleLabel = msgLabelGenerator.getLabel();
-      // dataSegmentMessages.put(printMultipleLabel, "\"%.*s\\0\"");
       checkAndAddRoutine(RoutineInstruction.THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
@@ -433,10 +427,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     if (operator == Unop.MINUS) {
       instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
-//      Label msgLabel = msgLabelGenerator.getLabel();
-//      dataSegmentMessages.put(msgLabel, "\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"");
-//      Label printMultipleLabel = msgLabelGenerator.getLabel();
-//      dataSegmentMessages.put(printMultipleLabel, "\"%.*s\\0\"");
       checkAndAddRoutine(RoutineInstruction.THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
@@ -534,14 +524,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitPrintlnNode(PrintlnNode node) {
-    visit(node.getExpr());
-    instructions.add(new Mov(r0, new Operand2(armRegAllocator.curr())));
+    /* print content same as printNode */
+    visitPrintNode(new PrintNode(node.getExpr()));
 
-    Type type = node.getExpr().getType();
-    RoutineInstruction routine = getPrintRoutine(type); //printTypeRoutineMapping.get(type);
-
-    instructions.add(new BL(routine.toString()));
-    checkAndAddRoutine(routine,  msgLabelGenerator, dataSegmentMessages);
+    instructions.add(new BL(RoutineInstruction.PRINT_LN.toString()));
     checkAndAddRoutine(RoutineInstruction.PRINT_LN, msgLabelGenerator, dataSegmentMessages);
 
     armRegAllocator.free();
@@ -554,7 +540,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(r0, new Operand2(armRegAllocator.curr())));
 
     Type type = node.getExpr().getType();
-    RoutineInstruction routine = getPrintRoutine(type); // printTypeRoutineMapping.get(type);
+    RoutineInstruction routine = getPrintRoutine(type);
 
     instructions.add(new BL(routine.toString()));
     checkAndAddRoutine(routine, msgLabelGenerator, dataSegmentMessages);
