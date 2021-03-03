@@ -43,20 +43,27 @@ public class ARMInstructionRoutines {
     /* add the helper function label */
     Label readLabel = new Label(routine.toString());
 
+    /* add the format into the data list */
     String ascii = routine == READ_INT ? "\"%d\\0\"" : "\" %c\\0\"";
     Label msgLabel = labelGenerator.getLabel();
-    dataSegment.put(readLabel, ascii);
+    dataSegment.put(msgLabel, ascii);
 
-    List<Instruction> instructions = List.of(readLabel, new Push(Collections.singletonList(LR)),
-        new Mov(r1, new Operand2(r0)), new LDR(r0, new LabelAddressing(msgLabel)),
-        new Add(r0, r0, new Operand2(4)), new BL(SystemCallInstruction.SCANF.toString()),
-        new Pop(Collections.singletonList(PC)));
+    List<Instruction> instructions = List.of(readLabel,
+            new Push(Collections.singletonList(LR)),
+    /* fst arg of read is the snd arg of scanf (storing address) */
+            new Mov(r1, new Operand2(r0)),
+    /* fst arg of scanf is the format */
+            new LDR(r0, new LabelAddressing(readLabel)),
+    /* skip the first 4 byte of the msg which is the length of it */
+            new Add(r0, r0, new Operand2(4)), new BL(SystemCallInstruction.SCANF.toString()),
+            new Pop(Collections.singletonList(PC)));
 
     return instructions;
   };
 
   public static RoutineFunction addPrint = (routine, labelGenerator, dataSegment) -> {
     Label msgLabel = labelGenerator.getLabel();
+    List<Instruction> instructions = new ArrayList<>();
     switch (routine) {
       case PRINT_CHAR:
         return List.of(new BL(SystemCallInstruction.PUTCHAR.toString()));
@@ -70,6 +77,9 @@ public class ARMInstructionRoutines {
         dataSegment.put(msgLabel, "\"%.*s\\0\"");
         return addPrintMultiple(msgLabel);
       case PRINT_INT:
+        instructions.add(new BL(PRINT_INT.toString()));
+        addPrintSingle(PRINT_INT, data, helperFunctions, allocator);
+
       case PRINT_REFERENCE:
       default:
         dataSegment.put(msgLabel, Utils.routineMsgMapping.get(routine).get(0));
