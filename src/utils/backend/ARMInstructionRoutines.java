@@ -25,16 +25,9 @@ import java.util.Map;
 import utils.Utils;
 import utils.Utils.RoutineInstruction;
 import utils.Utils.SystemCallInstruction;
+import static utils.backend.ARMConcreteRegister.*;
 
 public class ARMInstructionRoutines {
-
-  /* static ARM register references */
-  public static final ARMConcreteRegister r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
-  public static final ARMConcreteRegister r1 = new ARMConcreteRegister(ARMRegisterLabel.R1);
-  public static final ARMConcreteRegister r2 = new ARMConcreteRegister(ARMRegisterLabel.R2);
-  public static final ARMConcreteRegister LR = new ARMConcreteRegister(ARMRegisterLabel.LR);
-  public static final ARMConcreteRegister PC = new ARMConcreteRegister(ARMRegisterLabel.PC);
-  public static final ARMConcreteRegister SP = new ARMConcreteRegister(ARMRegisterLabel.SP);
 
   public static List<Instruction> addRead(RoutineInstruction routine, LabelGenerator labelGenerator, Map<Label, String> dataSegment) {
     List<Instruction> instructions = new ArrayList<>();
@@ -46,9 +39,11 @@ public class ARMInstructionRoutines {
     dataSegment.put(readLabel, ascii);
 
     instructions = List.of(readLabel, new Push(Collections.singletonList(LR)),
-        new Mov(r1, new Operand2(r0)), new LDR(r0, new LabelAddressing(msgLabel)),
-        new Add(r0, r0, new Operand2(4)), new BL(SystemCallInstruction.SCANF.toString()),
-        new Pop(Collections.singletonList(PC)));
+        new Mov(r1, new Operand2(r0)), 
+        new LDR(r0, new LabelAddressing(msgLabel)),
+        new Add(r0, r0, new Operand2(4)), 
+        new BL(SystemCallInstruction.SCANF.toString()),
+        new Pop(Collections.singletonList(ARMConcreteRegister.PC)));
 
     return instructions;
   }
@@ -85,11 +80,14 @@ public class ARMInstructionRoutines {
     /* add the helper function label */
     Label label = new Label(routine.toString());
     instructions = List.of(
-        label, new Push(Collections.singletonList(LR)), new LDR(r0, new LabelAddressing(printlnMsgLabel)),
+        label, new Push(Collections.singletonList(LR)), 
+        new LDR(r0, new LabelAddressing(printlnMsgLabel)),
         /* skip the first 4 byte of the msg which is the length of it */
-        new Add(r0, r0, new Operand2(4)), new BL(SystemCallInstruction.PUTS.toString()),
+        new Add(r0, r0, new Operand2(4)), 
+        new BL(SystemCallInstruction.PUTS.toString()),
         /* refresh the r0 and buffer */
-        new Mov(r0, new Operand2(0)), new BL(SystemCallInstruction.FFLUSH.toString()),
+        new Mov(r0, new Operand2(0)), 
+        new BL(SystemCallInstruction.FFLUSH.toString()),
         new Pop(Collections.singletonList(PC))
     );
 
