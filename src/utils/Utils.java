@@ -36,6 +36,9 @@ public class Utils {
   public static final Type ARRAY_TYPE = new ArrayType();
   public static final Type PAIR_TYPE = new PairType();
 
+  /* char array type would be the same as string for printf */
+  public static final Type CHAR_ARRAY_TYPE = new ArrayType(CHAR_BASIC_TYPE);
+
   /* a list of allowed types in read, free, cmp statement */
   public static final Set<Type> readStatAllowedTypes = new HashSet<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
   public static final Set<Type> freeStatAllowedTypes = new HashSet<>(Arrays.asList(ARRAY_TYPE, PAIR_TYPE));
@@ -99,6 +102,36 @@ public class Utils {
 
   public static final int TRUE = 1;
   public static final int FALSE = 0;
+
+  /* system call instruction */
+  public enum SystemCallInstruction {
+    MALLOC, PUTCHAR, SCANF;
+
+    @Override
+    public String toString() { return name().toLowerCase(); }
+  }
+
+  /* ARM routine instruction */
+  public enum RoutineInstruction {
+    READ_INT, READ_CHAR, PRINT_INT, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
+    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR, CHECK_NULL_POINTER,
+    THROW_OVERFLOW_ERROR;
+
+    @Override
+    public String toString() {
+      return "p_" + name().toLowerCase();
+    }
+  }
+
+  /* map for addPrintSingle */
+  public static final Map<RoutineInstruction, String> routineMsgMapping = new HashMap<>() {
+    {
+      put(RoutineInstruction.PRINT_INT, "\"%d\\0\"");
+      put(RoutineInstruction.PRINT_REFERENCE, "\"%p\\0\"");
+      put(RoutineInstruction.READ_INT, "\"%d\\0\"");
+      put(RoutineInstruction.READ_CHAR, "\" %c\\0\"");
+    }
+  };
 
   /* adding a private constructor to override the default public constructor in order to 
      indicate Utils class cannot be instantiated */

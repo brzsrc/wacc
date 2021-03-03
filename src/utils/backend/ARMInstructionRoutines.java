@@ -23,85 +23,58 @@ import backend.instructions.memory.Push;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Immediate.BitNum;
 import backend.instructions.operand.Operand2;
-import frontend.type.ArrayType;
 import frontend.type.Type;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import utils.Utils;
+import utils.Utils.RoutineInstruction;
+import utils.Utils.SystemCallInstruction;
 
 import static utils.Utils.ARRAY_TYPE;
 import static utils.Utils.PAIR_TYPE;
 
-public class HelperFunction {
+public class ARMInstructionRoutines {
 
-  /* print char would directly call BL putChar instead */
-  private enum Helper {
-    READ_INT, READ_CHAR, PRINT_INT, PRINT_BOOL, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
-    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR, CHECK_NULL_POINTER,
-    THROW_OVERFLOW_ERROR;
-    /* ... continue with some other helpers like runtime_error checker ... */
-
-    @Override
-    public String toString() {
-      return "p_" + name().toLowerCase();
-    }
+  /* record which routines have already been added so that we only add it once */
+  private static Set<RoutineInstruction> alreadyExist;
+  /* generate labels for the .data section of the assembly */
+  private static LabelGenerator labelGenerator;
+  /* the .data section reference shared between this class and ARMInstructionGenerator */
+  private static Map<Label, String> dataSegmentMessages;
+  public ARMInstructionRoutines(Map<Label, String> dataSegmentMessages) {
+    this.dataSegmentMessages = dataSegmentMessages;
+    this.alreadyExist = new HashSet<>();
+    this.labelGenerator = new LabelGenerator("msg_");
   }
 
-  /* char array type would be the same as string for printf */
-  private static Type CHAR_ARRAY_TYPE = new ArrayType(CHAR_BASIC_TYPE);
+  /* static ARM register references */
+  private static final ARMConcreteRegister r0 = new ARMConcreteRegister(ARMRegisterLabel.R0);
+  private static final ARMConcreteRegister r1 = new ARMConcreteRegister(ARMRegisterLabel.R1);
+  private static final ARMConcreteRegister LR = new ARMConcreteRegister(ARMRegisterLabel.LR);
+  private static final ARMConcreteRegister PC = new ARMConcreteRegister(ARMRegisterLabel.PC);
 
-  /*
-   * record which helpers already exist, we don't want repeated helper functions
-   */
-  private static Set<Helper> alreadyExist = new HashSet<>();
-
-  /* map for addPrintSingle */
-  private static Map<Helper, String> printSingleMap = new HashMap<>() {
-    {
-      put(Helper.PRINT_INT, "\"%d\\0\"");
-      // put(Helper.PUTCHAR, "\"%c\\0\"");
-      put(Helper.PRINT_REFERENCE, "\"%p\\0\"");
-    }
-  };
-
-  private static LabelGenerator labelGenerator = new LabelGenerator("msg_");
-
-  public static void addRead(Type type, List<Instruction> instructions, Map<Label, String> data,
-      List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
-
-    /* arg of read must be either int or char */
-    assert type.equalToType(INT_BASIC_TYPE) || type.equalToType(CHAR_BASIC_TYPE);
-
-    /* distinguish read_int from read_char */
-    Helper helper = (type.equalToType(INT_BASIC_TYPE)) ? Helper.READ_INT : Helper.READ_CHAR;
-    /* call the helper function anyway */
-    instructions.add(new BL(helper.toString()));
-
+  public List<Instruction> addRead(RoutineInstruction routine) {
+    List<Instruction> instructions = new ArrayList<>();
     /* only add the helper if it doesn't exist yet */
-    if (!alreadyExist.contains(helper)) {
+    if (!alreadyExist.contains(routine)) {
+      alreadyExist.add(routine);
 
-      /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
-
-      /* add the format into the data list */
-      Label msg = addMsg((helper == Helper.READ_INT) ? "\"%d\\0\"" : "\" %c\\0\"", data);
-
+      /* create the read msg label and add it to the .data section at the same time */
+      Label msgLabel = addMsgAndReturn(Utils.routineMsgMapping.get(routine));
       /* add the helper function label */
-      Label label = new Label(helper.toString());
-      helperFunctions.add(label);
-      helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
-      /* fst arg of read is the snd arg of scanf (storing address) */
-      helperFunctions.add(new Mov(allocator.get(1), new Operand2(allocator.get(0))));
-      /* fst arg of scanf is the format */
-      helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg)));
-      /* skip the first 4 byte of the msg which is the length of it */
-      helperFunctions.add(new Add(allocator.get(0), allocator.get(0), new Operand2(new Immediate(4, BitNum.CONST8))));
-      helperFunctions.add(new BL("scanf"));
-      helperFunctions.add(new Pop(Collections.singletonList(allocator.get(ARMRegisterLabel.PC))));
+      Label readLabel = new Label(routine.toString());
+
+      instructions = List.of(readLabel, new Push(Collections.singletonList(LR)),
+          new Mov(r1, new Operand2(r0)), new LDR(r0, new LabelAddressing(msgLabel)),
+          new Add(r0, r0, new Operand2(4)), new BL(SystemCallInstruction.SCANF.toString()),
+          new Pop(Collections.singletonList(PC)));
     }
+
+    return instructions;
   }
 
   public static void addPrint(Type type, List<Instruction> instructions, Map<Label, String> data,
@@ -109,20 +82,20 @@ public class HelperFunction {
 
     /* TODO: need to refactor here */
     if (type.equalToType(INT_BASIC_TYPE)) {
-      instructions.add(new BL(Helper.PRINT_INT.toString()));
-      addPrintSingle(Helper.PRINT_INT, data, helperFunctions, allocator);
+      instructions.add(new BL(RoutineInstruction.PRINT_INT.toString()));
+      addPrintSingle(RoutineInstruction.PRINT_INT, data, helperFunctions, allocator);
     } else if (type.equalToType(CHAR_BASIC_TYPE)) {
       instructions.add(new BL("putchar"));
       // addPrintSingle(Helper.PRINT_CHAR, data, helperFunctions, allocator);
     } else if (type.equalToType(BOOL_BASIC_TYPE)) {
-      instructions.add(new BL(Helper.PRINT_BOOL.toString()));
+      instructions.add(new BL(RoutineInstruction.PRINT_BOOL.toString()));
       addPrintBool(data, helperFunctions, allocator);
-    } else if (type.equalToType(STRING_BASIC_TYPE) || type.equalToType(CHAR_ARRAY_TYPE)) {
-      instructions.add(new BL(Helper.PRINT_STRING.toString()));
+    } else if (type.equalToType(STRING_BASIC_TYPE) || type.equalToType(Utils.CHAR_ARRAY_TYPE)) {
+      instructions.add(new BL(RoutineInstruction.PRINT_STRING.toString()));
       addPrintMultiple(data, helperFunctions, allocator);
     } else {
-      instructions.add(new BL(Helper.PRINT_REFERENCE.toString()));
-      addPrintSingle(Helper.PRINT_REFERENCE, data, helperFunctions, allocator);
+      instructions.add(new BL(RoutineInstruction.PRINT_REFERENCE.toString()));
+      addPrintSingle(RoutineInstruction.PRINT_REFERENCE, data, helperFunctions, allocator);
     }
 
   }
@@ -130,21 +103,21 @@ public class HelperFunction {
   public static void addPrintln(List<Instruction> instructions, Map<Label, String> data,
       List<Instruction> helperFunctions, ARMConcreteRegisterAllocator allocator) {
 
-    Helper helper = Helper.PRINT_LN;
+    RoutineInstruction routineInstruction = RoutineInstruction.PRINT_LN;
     /* call the helper function anyway */
-    instructions.add(new BL(helper.toString()));
+    instructions.add(new BL(routineInstruction.toString()));
 
     /* only add the helper if it doesn't exist yet */
-    if (!alreadyExist.contains(helper)) {
+    if (!alreadyExist.contains(routineInstruction)) {
 
       /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
+      alreadyExist.add(routineInstruction);
 
       /* add the format into the data list */
-      Label msg = addMsg("\"\\0\"", data);
+      Label msg = addMsgAndReturn("\"\\0\"");
 
       /* add the helper function label */
-      Label label = new Label(helper.toString());
+      Label label = new Label(routineInstruction.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg)));
@@ -161,26 +134,26 @@ public class HelperFunction {
 
   public static void addFree(Type type, Map<Label, String> data, List<Instruction> helperFunctions,
     ARMConcreteRegisterAllocator allocator) {
-      Helper helper = (type.equalToType(ARRAY_TYPE))? Helper.FREE_ARRAY : Helper.FREE_PAIR;
+      RoutineInstruction routineInstruction = (type.equalToType(ARRAY_TYPE))? RoutineInstruction.FREE_ARRAY : RoutineInstruction.FREE_PAIR;
 
       /* only add the helper if it doesn't exist yet */
-      if (!alreadyExist.contains(helper)) {
+      if (!alreadyExist.contains(routineInstruction)) {
 
         /* add this helper into alreadyExist list */
-        alreadyExist.add(helper);
+        alreadyExist.add(routineInstruction);
 
         Label msg = null;
-        for(Label msg_ : data.keySet()) {
+        for (Label msg_ : data.keySet()) {
           if(data.get(msg_).equals("\"NullReferenceError: dereference a null reference\\n\\0\"")) {
             msg = msg_;
             break;
           }
         }
         if(msg == null)
-          msg = addMsg("\"NullReferenceError: dereference a null reference\\n\\0\"", data);
+          msg = addMsgAndReturn("\"NullReferenceError: dereference a null reference\\n\\0\"");
 
         /* add the helper function label */
-        Label label = new Label(helper.toString());
+        Label label = new Label(routineInstruction.toString());
         helperFunctions.add(label);
         helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
         helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
@@ -203,26 +176,26 @@ public class HelperFunction {
 
   public static void addCheckNullPointer(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
-    Helper helper = Helper.CHECK_NULL_POINTER;
+    RoutineInstruction routineInstruction = RoutineInstruction.CHECK_NULL_POINTER;
 
-    if (alreadyExist.contains(helper)) {
+    if (alreadyExist.contains(routineInstruction)) {
       return;
     }
     
     /* add this helper into alreadyExist list */
-    alreadyExist.add(helper);
+    alreadyExist.add(routineInstruction);
 
     /* add the error message into the data list */
     
-    Label msg = addMsg("\"NullReferenceError: dereference a null reference\\n\\0\"", data);
+    Label msg = addMsgAndReturn("\"NullReferenceError: dereference a null reference\\n\\0\"");
 
     /* add the helper function label */
-    Label label = new Label(helper.toString());
+    Label label = new Label(routineInstruction.toString());
     helperFunctions.add(label);
     helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
     helperFunctions.add(new Cmp(allocator.get(0), new Operand2(new Immediate(0, BitNum.CONST8))));
     helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
-    helperFunctions.add(new BL(Cond.EQ, Helper.THROW_RUNTIME_ERROR.toString()));
+    helperFunctions.add(new BL(Cond.EQ, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
     helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
     addThrowRuntimeError(data, helperFunctions, allocator);
 
@@ -230,28 +203,28 @@ public class HelperFunction {
 
   public static void addCheckDivByZero(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
-    Helper helper = Helper.CHECK_DIVIDE_BY_ZERO;
+    RoutineInstruction routineInstruction = RoutineInstruction.CHECK_DIVIDE_BY_ZERO;
     /*
      * add this instr outside this func cuz only DIV and MOD will need to call this
      * func
      */
 
     /* only add the helper if it doesn't exist yet */
-    if (!alreadyExist.contains(helper)) {
+    if (!alreadyExist.contains(routineInstruction)) {
 
       /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
+      alreadyExist.add(routineInstruction);
 
       /* add the error message into the data list */
-      Label msg = addMsg("\"DivideByZeroError: divide or modulo by zero\\n\\0\"", data);
+      Label msg = addMsgAndReturn("\"DivideByZeroError: divide or modulo by zero\\n\\0\"");
 
       /* add the helper function label */
-      Label label = new Label(helper.toString());
+      Label label = new Label(routineInstruction.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
       helperFunctions.add(new Cmp(allocator.get(1), new Operand2(new Immediate(0, BitNum.CONST8))));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDREQ));
-      helperFunctions.add(new BL(Cond.EQ, Helper.THROW_RUNTIME_ERROR.toString()));
+      helperFunctions.add(new BL(Cond.EQ, RoutineInstruction.THROW_RUNTIME_ERROR.toString()));
       helperFunctions.add(new Pop(Collections.singletonList(allocator.get(15))));
       addThrowRuntimeError(data, helperFunctions, allocator);
     }
@@ -259,14 +232,14 @@ public class HelperFunction {
 
   public static void addCheckArrayBound(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
-    Helper helper = Helper.CHECK_ARRAY_BOUND;
+    RoutineInstruction routineInstruction = RoutineInstruction.CHECK_ARRAY_BOUND;
 
-    if (!alreadyExist.contains(helper)) {
+    if (!alreadyExist.contains(routineInstruction)) {
       /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
+      alreadyExist.add(routineInstruction);
 
-      Label negativeIndexLabel = addMsg("\"ArrayIndexOutOfBoundsError: negative index\\n\\0\"", data);
-      Label indexOutOfBoundLabel = addMsg("\"ArrayIndexOutOfBoundsError: index too large\\n\\0\"", data);
+      Label negativeIndexLabel = addMsgAndReturn("\"ArrayIndexOutOfBoundsError: negative index\\n\\0\"");
+      Label indexOutOfBoundLabel = addMsgAndReturn("\"ArrayIndexOutOfBoundsError: index too large\\n\\0\"");
 
       helperFunctions.add(new Label("p_check_array_bounds"));
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(14))));
@@ -283,13 +256,13 @@ public class HelperFunction {
 
   public static void addThrowOverflowError(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
-    Helper helper = Helper.THROW_OVERFLOW_ERROR;
+    RoutineInstruction routineInstruction = RoutineInstruction.THROW_OVERFLOW_ERROR;
 
-    if (!alreadyExist.contains(helper)) {
+    if (!alreadyExist.contains(routineInstruction)) {
       /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
+      alreadyExist.add(routineInstruction);
 
-      Label msg = addMsg("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"", data);
+      Label msg = addMsgAndReturn("\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"");
       helperFunctions.add(new Label("p_throw_overflow_error"));
       helperFunctions.add(new LDR(allocator.get(0), new LabelAddressing(msg), LdrMode.LDR));
       helperFunctions.add(new BL("p_throw_runtime_error"));
@@ -299,18 +272,18 @@ public class HelperFunction {
 
   public static void addThrowRuntimeError(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
-    Helper helper = Helper.THROW_RUNTIME_ERROR;
+    RoutineInstruction routineInstruction = RoutineInstruction.THROW_RUNTIME_ERROR;
 
     /* only add the helper if it doesn't exist yet */
-    if (!alreadyExist.contains(helper)) {
+    if (!alreadyExist.contains(routineInstruction)) {
 
       /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
+      alreadyExist.add(routineInstruction);
 
       /* add the helper function label */
       Label label = new Label("p_throw_runtime_error");
       helperFunctions.add(label);
-      helperFunctions.add(new BL(Helper.PRINT_STRING.toString()));
+      helperFunctions.add(new BL(RoutineInstruction.PRINT_STRING.toString()));
       helperFunctions.add(new Mov(allocator.get(0), new Operand2(new Immediate(-1, BitNum.CONST8))));
       helperFunctions.add(new BL("exit"));
       addPrintMultiple(data, helperFunctions, allocator);
@@ -321,19 +294,19 @@ public class HelperFunction {
   private static void addPrintMultiple(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
 
-    Helper helper = Helper.PRINT_STRING;
+    RoutineInstruction routineInstruction = RoutineInstruction.PRINT_STRING;
 
     /* only add the helper if it doesn't exist yet */
-    if (!alreadyExist.contains(helper)) {
+    if (!alreadyExist.contains(routineInstruction)) {
 
       /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
+      alreadyExist.add(routineInstruction);
 
       /* add the format into the data list */
-      Label msg = addMsg("\"%.*s\\0\"", data);
+      Label msg = addMsgAndReturn("\"%.*s\\0\"");
 
       /* add the helper function label */
-      Label label = new Label(helper.toString());
+      Label label = new Label(routineInstruction.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
       /* put the string length into r1 as snd arg */
@@ -347,20 +320,20 @@ public class HelperFunction {
   }
 
   /* print int, print char or print reference */
-  private static void addPrintSingle(Helper helper, Map<Label, String> data, List<Instruction> helperFunctions,
+  private static void addPrintSingle(RoutineInstruction routineInstruction, Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
 
     /* only add the helper if it doesn't exist yet */
-    if (!alreadyExist.contains(helper)) {
+    if (!alreadyExist.contains(routineInstruction)) {
 
       /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
+      alreadyExist.add(routineInstruction);
 
       /* add the format into the data list */
-      Label msg = addMsg(printSingleMap.get(helper), data);
+      Label msg = addMsgAndReturn(Utils.routineMsgMapping.get(routineInstruction));
 
       /* add the helper function label */
-      Label label = new Label(helper.toString());
+      Label label = new Label(routineInstruction.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
       /* put the content in r0 int o r1 as the snd arg of printf */
@@ -376,21 +349,21 @@ public class HelperFunction {
   private static void addPrintBool(Map<Label, String> data, List<Instruction> helperFunctions,
       ARMConcreteRegisterAllocator allocator) {
 
-    Helper helper = Helper.PRINT_BOOL;
+    RoutineInstruction routineInstruction = RoutineInstruction.PRINT_BOOL;
 
     /* only add the helper if it doesn't exist yet */
-    if (!alreadyExist.contains(helper)) {
+    if (!alreadyExist.contains(routineInstruction)) {
 
       /* add this helper into alreadyExist list */
-      alreadyExist.add(helper);
+      alreadyExist.add(routineInstruction);
 
       /* add the msgTrue into the data list */
-      Label msgTrue = addMsg("\"true\\0\"", data);
+      Label msgTrue = addMsgAndReturn("\"true\\0\"");
       /* add the msgFalse into the data list */
-      Label msgFalse = addMsg("\"false\\0\"", data);
+      Label msgFalse = addMsgAndReturn("\"false\\0\"");
 
       /* add the helper function label */
-      Label label = new Label(helper.toString());
+      Label label = new Label(routineInstruction.toString());
       helperFunctions.add(label);
       helperFunctions.add(new Push(Collections.singletonList(allocator.get(ARMRegisterLabel.LR))));
       /* cmp the content in r0 with 0 */
@@ -414,11 +387,10 @@ public class HelperFunction {
     helperFunctions.add(new Pop(Collections.singletonList(allocator.get(ARMRegisterLabel.PC))));
   }
 
-  public static Label addMsg(String msgAscii, Map<Label, String> data) {
+  public static Label addMsgAndReturn(String msgAscii) {
     /* add a Msg into the data list */
     Label msgLabel = labelGenerator.getLabel();
-    data.put(msgLabel, msgAscii);
+    dataSegmentMessages.put(msgLabel, msgAscii);
     return msgLabel;
   }
-
 }

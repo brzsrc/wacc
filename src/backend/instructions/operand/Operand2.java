@@ -1,5 +1,6 @@
 package backend.instructions.operand;
 
+import backend.instructions.operand.Immediate.BitNum;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,10 @@ public class Operand2 {
 
     public Operand2(Immediate immed) {
         this(null, Operand2Operator.NONE, immed);
+    }
+
+    public Operand2(int intVal) {
+        this(null, null, new Immediate(intVal, BitNum.CONST8));
     }
 
     public Operand2(Register Rm) {
