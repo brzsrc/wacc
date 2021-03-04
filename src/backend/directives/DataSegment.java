@@ -17,6 +17,9 @@ public class DataSegment implements Directive {
        this. messages = messages;
     }
 
+    /* get the "real" length of the string
+     * e.g. "ab\"c" is stored in AST as \"ab\\\"c\"
+     * and we just want to get the length of ab\"c */
     private int realLength(String s) {
         boolean isSlashAhead = false;
         int count = 0;
