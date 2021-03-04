@@ -47,16 +47,12 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* record whether a skipable semantic error is found in visiting to support checking of multiple errors */
   private boolean semanticError;
 
-  /* the stack address counter used in the current symbol table */
-  private int stackAddrCounter;
-
   /* constructor of SemanticChecker */
   public SemanticChecker() {
     currSymbolTable = null;
     globalFuncTable = new HashMap<>();
     isMainFunction = false;
     expectedFunctionReturn = null;
-    stackAddrCounter = 0;
   }
 
   @Override
@@ -104,9 +100,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* visit the body of the program and create the root SymbolTable here */
     isMainFunction = true;
     currSymbolTable = new SymbolTable(currSymbolTable);
-    stackAddrCounter = 0;
     StatNode body = visit(ctx.stat()).asStatNode();
-    // body.setScope(currSymbolTable);
     if (!(body instanceof ScopeNode)) {
       body = new ScopeNode(body);
       if (body.getScope() == null) {
@@ -132,8 +126,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     expectedFunctionReturn = funcNode.getReturnType();
     currSymbolTable = new SymbolTable(currSymbolTable);
 
+    /* initialise as -4 byte in order to leave space for PUSH {lr}, 
+       which takes up 4 bute on stack */
     int tempStackAddr = -POINTER_SIZE;
-    stackAddrCounter = funcNode.paramListStackSize();
     List<IdentNode> params = funcNode.getParamList();
     int paramNum = params.size();
 
@@ -230,14 +225,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitScopeStat(ScopeStatContext ctx) {
     /* simply create a new SymbolTable to represent a BEGIN ... END statement */
     currSymbolTable = new SymbolTable(currSymbolTable);
-    int prevStackCounter = stackAddrCounter;
-    stackAddrCounter = 0;
     StatNode body = visit(ctx.stat()).asStatNode();
     ScopeNode scopeNode = new ScopeNode(body);
     if (scopeNode.getScope() == null) {
       scopeNode.setScope(currSymbolTable);
     }
-    stackAddrCounter = prevStackCounter;
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     return scopeNode;
@@ -332,9 +324,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       /* need to set the type of the rhs expression */
       expr.setType(varType);
     }
-    stackAddrCounter += expr.getType().getSize();
 
-    semanticError |= currSymbolTable.add(varName, expr, stackAddrCounter);
+    semanticError |= currSymbolTable.add(varName, expr);
 
     StatNode node = new DeclareNode(varName, expr);
     node.setScope(currSymbolTable);
