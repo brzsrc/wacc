@@ -37,6 +37,7 @@ import static utils.Utils.*;
 import static utils.backend.ARMInstructionRoutines.routineFunctionMap;
 import static utils.backend.ARMConcreteRegister.*;
 import static utils.Utils.RoutineInstruction.*;
+import static utils.Utils.SystemCallInstruction.*;
 
 public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
@@ -47,9 +48,17 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private static Register SP = new ARMConcreteRegister(ARMRegisterLabel.SP);
 
   /* maximum of bytes that can be added/subtracted from the stack pointer */
-  public static int MAX_STACK_STEP = 1024;
+  public static int MAX_STACK_STEP = (1 << 10);
+  /* const used in visitBinop, for checking multiply overflow */
+  public static int ASR_SHIFT_CONST = 31;
 
-  /* the ARM conrete register allocator */
+  /* some headers */
+  public static String BRANCH_HEADER = "L";
+  public static String MSG_HEADER = "msg_";
+  public static String FUNC_HEADER = "f_";
+  public static String MAIN_BODY_NAME = "main";
+
+  /* the ARM concrete register allocator */
   private final ARMConcreteRegisterAllocator armRegAllocator;
   /* the code section of the assembly code */
   private final List<Instruction> instructions;
@@ -68,7 +77,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
    * USED FOR evaluating function parameters, not for changing parameters' offset in function body*/
   private int stackOffset;
 
-  /* used by visitFunc and visitReturn, set how many byte this function used on stack */
+  /* used by visitFunc and visitReturn, set how many byte this function used on stack
+     accumulated, on enter a new scope, decrease on exit
+     no need to distinguish function and non function scope, as non function scope does not call return */
   private int funcStackSize;
 
   /* used for mapping type with its print routine function */
@@ -87,8 +98,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions = new ArrayList<>();
     dataSegmentMessages = new LinkedHashMap<>();
     currSymbolTable = null;
-    branchLabelGenerator = new LabelGenerator("L");
-    msgLabelGenerator = new LabelGenerator("msg_");
+    branchLabelGenerator = new LabelGenerator(BRANCH_HEADER);
+    msgLabelGenerator = new LabelGenerator(MSG_HEADER);
     stackOffset = 0;
     isLhs = false;
   }
@@ -137,14 +148,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* if is not lhs, load the array content to `reg` */
     if (!isLhs) {
-      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg), node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRSB));
+      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg),
+          node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRSB));
     }
     return null;
   }
 
   @Override
   public Void visitArrayNode(ArrayNode node) {
-    /* get the total number of bytes needed to allocate enought space for the array */
+    /* get the total number of bytes needed to allocate enough space for the array */
     int size = node.getType() == null ? 0 : node.getContentSize() * node.getLength();
     /* add 4 bytes to `size` to include the size of the array as the first byte */
     size += POINTER_SIZE;
@@ -208,14 +220,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       checkAndAddRoutine(CHECK_DIVIDE_BY_ZERO, msgLabelGenerator, dataSegmentMessages);
     }
 
-    Binop binop = operator;
-    if (binop == Binop.PLUS || operator == Binop.MINUS) {
+    if (operator == Binop.PLUS || operator == Binop.MINUS) {
       instructions.add(new BL(Cond.VS,THROW_OVERFLOW_ERROR.toString()));
       checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
-    if (binop == Binop.MUL) {
-      instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, 31)));
+    if (operator == Binop.MUL) {
+      instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, ASR_SHIFT_CONST)));
       instructions.add(new BL(Cond.NE, THROW_OVERFLOW_ERROR.toString()));
       checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
@@ -278,7 +289,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     stackOffset = 0;
 
     /* 2 call function with B instruction */
-    instructions.add(new BL("f_" + node.getFunction().getFunctionName()));
+    instructions.add(new BL(FUNC_HEADER + node.getFunction().getFunctionName()));
 
     /* 3 add back stack pointer */
     if (paramSize > 0) {
@@ -326,7 +337,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
      *   store into next available register
      *   reg is expected register where visit will put value in */
 
-    //read fst a
+    /* e.g. read fst a, (fst a) is used as lhs but (a) is used as rhs */
     Register reg = armRegAllocator.next();
     boolean isLhsOutside = isLhs;
     isLhs = false;
@@ -337,7 +348,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(r0, new Operand2(reg)));
 
     /* 3 BL null pointer check */
-    instructions.add(new BL("p_check_null_pointer"));
+    instructions.add(new BL(CHECK_NULL_POINTER.toString()));
 
 
     checkAndAddRoutine(CHECK_NULL_POINTER, msgLabelGenerator, dataSegmentMessages);
@@ -438,7 +449,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.addAll(insList);
 
     if (operator == Unop.MINUS) {
-      instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
+      instructions.add(new BL(Cond.VS,THROW_OVERFLOW_ERROR.toString()));
       checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
@@ -488,7 +499,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* Mov the argument value from r4 to r0 */
     instructions.add(new Mov(r0, new Operand2(r4)));
     /* Call the exit function */
-    instructions.add(new BL("exit"));
+    instructions.add(new BL(EXIT.toString()));
 
     return null;
   }
@@ -609,6 +620,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       temp = temp - realStackSize;
     }
 
+    /* accumulate function stack size, in case this scope is a function scope and contain return */
+    funcStackSize += stackSize;
+
     /* 2 visit statements
      *   set currentSymbolTable here, eliminate all other set symbol table in other statNode */
     currSymbolTable = node.getScope();
@@ -616,6 +630,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       visit(elem);
     }
     currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    /* decrease function stack size, as from this point stack is freed by the scope, not by return */
+    funcStackSize -= stackSize;
 
     /* 3 restore stack */
     temp = stackSize;
@@ -672,7 +689,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* 1 add function label, 
      *   PUSH {lr}
      */
-    instructions.add(new Label("f_" + node.getFunctionName()));
+    instructions.add(new Label(FUNC_HEADER + node.getFunctionName()));
     instructions.add(new Push(Collections.singletonList(LR)));
 
     /* 2 decrease stack, leave space for variable in function body
@@ -702,7 +719,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
     
     /* 2 start of main */
-    Label mainLabel = new Label("main");
+    Label mainLabel = new Label(MAIN_BODY_NAME);
     instructions.add(mainLabel);
     /* 3 PUSH {lr} */
     instructions.add(new Push(Collections.singletonList(LR)));
