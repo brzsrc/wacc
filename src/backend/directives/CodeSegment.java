@@ -9,10 +9,6 @@ public class CodeSegment implements Directive {
 
     private List<Instruction> instructionList;
 
-    public CodeSegment() {
-        instructionList = new ArrayList<>();
-    }
-
     public CodeSegment(List<Instruction> list) {
         instructionList = list;
     }
