@@ -47,7 +47,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private static Register SP = new ARMConcreteRegister(ARMRegisterLabel.SP);
 
   /* maximum of bytes that can be added/subtracted from the stack pointer */
-  public static int MAX_STACK_STEP = 1024;
+  public static int MAX_STACK_STEP = (1 << 10);
 
   /* the ARM conrete register allocator */
   private final ARMConcreteRegisterAllocator armRegAllocator;
@@ -68,7 +68,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
    * USED FOR evaluating function parameters, not for changing parameters' offset in function body*/
   private int stackOffset;
 
-  /* used by visitFunc and visitReturn, set how many byte this function used on stack */
+  /* used by visitFunc and visitReturn, set how many byte this function used on stack
+     accumulated, on enter a new scope, decrease on exit
+     no need to distinguish function and non function scope, as non function scope does not call return */
   private int funcStackSize;
 
   /* used for mapping type with its print routine function */
@@ -609,6 +611,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       temp = temp - realStackSize;
     }
 
+    /* accumulate function stack size, in case this scope is a function scope and contain return */
+    funcStackSize += stackSize;
+
     /* 2 visit statements
      *   set currentSymbolTable here, eliminate all other set symbol table in other statNode */
     currSymbolTable = node.getScope();
@@ -616,6 +621,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       visit(elem);
     }
     currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    /* decrease function stack size, as from this point stack is freed by the scope, not by return */
+    funcStackSize -= stackSize;
 
     /* 3 restore stack */
     temp = stackSize;
