@@ -6,7 +6,7 @@ import utils.backend.Cond;
 import utils.backend.Register;
 
 public class Xor extends ArithmeticLogic {
-
+  /* EOR{cond}{S} <Rd>, <Rn>, <operand2> */
   public Xor(Register rd, Register rn, Operand2 operand2) {
     super(rd, rn, operand2);
   }

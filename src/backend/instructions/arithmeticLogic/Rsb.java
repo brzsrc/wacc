@@ -5,7 +5,7 @@ import utils.backend.Cond;
 import utils.backend.Register;
 
 public class Rsb extends ArithmeticLogic {
-
+  /* RSB{cond}{S} <Rd>, <Rn>, <operand2> */
   public enum RsbMode { RSB, RSBS }
   private RsbMode mode;
 

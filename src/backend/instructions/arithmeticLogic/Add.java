@@ -6,7 +6,7 @@ import utils.backend.Cond;
 import utils.backend.Register;
 
 public class Add extends ArithmeticLogic {
-
+  /* ADD{cond}{S} <Rd>, <Rn>, <operand2> */
   private Cond cond;
 
   public Add(Register rd, Register rn,

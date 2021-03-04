@@ -6,6 +6,16 @@ import utils.backend.Register;
 
 public class AddressingMode2 extends Addressing {
 
+/*
+addressing mode 2 pattern:
+OFFSET:                                     POSTINDEX:                                  PREINDEX:
+[<Rn>, #+/<immed_12>]                       [<Rn>], #+/<immed_12>                       [<Rn>], #+/<immed_12>
+[<Rn>]                                      [<Rn>]                                      [<Rn>]
+[<Rn>, +/-<Rm>]                             [<Rn>], +/-<Rm>                             [<Rn>, +/-<Rm>]!
+[<Rn>, +/-<Rm>, LSL/LSR/ASR/ROR #<immed_5>] [<Rn>], +/-<Rm>, LSL/LSR/ASR/ROR #<immed_5> [<Rn>, +/-<Rm>, LSL/LSR/ASR/ROR #<immed_5>]!
+[<Rn>, +/-<Rm>, RRX]                        [<Rn>], +/-<Rm>, RRX                        [<Rn>, +/-<Rm>, RRX]!
+ */
+
     public enum AddrMode2Operator { LSL, LSR, ASR, ROR, RRX }
 
     public enum AddrMode2 { OFFSET, PREINDEX, POSTINDEX }

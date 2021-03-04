@@ -6,7 +6,7 @@ import utils.backend.Cond;
 import utils.backend.Register;
 
 public class Sub extends ArithmeticLogic {
-
+  /* SUB{cond}{S} <Rd>, <Rn>, <operand2> */
   private Cond cond;
 
   public Sub(Register rd, Register rn, Operand2 operand2) {

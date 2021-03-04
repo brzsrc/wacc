@@ -7,25 +7,22 @@ import backend.instructions.Instruction;
 import backend.instructions.LDR;
 import backend.instructions.Label;
 import backend.instructions.Mov;
-import backend.instructions.LDR.LdrMode;
 import backend.instructions.addressing.LabelAddressing;
-import backend.instructions.addressing.RegAddressing;
 import backend.instructions.addressing.AddressingMode2;
-import backend.instructions.addressing.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.memory.Pop;
 import backend.instructions.memory.Push;
-import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
+import utils.Utils.RoutineInstruction;
 
 import java.util.*;
 
-import utils.Utils;
-import utils.Utils.RoutineInstruction;
-import utils.Utils.SystemCallInstruction;
+import static backend.instructions.LDR.LdrMode.*;
+import static backend.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
+import static utils.Utils.SystemCallInstruction.*;
 import static utils.backend.ARMConcreteRegister.*;
-
 import static utils.Utils.RoutineInstruction.*;
+import static utils.backend.Cond.EQ;
 
 public class ARMInstructionRoutines {
   /*
@@ -59,7 +56,7 @@ public class ARMInstructionRoutines {
     /* fst arg of scanf is the format */
             new LDR(r0, new LabelAddressing(msgLabel)),
     /* skip the first 4 byte of the msg which is the length of it */
-            new Add(r0, r0, new Operand2(4)), new BL(SystemCallInstruction.SCANF.toString()),
+            new Add(r0, r0, new Operand2(4)), new BL(SCANF.toString()),
             new Pop(Collections.singletonList(PC)));
 
     return instructions;
@@ -73,9 +70,6 @@ public class ARMInstructionRoutines {
         return new ArrayList<>();
       case PRINT_BOOL:
         /* add the printing true into .data section */
-//        dataSegment.put(msgLabel, Utils.routineMsgMapping.get(PRINT_BOOL).get(0));
-//        Label sndLabel = labelGenerator.getLabel();
-//        dataSegment.put(sndLabel, Utils.routineMsgMapping.get(PRINT_BOOL).get(1));
         return addPrintBool(dataSegment, labelGenerator);
       case PRINT_STRING:
         return addPrintMultiple(dataSegment, labelGenerator);
@@ -102,10 +96,10 @@ public class ARMInstructionRoutines {
             new Push(Collections.singletonList(LR)), new LDR(r0, new LabelAddressing(printlnMsgLabel)),
             /* skip the first 4 byte of the msg which is the length of it */
             new Add(r0, r0, new Operand2(4)),
-            new BL(SystemCallInstruction.PUTS.toString()),
+            new BL(PUTS.toString()),
             /* refresh the r0 and buffer */
             new Mov(r0, new Operand2(0)),
-            new BL(SystemCallInstruction.FFLUSH.toString()),
+            new BL(FFLUSH.toString()),
             new Pop(Collections.singletonList(PC))
     );
 
@@ -121,15 +115,12 @@ public class ARMInstructionRoutines {
 
     alreadyExist.add(THROW_RUNTIME_ERROR);
 
-    // Label printMultipleLabel = labelGenerator.getLabel();
-    // dataSegment.put(printMultipleLabel, "\"%.*s\\0\"");
-
     /* add the helper function label */
     Label label = new Label(THROW_RUNTIME_ERROR.toString());
     instructions.add(label);
     instructions.add(new BL(PRINT_STRING.toString()));
     instructions.add(new Mov(r0, new Operand2(-1)));
-    instructions.add(new BL(SystemCallInstruction.EXIT.toString()));
+    instructions.add(new BL(EXIT.toString()));
     instructions.addAll(addPrintMultiple(dataSegment, labelGenerator));
 
     return instructions;
@@ -155,19 +146,19 @@ public class ARMInstructionRoutines {
     instructions.add(freeLabel);
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r0, new Operand2(0)));
-    instructions.add(new LDR(r0, new LabelAddressing(msg), LdrMode.LDREQ));
-    instructions.add(new B(Cond.EQ, THROW_RUNTIME_ERROR.toString()));
+    instructions.add(new LDR(r0, new LabelAddressing(msg), LDREQ));
+    instructions.add(new B(EQ, THROW_RUNTIME_ERROR.toString()));
 
     if(routine.equals(FREE_PAIR)) {
       instructions.add(new Push(Collections.singletonList(r0)));
-      instructions.add(new LDR(r0, new RegAddressing(r0)));
-      instructions.add(new BL(SystemCallInstruction.FREE.toString()));
-      instructions.add(new LDR(r0, new RegAddressing(SP)));
-      instructions.add(new LDR(r0, new AddressingMode2(AddrMode2.OFFSET, r0, 4)));
-      instructions.add(new BL(SystemCallInstruction.FREE.toString()));
+      instructions.add(new LDR(r0, new AddressingMode2(OFFSET, r0)));
+      instructions.add(new BL(FREE.toString()));
+      instructions.add(new LDR(r0, new AddressingMode2(OFFSET, SP)));
+      instructions.add(new LDR(r0, new AddressingMode2(OFFSET, r0, 4)));
+      instructions.add(new BL(FREE.toString()));
       instructions.add(new Pop(Collections.singletonList(r0)));
     }
-    instructions.add(new BL(SystemCallInstruction.FREE.toString()));
+    instructions.add(new BL(FREE.toString()));
     instructions.add(new Pop(Collections.singletonList(PC)));
     instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
 
@@ -179,16 +170,14 @@ public class ARMInstructionRoutines {
 
     Label msgLabel = labelGenerator.getLabel();
     dataSegment.put(msgLabel, "\"NullReferenceError: dereference a null reference\\n\\0\"");
-    // Label printlnLabel = labelGenerator.getLabel();
-    // dataSegment.put(printlnLabel, "\"%.*s\\0\"");
 
     /* add the helper function label */
     Label label = new Label(CHECK_NULL_POINTER.toString());
     instructions.add(label);
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r0, new Operand2(0)));
-    instructions.add(new LDR(r0, new LabelAddressing(msgLabel), LdrMode.LDREQ));
-    instructions.add(new BL(Cond.EQ, THROW_RUNTIME_ERROR.toString()));
+    instructions.add(new LDR(r0, new LabelAddressing(msgLabel), LDREQ));
+    instructions.add(new BL(EQ, THROW_RUNTIME_ERROR.toString()));
     instructions.add(new Pop(Collections.singletonList(PC)));
     instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
 
@@ -209,8 +198,8 @@ public class ARMInstructionRoutines {
     instructions.add(label);
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r1, new Operand2(0)));
-    instructions.add(new LDR(r0, new LabelAddressing(msgLabel), LdrMode.LDREQ));
-    instructions.add(new BL(Cond.EQ, THROW_RUNTIME_ERROR.toString()));
+    instructions.add(new LDR(r0, new LabelAddressing(msgLabel), LDREQ));
+    instructions.add(new BL(EQ, THROW_RUNTIME_ERROR.toString()));
     instructions.add(new Pop(Collections.singletonList(PC)));
     instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
 
@@ -231,11 +220,11 @@ public class ARMInstructionRoutines {
     instructions.add(new Label(routine.toString()));
     instructions.add(new Push(Collections.singletonList(LR)));
     instructions.add(new Cmp(r0, new Operand2(0)));
-    instructions.add(new LDR(r0, new LabelAddressing(negativeIndexLabel), LdrMode.LDRLT));
+    instructions.add(new LDR(r0, new LabelAddressing(negativeIndexLabel), LDRLT));
     instructions.add(new BL(Cond.LT, THROW_RUNTIME_ERROR.toString()));
-    instructions.add(new LDR(r1, new AddressingMode2(AddrMode2.OFFSET, r1)));
+    instructions.add(new LDR(r1, new AddressingMode2(OFFSET, r1)));
     instructions.add(new Cmp(r0, new Operand2(r1)));
-    instructions.add(new LDR(r0, new LabelAddressing(indexOutOfBoundLabel), LdrMode.LDRCS));
+    instructions.add(new LDR(r0, new LabelAddressing(indexOutOfBoundLabel), LDRCS));
     instructions.add(new BL(Cond.CS, THROW_RUNTIME_ERROR.toString()));
     instructions.add(new Pop(Collections.singletonList(PC)));
 
@@ -249,7 +238,7 @@ public class ARMInstructionRoutines {
     dataSegment.put(overflowMsgLabel, "\"OverflowError: the result is too small/large to store in a 4-byte signed-integer.\\n\\0\"");
 
     instructions.add(new Label("p_throw_overflow_error"));
-    instructions.add(new LDR(r0, new LabelAddressing(overflowMsgLabel), LdrMode.LDR));
+    instructions.add(new LDR(r0, new LabelAddressing(overflowMsgLabel), LDR));
     instructions.add(new BL("p_throw_runtime_error"));
     instructions.addAll(addThrowRuntimeError.routineFunctionAssemble(THROW_RUNTIME_ERROR, labelGenerator, dataSegment));
 
@@ -274,7 +263,7 @@ public class ARMInstructionRoutines {
       instructions.add(label);
       instructions.add(new Push(Collections.singletonList(LR)));
       /* put the string length into r1 as snd arg */
-      instructions.add(new LDR(r1, new RegAddressing(r0)));
+      instructions.add(new LDR(r1, new AddressingMode2(OFFSET, r0)));
       /* skip the fst 4 bytes which is the length of the string */
       instructions.add(new Add(r2, r0, new Operand2(4)));
       instructions.add(new LDR(r0, new LabelAddressing(msg)));
@@ -288,7 +277,6 @@ public class ARMInstructionRoutines {
   /* print int, print char or print reference */
   private static List<Instruction> addPrintSingle (RoutineInstruction routine, Map<Label, String> dataSegment, LabelGenerator labelGenerator) {
     List<Instruction> instructions = new ArrayList<>();
-
 
     /* only add the helper if it doesn't exist yet */
     if (!alreadyExist.contains(routine)) {
@@ -336,9 +324,9 @@ public class ARMInstructionRoutines {
       /* cmp the content in r0 with 0 */
       instructions.add(new Cmp(r0, new Operand2(0)));
       /* if not equal to 0 LDR true */
-      instructions.add(new LDR(r0, new LabelAddressing(msgTrue), LdrMode.LDRNE));
+      instructions.add(new LDR(r0, new LabelAddressing(msgTrue), LDRNE));
       /* otherwise equal to 0 LDR false */
-      instructions.add(new LDR(r0, new LabelAddressing(msgFalse), LdrMode.LDREQ));
+      instructions.add(new LDR(r0, new LabelAddressing(msgFalse), LDREQ));
 
       instructions.addAll(addCommonPrint());
     }
@@ -350,10 +338,10 @@ public class ARMInstructionRoutines {
     return List.of(
         /* skip the first 4 byte of the msg which is the length of it */
         new Add(r0, r0, new Operand2(4)),
-        new BL(SystemCallInstruction.PRINTF.toString()),
+        new BL(PRINTF.toString()),
         /* refresh the r0 and buffer */
         new Mov(r0, new Operand2(0)),
-        new BL(SystemCallInstruction.FFLUSH.toString()),
+        new BL(FFLUSH.toString()),
         new Pop(Collections.singletonList(PC))
     );
   }
