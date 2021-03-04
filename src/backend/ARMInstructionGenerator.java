@@ -7,7 +7,6 @@ import backend.instructions.addressing.Addressing;
 import backend.instructions.addressing.ImmediateAddressing;
 import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.AddressingMode2;
-import backend.instructions.addressing.AddressingMode2.AddrMode2;
 import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.arithmeticLogic.Sub;
 import backend.instructions.memory.Pop;
@@ -15,7 +14,6 @@ import backend.instructions.memory.Push;
 import backend.instructions.arithmeticLogic.ArithmeticLogic;
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
-import backend.instructions.operand.Operand2.Operand2Operator;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
@@ -32,12 +30,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static backend.instructions.operand.Immediate.BitNum;
+import static backend.instructions.LDR.LdrMode.*;
+import static backend.instructions.STR.StrMode.*;
+import static backend.instructions.addressing.AddressingMode2.AddrMode2.*;
+import static backend.instructions.arithmeticLogic.ArithmeticLogic.unopInstruction;
+import static backend.instructions.operand.Immediate.BitNum.CONST8;
+import static backend.instructions.operand.Operand2.Operand2Operator.*;
+import static frontend.node.expr.UnopNode.Unop.MINUS;
 import static utils.Utils.*;
+import static utils.Utils.SystemCallInstruction.*;
 import static utils.backend.ARMInstructionRoutines.routineFunctionMap;
 import static utils.backend.ARMConcreteRegister.*;
 import static utils.Utils.RoutineInstruction.*;
-import static utils.Utils.SystemCallInstruction.*;
+import static utils.backend.Cond.*;
 
 public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
@@ -84,13 +89,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   /* used for mapping type with its print routine function */
   private final Map<Type, RoutineInstruction> typeRoutineMap = Map.of(
-        INT_BASIC_TYPE,    PRINT_INT,
-        CHAR_BASIC_TYPE,   PRINT_CHAR,
-        BOOL_BASIC_TYPE,   PRINT_BOOL,
-        STRING_BASIC_TYPE, PRINT_STRING,
-        CHAR_ARRAY_TYPE,   PRINT_STRING,
-        ARRAY_TYPE,        PRINT_REFERENCE,
-        PAIR_TYPE,         PRINT_REFERENCE
+    INT_BASIC_TYPE,    PRINT_INT,
+    CHAR_BASIC_TYPE,   PRINT_CHAR,
+    BOOL_BASIC_TYPE,   PRINT_BOOL,
+    STRING_BASIC_TYPE, PRINT_STRING,
+    CHAR_ARRAY_TYPE,   PRINT_STRING,
+    ARRAY_TYPE,        PRINT_REFERENCE,
+    PAIR_TYPE,         PRINT_REFERENCE
   );
 
   public ARMInstructionGenerator() {
@@ -124,7 +129,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
         visit(index);
         indexReg = armRegAllocator.curr();
         if (isLhs) {
-          instructions.add(new LDR(indexReg, new AddressingMode2(AddrMode2.OFFSET, indexReg)));
+          instructions.add(new LDR(indexReg, new AddressingMode2(OFFSET, indexReg)));
         }
       } else {
         indexReg = armRegAllocator.allocate();
@@ -132,7 +137,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       }
       
       /* check array bound */
-      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
+      instructions.add(new LDR(addrReg, new AddressingMode2(OFFSET, addrReg)));
       instructions.add(new Mov(r0, new Operand2(indexReg)));
       instructions.add(new Mov(r1, new Operand2(addrReg)));
       instructions.add(new BL(CHECK_ARRAY_BOUND.toString()));
@@ -140,7 +145,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       instructions.add(new Add(addrReg, addrReg, new Operand2(POINTER_SIZE)));
 
       int elemSize = node.getType().getSize() / 2;
-      instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, Operand2Operator.LSL, elemSize)));
+      instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, LSL, elemSize)));
       
       /* free indexReg to make it available for the indexing of the next depth */
       armRegAllocator.free();
@@ -148,8 +153,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* if is not lhs, load the array content to `reg` */
     if (!isLhs) {
-      instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg),
-          node.getType().getSize() > 1 ? LdrMode.LDR : LdrMode.LDRSB));
+      instructions.add(new LDR(addrReg, new AddressingMode2(OFFSET, addrReg),
+          node.getType().getSize() > 1 ? LdrMode.LDR : LDRSB));
     }
     return null;
   }
@@ -163,7 +168,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* load R0 with the number of bytes needed and malloc  */
     instructions.add(new LDR(r0, new ImmediateAddressing(size)));
-    instructions.add(new BL(SystemCallInstruction.MALLOC.toString()));
+    instructions.add(new BL(MALLOC.toString()));
 
     /* then MOV the result pointer of the array to the next available register */
     Register addrReg = armRegAllocator.allocate();
@@ -171,19 +176,19 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(addrReg, new Operand2(r0)));
 
     /* STR mode used to indicate whether to store a byte or a word */
-    StrMode mode = node.getContentSize() > 1 ? StrMode.STR : StrMode.STRB;
+    StrMode mode = node.getContentSize() > 1 ? STR : STRB;
 
     for (int i = 0; i < node.getLength(); i++) {
       visit(node.getElem(i));
       int STRIndex = i * node.getContentSize() + WORD_SIZE;
-      instructions.add(new STR(armRegAllocator.curr(), new AddressingMode2(AddrMode2.OFFSET, addrReg, STRIndex), mode));
+      instructions.add(new STR(armRegAllocator.curr(), new AddressingMode2(OFFSET, addrReg, STRIndex), mode));
       armRegAllocator.free();
     }
 
     Register sizeReg = armRegAllocator.allocate();
     /* STR the size of the array in the first byte */
     instructions.add(new LDR(sizeReg, new ImmediateAddressing(node.getLength())));
-    instructions.add(new STR(sizeReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
+    instructions.add(new STR(sizeReg, new AddressingMode2(OFFSET, addrReg)));
 
     armRegAllocator.free();
 
@@ -221,13 +226,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     }
 
     if (operator == Binop.PLUS || operator == Binop.MINUS) {
-      instructions.add(new BL(Cond.VS,THROW_OVERFLOW_ERROR.toString()));
+      instructions.add(new BL(VS,THROW_OVERFLOW_ERROR.toString()));
       checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
     if (operator == Binop.MUL) {
-      instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, ASR_SHIFT_CONST)));
-      instructions.add(new BL(Cond.NE, THROW_OVERFLOW_ERROR.toString()));
+      instructions.add(new Cmp(e2reg, new Operand2(e1reg, ASR, ASR_SHIFT_CONST)));
+      instructions.add(new BL(NE, THROW_OVERFLOW_ERROR.toString()));
       checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
@@ -251,7 +256,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitCharNode(CharNode node) {
     ARMConcreteRegister reg = armRegAllocator.allocate();
-    Immediate immed = new Immediate(node.getAsciiValue(), BitNum.CONST8, true);
+    Immediate immed = new Immediate(node.getAsciiValue(), CONST8, true);
     instructions.add(new Mov(reg, new Operand2(immed)));
     return null;
   }
@@ -279,8 +284,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       Register reg = armRegAllocator.next();
       visit(expr);
       int size = expr.getType().getSize();
-      StrMode mode = size > 1 ? StrMode.STR : StrMode.STRB;
-      instructions.add(new STR(reg,new AddressingMode2(AddrMode2.PREINDEX, SP, -size), mode));
+      StrMode mode = size > 1 ? STR : STRB;
+      instructions.add(new STR(reg,new AddressingMode2(PREINDEX, SP, -size), mode));
       armRegAllocator.free();
 
       paramSize += size;
@@ -312,9 +317,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
                  + stackOffset;
     LdrMode mode;
     if (identTypeSize > 1) {
-       mode = LdrMode.LDR;
+       mode = LDR;
     } else {
-      mode = LdrMode.LDRSB;
+      mode = LDRSB;
     }
 
     /* if is lhs, then only put address in register */
@@ -326,7 +331,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       /* otherwise, put value in register */
       instructions.add(new LDR(
               armRegAllocator.allocate(),
-              new AddressingMode2(AddrMode2.OFFSET, SP, offset), mode));
+              new AddressingMode2(OFFSET, SP, offset), mode));
     }
     return null;
   }
@@ -359,16 +364,16 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     AddressingMode2 addrMode;
 
     if (node.isFirst()) {
-      addrMode = new AddressingMode2(AddrMode2.OFFSET, reg);
+      addrMode = new AddressingMode2(OFFSET, reg);
     } else {
-      addrMode = new AddressingMode2(AddrMode2.OFFSET, reg, POINTER_SIZE);
+      addrMode = new AddressingMode2(OFFSET, reg, POINTER_SIZE);
     }
 
     if (isLhs) {
       instructions.add(new LDR(reg, addrMode));
     } else {
       instructions.add(new LDR(reg, addrMode));
-      instructions.add(new LDR(reg, new AddressingMode2(AddrMode2.OFFSET, reg)));
+      instructions.add(new LDR(reg, new AddressingMode2(OFFSET, reg)));
     }
 
     return null;
@@ -389,7 +394,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new LDR(r0, new ImmediateAddressing(2 * POINTER_SIZE)));
 
     /* 1.2 BL malloc and get pointer in general use register*/
-    instructions.add(new BL(SystemCallInstruction.MALLOC.toString()));
+    instructions.add(new BL(MALLOC.toString()));
     Register pairPointer = armRegAllocator.allocate();
 
     instructions.add(new Mov(pairPointer, new Operand2(r0)));
@@ -411,11 +416,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new LDR(r0, new ImmediateAddressing(child.getType().getSize())));
 
     /* 3 BL malloc, assign child value and get pointer in heap area pairPointer[0] or [1] */
-    instructions.add(new BL(SystemCallInstruction.MALLOC.toString()));
+    instructions.add(new BL(MALLOC.toString()));
 
-    StrMode mode = child.getType().getSize() > 1 ? StrMode.STR : StrMode.STRB;
-    instructions.add(new STR(fstVal, new AddressingMode2(AddrMode2.OFFSET, r0), mode));
-    instructions.add(new STR(r0, new AddressingMode2(AddrMode2.OFFSET, pairPointer, offset)));
+    StrMode mode = child.getType().getSize() > 1 ? STR : STRB;
+    instructions.add(new STR(fstVal, new AddressingMode2(OFFSET, r0), mode));
+    instructions.add(new STR(r0, new AddressingMode2(OFFSET, pairPointer, offset)));
 
     /* free register used for storing child's value */
     armRegAllocator.free();
@@ -443,13 +448,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Register reg = armRegAllocator.curr();
     Unop operator = node.getOperator();
 
-    List<Instruction> insList = ArithmeticLogic.unopInstruction
+    List<Instruction> insList = unopInstruction
         .get(operator)
         .unopAssemble(reg, reg);
     instructions.addAll(insList);
 
-    if (operator == Unop.MINUS) {
-      instructions.add(new BL(Cond.VS,THROW_OVERFLOW_ERROR.toString()));
+    if (operator == MINUS) {
+      instructions.add(new BL(VS,THROW_OVERFLOW_ERROR.toString()));
       checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
@@ -467,10 +472,10 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     isLhs = false;
 
     ARMConcreteRegister reg = armRegAllocator.last();
-    StrMode mode = node.getRhs().getType().getSize() > 1 ? StrMode.STR : StrMode.STRB ;
+    StrMode mode = node.getRhs().getType().getSize() > 1 ? STR : STRB ;
 
     instructions.add(new STR(reg,
-        new AddressingMode2(AddrMode2.OFFSET, armRegAllocator.curr()), mode));
+        new AddressingMode2(OFFSET, armRegAllocator.curr()), mode));
     armRegAllocator.free();
     armRegAllocator.free();
     return null;
@@ -480,13 +485,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitDeclareNode(DeclareNode node) {
     visit(node.getRhs());
     int identTypeSize = node.getRhs().getType().getSize();
-    StrMode strMode = identTypeSize == 1 ? StrMode.STRB : StrMode.STR;
+    StrMode strMode = identTypeSize == 1 ? STRB : STR;
 
     int offset = currSymbolTable.getSize() - 
                  node.getScope().lookup(node.getIdentifier()).getStackOffset();
 
     instructions.add(new STR(armRegAllocator.curr(),
-        new AddressingMode2(AddrMode2.OFFSET, SP, offset), strMode));
+        new AddressingMode2(OFFSET, SP, offset), strMode));
     armRegAllocator.free();
     return null;
   }
@@ -528,12 +533,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getCond());
     Register cond = armRegAllocator.curr();
     instructions.add(new Cmp(cond, new Operand2(1)));
-    instructions.add(new B(Cond.EQ, ifLabel.getName()));
+    instructions.add(new B(EQ, ifLabel.getName()));
     armRegAllocator.free();
 
     /* 2 elseBody translate */
     visit(node.getElseBody());
-    instructions.add(new B(Cond.NULL, exitLabel.getName()));
+    instructions.add(new B(NULL, exitLabel.getName()));
 
     /* 3 ifBody translate */
     instructions.add(ifLabel);
@@ -656,7 +661,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     
     /* 1 unconditional jump to end of loop, where conditional branch exists */
     Label testLabel = branchLabelGenerator.getLabel();
-    instructions.add(new B(Cond.NULL, testLabel.getName()));
+    instructions.add(new B(NULL, testLabel.getName()));
 
     /* 2 get a label, mark the start of the loop */
     Label startLabel = branchLabelGenerator.getLabel();
@@ -672,7 +677,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Cmp(armRegAllocator.curr(), new Operand2(TRUE)));
 
     /* 5 conditional branch jump to the start of loop */
-    instructions.add(new B(Cond.EQ, startLabel.getName()));
+    instructions.add(new B(EQ, startLabel.getName()));
 
     armRegAllocator.free();
 

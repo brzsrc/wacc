@@ -4,7 +4,7 @@ import backend.instructions.addressing.Addressing;
 import utils.backend.Register;
 
 public class LDR extends Instruction {
-
+  /* LDR{cond} <Rd>, <a_mode2> */
   public enum LdrMode { LDR, LDRB, LDRSB, LDREQ, LDRNE, LDRLT, LDRCS }
 
   private Register register;

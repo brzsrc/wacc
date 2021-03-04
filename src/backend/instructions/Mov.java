@@ -12,7 +12,7 @@ import static backend.instructions.arithmeticLogic.MovType.*;
 import static frontend.node.expr.BinopNode.Binop.*;
 
 public class Mov extends Instruction {
-
+  /* MOV{cond}{S} <Rd>, <operand2> */
   public static final Map<BinopNode.Binop, MovType> binOpMovMap = Map.of(
           GREATER, MOVGT,
           GREATER_EQUAL, MOVGE,

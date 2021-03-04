@@ -11,7 +11,7 @@ import java.util.List;
 import utils.backend.Register;
 
 public class ARMHeap implements Heap {
-
+  /* used for task3 optimisation */
   /* TODO: find the correct value of this */
   public static final int MAX_ARM_HEAP_SIZE = 65536;
   private int heapAddrCounter;

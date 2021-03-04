@@ -33,12 +33,12 @@ public class ARMCodeGenerator {
         list.forEach(i -> program.append(i + "\n"));
         return program.toString();
     }
-
-    public List<Instruction> constantEvaluation() {
-        return null;
-    }
-
-    public List<Instruction> constantPropagation() {
-        return null;
-    }
+/* not used, might be used in optimisation */
+//    public List<Instruction> constantEvaluation() {
+//        return null;
+//    }
+//
+//    public List<Instruction> constantPropagation() {
+//        return null;
+//    }
 }

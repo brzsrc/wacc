@@ -4,7 +4,7 @@ import backend.instructions.addressing.Addressing;
 import utils.backend.Register;
 
 public class STR extends Instruction {
-
+  /* STR{cond} <Rd>, <a_mode2> */
   public enum StrMode { STR, STRB }
 
   private Register srcReg;

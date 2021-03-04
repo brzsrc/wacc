@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ARMStack implements Stack {
-
+  /* used for task3 optimisation */
   /* TODO: find the correct value of MAX_ARM_STACK_SIZE */
   public static final int MAX_ARM_STACK_SIZE = 65536;
 
