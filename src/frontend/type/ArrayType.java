@@ -1,11 +1,13 @@
 package frontend.type;
 
+import static utils.Utils.BYTE_SIZE;
 import static utils.Utils.POINTER_SIZE;
 
 import java.util.Objects;
 
 public class ArrayType implements Type {
 
+  private final int ARRAY_HASH_CODE = 20;
   private final Type contentType;
   private final int depth;
 
@@ -68,20 +70,17 @@ public class ArrayType implements Type {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof Type) {
-      return this.equalToType((Type) obj);
-    }
-    
-    return false;
+    return hashCode() == obj.hashCode();
   }
 
   @Override
   public int hashCode() {
-    int hash = 20;
-    if (contentType == null) {
-      hash += POINTER_SIZE;
+    int hash = ARRAY_HASH_CODE;
+    if (contentType != null &&
+            contentType.equalToType(new BasicType(BasicTypeEnum.CHAR))) {
+      hash += BYTE_SIZE;
     } else {
-      hash += contentType.getSize();
+      hash += POINTER_SIZE;
     }
     return hash;
   }

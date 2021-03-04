@@ -66,6 +66,6 @@ public class BasicType implements Type {
 
   @Override
   public int hashCode() {
-    return Objects.hash(basicTypeEnum);
+    return basicTypeEnum.hashCode();
   }
 }

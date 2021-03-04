@@ -36,6 +36,7 @@ import static backend.instructions.operand.Immediate.BitNum;
 import static utils.Utils.*;
 import static utils.backend.ARMInstructionRoutines.routineFunctionMap;
 import static utils.backend.ARMConcreteRegister.*;
+import static utils.Utils.RoutineInstruction.*;
 
 public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
@@ -70,6 +71,17 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   /* used by visitFunc and visitReturn, set how many byte this function used on stack */
   private int funcStackSize;
 
+  /* used for mapping type with its print routine function */
+  private final Map<Type, RoutineInstruction> typeRoutineMap = Map.of(
+        INT_BASIC_TYPE,    PRINT_INT,
+        CHAR_BASIC_TYPE,   PRINT_CHAR,
+        BOOL_BASIC_TYPE,   PRINT_BOOL,
+        STRING_BASIC_TYPE, PRINT_STRING,
+        CHAR_ARRAY_TYPE,   PRINT_STRING,
+        ARRAY_TYPE,        PRINT_REFERENCE,
+        PAIR_TYPE,         PRINT_REFERENCE
+  );
+
   public ARMInstructionGenerator() {
     armRegAllocator = new ARMConcreteRegisterAllocator();
     instructions = new ArrayList<>();
@@ -90,8 +102,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
                  + stackOffset;
     instructions.add(new Add(addrReg, SP, new Operand2(offset)));
 
-    checkAndAddRoutine(RoutineInstruction.CHECK_ARRAY_BOUND, msgLabelGenerator, dataSegmentMessages);
-    checkAndAddRoutine(RoutineInstruction.THROW_RUNTIME_ERROR, msgLabelGenerator, dataSegmentMessages);
+    checkAndAddRoutine(CHECK_ARRAY_BOUND, msgLabelGenerator, dataSegmentMessages);
+    checkAndAddRoutine(THROW_RUNTIME_ERROR, msgLabelGenerator, dataSegmentMessages);
 
     Register indexReg;
     for (int i = 0; i < node.getDepth(); i++) {
@@ -112,11 +124,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       instructions.add(new LDR(addrReg, new AddressingMode2(AddrMode2.OFFSET, addrReg)));
       instructions.add(new Mov(r0, new Operand2(indexReg)));
       instructions.add(new Mov(r1, new Operand2(addrReg)));
-      instructions.add(new BL(RoutineInstruction.CHECK_ARRAY_BOUND.toString()));
+      instructions.add(new BL(CHECK_ARRAY_BOUND.toString()));
 
       instructions.add(new Add(addrReg, addrReg, new Operand2(POINTER_SIZE)));
 
-      int elemSize = (int) Math.sqrt(node.getType().getSize());
+      int elemSize = node.getType().getSize() / 2;
       instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, Operand2Operator.LSL, elemSize)));
       
       /* free indexReg to make it available for the indexing of the next depth */
@@ -193,19 +205,19 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
                                                .binopAssemble(e1reg, e1reg, op2, operator);
     instructions.addAll(insList);
     if(operator == Binop.DIV || operator == Binop.MOD) {
-      checkAndAddRoutine(RoutineInstruction.CHECK_DIVIDE_BY_ZERO, msgLabelGenerator, dataSegmentMessages);
+      checkAndAddRoutine(CHECK_DIVIDE_BY_ZERO, msgLabelGenerator, dataSegmentMessages);
     }
 
     Binop binop = operator;
     if (binop == Binop.PLUS || operator == Binop.MINUS) {
-      instructions.add(new BL(Cond.VS,RoutineInstruction.THROW_OVERFLOW_ERROR.toString()));
-      checkAndAddRoutine(RoutineInstruction.THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
+      instructions.add(new BL(Cond.VS,THROW_OVERFLOW_ERROR.toString()));
+      checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
     if (binop == Binop.MUL) {
       instructions.add(new Cmp(e2reg, new Operand2(e1reg, Operand2Operator.ASR, 31)));
-      instructions.add(new BL(Cond.NE, RoutineInstruction.THROW_OVERFLOW_ERROR.toString()));
-      checkAndAddRoutine(RoutineInstruction.THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
+      instructions.add(new BL(Cond.NE, THROW_OVERFLOW_ERROR.toString()));
+      checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
     if (expr1.getWeight() < expr2.getWeight()) {
@@ -328,7 +340,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new BL("p_check_null_pointer"));
 
 
-    checkAndAddRoutine(RoutineInstruction.CHECK_NULL_POINTER, msgLabelGenerator, dataSegmentMessages);
+    checkAndAddRoutine(CHECK_NULL_POINTER, msgLabelGenerator, dataSegmentMessages);
 
     /* 4 get pointer to child
      *   store in the same register, save register space
@@ -427,7 +439,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     if (operator == Unop.MINUS) {
       instructions.add(new BL(Cond.VS,"p_throw_overflow_error"));
-      checkAndAddRoutine(RoutineInstruction.THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
+      checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
 
     return null;
@@ -488,7 +500,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     armRegAllocator.free();
 
     Type type = node.getExpr().getType();
-    RoutineInstruction routine = type.equalToType(ARRAY_TYPE) ? RoutineInstruction.FREE_ARRAY : RoutineInstruction.FREE_PAIR;
+    RoutineInstruction routine = type.equalToType(ARRAY_TYPE) ? FREE_ARRAY : FREE_PAIR;
 
     instructions.add(new BL(routine.toString()));
     checkAndAddRoutine(routine, msgLabelGenerator, dataSegmentMessages);
@@ -527,8 +539,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* print content same as printNode */
     visitPrintNode(new PrintNode(node.getExpr()));
 
-    instructions.add(new BL(RoutineInstruction.PRINT_LN.toString()));
-    checkAndAddRoutine(RoutineInstruction.PRINT_LN, msgLabelGenerator, dataSegmentMessages);
+    instructions.add(new BL(PRINT_LN.toString()));
+    checkAndAddRoutine(PRINT_LN, msgLabelGenerator, dataSegmentMessages);
 
     return null;
   }
@@ -539,7 +551,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(r0, new Operand2(armRegAllocator.curr())));
 
     Type type = node.getExpr().getType();
-    RoutineInstruction routine = getPrintRoutine(type);
+    RoutineInstruction routine = typeRoutineMap.get(type);
 
     instructions.add(new BL(routine.toString()));
     checkAndAddRoutine(routine, msgLabelGenerator, dataSegmentMessages);
@@ -559,7 +571,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Type type = node.getInputExpr().getType();
 
     /* choose between read_int and read_char */
-    RoutineInstruction routine = (type.equalToType(INT_BASIC_TYPE)) ? RoutineInstruction.READ_INT : RoutineInstruction.READ_CHAR;
+    RoutineInstruction routine = (type.equalToType(INT_BASIC_TYPE)) ? READ_INT : READ_CHAR;
     instructions.add(new Mov(r0, new Operand2(armRegAllocator.curr())));
     instructions.add(new BL(routine.toString()));
 
@@ -712,28 +724,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     if (!helperFunctions.containsKey(routine)) {
       helperFunctions.put(routine, routineFunctionMap.get(routine).routineFunctionAssemble(routine, labelGenerator, dataSegment));
     }
-  }
-
-  private RoutineInstruction getPrintRoutine(Type type) {
-    RoutineInstruction routine = null;
-
-    if (type.equalToType(INT_BASIC_TYPE)) {
-      routine = RoutineInstruction.PRINT_INT;
-    } else if (type.equalToType(CHAR_BASIC_TYPE)) {
-      routine = RoutineInstruction.PRINT_CHAR;
-    } else if (type.equalToType(BOOL_BASIC_TYPE)) {
-      routine = RoutineInstruction.PRINT_BOOL;
-    } else if (type.equalToType(STRING_BASIC_TYPE)) {
-      routine = RoutineInstruction.PRINT_STRING;
-    } else if (type.equalToType(CHAR_ARRAY_TYPE)) {
-      routine = RoutineInstruction.PRINT_STRING;
-    } else if (type.equalToType(ARRAY_TYPE)) {
-      routine = RoutineInstruction.PRINT_REFERENCE;
-    } else if (type.equalToType(PAIR_TYPE)) {
-      routine = RoutineInstruction.PRINT_REFERENCE;
-    }
-
-    return routine;
   }
 
   /* below are getter and setter of this class */

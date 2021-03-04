@@ -8,6 +8,7 @@ import java.util.Objects;
 
 public class PairType implements Type {
 
+  private final int PAIR_HASH_CODE = 10;
   private final Type fstType;
   private final Type sndType;
 
@@ -99,6 +100,6 @@ public class PairType implements Type {
 
   @Override
   public int hashCode() {
-    return 10;
+    return PAIR_HASH_CODE;
   }
 }
