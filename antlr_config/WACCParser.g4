@@ -76,7 +76,8 @@ expr : INT_LITER      #IntExpr
      | expr bop=( '+' | '-' ) expr                    #ArithmeticExpr
      | expr bop=( '>' | '>=' | '<' | '<=' ) expr      #CmpExpr
      | expr bop=( '==' | '!=' ) expr                  #EqExpr
-     | expr bop=( '&&' | '||' ) expr                  #AndOrExpr
+     | expr '&&' expr                                 #AndExpr
+     | expr '||' expr                                 #OrExpr
      | OPEN_PARENTHESES expr CLOSE_PARENTHESES        #ParenExpr
      ;
 

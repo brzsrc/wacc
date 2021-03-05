@@ -1,6 +1,5 @@
 package utils;
 
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -66,10 +65,6 @@ public class Utils {
   public static final Map<String, Binop> EqEnumMapping = Map.of(
     "==", Binop.EQUAL,
     "!=", Binop.INEQUAL
-  );
-  public static final Map<String, Binop> LogicOpEnumMapping = Map.of(
-    "&&", Binop.AND,
-    "||", Binop.OR
   );
   public static final Map<String, Binop> CmpEnumMapping = Map.of(
     ">", Binop.GREATER,
