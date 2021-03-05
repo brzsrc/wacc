@@ -2,7 +2,7 @@ package backend.instructions.memory;
 
 import backend.instructions.Instruction;
 import java.util.List;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class Pop extends Instruction {
   /* used for task3 optimisation */

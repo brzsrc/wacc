@@ -1,18 +1,15 @@
 package utils;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import frontend.node.expr.BinopNode.Binop;
-import frontend.node.expr.IdentNode;
 import frontend.node.expr.UnopNode.Unop;
 import org.antlr.v4.runtime.ParserRuleContext;
 
-import frontend.node.expr.ExprNode;
 import frontend.type.ArrayType;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
@@ -45,52 +42,52 @@ public class Utils {
   public static final Set<Type> cmpStatAllowedTypes = new HashSet<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
 
   /* mapping from string literals to internal representations of UnopEnum and Type */
-  public static final Map<String, Unop> unopEnumMapping = new HashMap<String, Unop>(){{
-    put("-", Unop.MINUS);
-    put("chr", Unop.CHR);
-    put("!", Unop.NOT);
-    put("len", Unop.LEN);
-    put("ord", Unop.ORD);
-  }};
-  public static final Map<String, Type> unopTypeMapping = new HashMap<String, Type>(){{
-    put("-", INT_BASIC_TYPE);
-    put("chr", INT_BASIC_TYPE);
-    put("!", BOOL_BASIC_TYPE);
-    put("len", ARRAY_TYPE);
-    put("ord", CHAR_BASIC_TYPE);
-  }};
-  public static final Map<String, Binop> binopEnumMapping = new HashMap<String, Binop>(){{
-    put("+", Binop.PLUS);
-    put("-", Binop.MINUS);
-    put("*", Binop.MUL);
-    put("/", Binop.DIV);
-    put("%", Binop.MOD);
-  }};
-  public static final Map<String, Binop> EqEnumMapping = new HashMap<String, Binop>(){{
-    put("==", Binop.EQUAL);
-    put("!=", Binop.INEQUAL);
-  }};
-  public static final Map<String, Binop> LogicOpEnumMapping = new HashMap<String, Binop>(){{
-    put("&&", Binop.AND);
-    put("||", Binop.OR);
-  }};
-  public static final Map<String, Binop> CmpEnumMapping = new HashMap<String, Binop>(){{
-    put(">", Binop.GREATER);
-    put(">=", Binop.GREATER_EQUAL);
-    put("<", Binop.LESS);
-    put("<=", Binop.LESS_EQUAL);
-  }};
-  public static final Map<Character, Character> escCharMap = new HashMap<Character, Character>(){{
-    put('0', '\0');
-    put('b', '\b');
-    put('t', '\t');
-    put('n', '\n');
-    put('f', '\f');
-    put('r', '\r');
-    put('\"', '\"');
-    put('\'', '\'');
-    put('\\', '\\');
-  }};
+  public static final Map<String, Unop> unopEnumMapping = Map.of(
+    "-", Unop.MINUS,
+    "chr", Unop.CHR,
+    "!", Unop.NOT,
+    "len", Unop.LEN,
+    "ord", Unop.ORD
+  );
+  public static final Map<String, Type> unopTypeMapping = Map.of(
+    "-", INT_BASIC_TYPE,
+    "chr", INT_BASIC_TYPE,
+    "!", BOOL_BASIC_TYPE,
+    "len", ARRAY_TYPE,
+    "ord", CHAR_BASIC_TYPE
+  );
+  public static final Map<String, Binop> binopEnumMapping = Map.of(
+    "+", Binop.PLUS,
+    "-", Binop.MINUS,
+    "*", Binop.MUL,
+    "/", Binop.DIV,
+    "%", Binop.MOD
+  );
+  public static final Map<String, Binop> EqEnumMapping = Map.of(
+    "==", Binop.EQUAL,
+    "!=", Binop.INEQUAL
+  );
+  public static final Map<String, Binop> LogicOpEnumMapping = Map.of(
+    "&&", Binop.AND,
+    "||", Binop.OR
+  );
+  public static final Map<String, Binop> CmpEnumMapping = Map.of(
+    ">", Binop.GREATER,
+    ">=", Binop.GREATER_EQUAL,
+    "<", Binop.LESS,
+    "<=", Binop.LESS_EQUAL
+  );
+  public static final Map<Character, Character> escCharMap = Map.of(
+    '0', '\0',
+    'b', '\b',
+    't', '\t',
+    'n', '\n',
+    'f', '\f',
+    'r', '\r',
+    '\"', '\"',
+    '\'', '\'',
+    '\\', '\\'
+  );
 
   /* error code used in ErrorHandlers */
   public static final int SYNTAX_ERROR_CODE = 100;
@@ -102,6 +99,12 @@ public class Utils {
 
   public static final int TRUE = 1;
   public static final int FALSE = 0;
+
+  /* ARM assembly headers */
+  public static String BRANCH_HEADER = "L";
+  public static String MSG_HEADER = "msg_";
+  public static String FUNC_HEADER = "f_";
+  public static String MAIN_BODY_NAME = "main";
 
   /* system call instruction */
   public enum SystemCallInstruction {
@@ -120,7 +123,7 @@ public class Utils {
     @Override
     public String toString() {
       if (this == PRINT_CHAR) {
-        return "putchar";
+        return SystemCallInstruction.PUTCHAR.toString();
       }
       return "p_" + name().toLowerCase();
     }
@@ -148,7 +151,6 @@ public class Utils {
     }
     return false;
   }
-
 
   public static boolean typeCheck(ParserRuleContext ctx, String varName, Type expected,
       Type actual) {

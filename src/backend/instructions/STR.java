@@ -1,7 +1,7 @@
 package backend.instructions;
 
 import backend.instructions.addressing.Addressing;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class STR extends Instruction {
   /* STR{cond} <Rd>, <a_mode2> */

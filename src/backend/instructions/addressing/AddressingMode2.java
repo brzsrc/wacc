@@ -2,7 +2,7 @@ package backend.instructions.addressing;
 
 import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Immediate.BitNum;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class AddressingMode2 extends Addressing {
 

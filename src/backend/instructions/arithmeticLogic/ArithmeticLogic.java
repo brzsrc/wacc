@@ -17,10 +17,10 @@ import backend.instructions.operand.Immediate;
 import backend.instructions.operand.Operand2;
 import backend.instructions.operand.Immediate.BitNum;
 import frontend.node.expr.BinopNode.Binop;
-import utils.backend.ARMConcreteRegister;
-import utils.backend.ARMRegisterLabel;
+import utils.backend.register.ARMConcreteRegister;
+import utils.backend.register.ARMRegisterLabel;
 import utils.backend.Cond;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public abstract class ArithmeticLogic extends Instruction {
 

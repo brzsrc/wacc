@@ -1,9 +1,7 @@
 package backend.instructions.arithmeticLogic;
 
 import backend.instructions.operand.Operand2;
-import frontend.node.expr.BinopNode.Binop;
-import utils.backend.Cond;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class Or extends ArithmeticLogic {
   /* ORR{cond}{S} <Rd>, <Rn>, <operand2> */

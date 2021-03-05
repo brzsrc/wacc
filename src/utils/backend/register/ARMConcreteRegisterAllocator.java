@@ -1,10 +1,10 @@
-package utils.backend;
+package utils.backend.register;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static utils.backend.ARMConcreteRegister.*;
+import static utils.backend.register.ARMConcreteRegister.*;
 
 public class ARMConcreteRegisterAllocator {
 

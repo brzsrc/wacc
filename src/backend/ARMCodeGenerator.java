@@ -7,7 +7,6 @@ import backend.directives.CodeSegment;
 import backend.directives.DataSegment;
 import backend.directives.Directive;
 import backend.directives.TextSegment;
-import backend.instructions.Instruction;
 
 public class ARMCodeGenerator {
 
@@ -33,12 +32,13 @@ public class ARMCodeGenerator {
         list.forEach(i -> program.append(i + "\n"));
         return program.toString();
     }
-/* not used, might be used in optimisation */
-//    public List<Instruction> constantEvaluation() {
-//        return null;
-//    }
-//
-//    public List<Instruction> constantPropagation() {
-//        return null;
-//    }
+    
+    /* not used, might be used in optimisation */
+    //    public List<Instruction> constantEvaluation() {
+    //        return null;
+    //    }
+    //
+    //    public List<Instruction> constantPropagation() {
+    //        return null;
+    //    }
 }

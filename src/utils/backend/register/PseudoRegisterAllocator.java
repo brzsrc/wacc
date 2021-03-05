@@ -1,4 +1,4 @@
-package utils.backend;
+package utils.backend.register;
 
 public class PseudoRegisterAllocator {
     

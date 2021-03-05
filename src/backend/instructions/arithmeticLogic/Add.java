@@ -1,9 +1,8 @@
 package backend.instructions.arithmeticLogic;
 
 import backend.instructions.operand.*;
-import frontend.node.expr.BinopNode.Binop;
 import utils.backend.Cond;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class Add extends ArithmeticLogic {
   /* ADD{cond}{S} <Rd>, <Rn>, <operand2> */

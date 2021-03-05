@@ -20,8 +20,13 @@ import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
 import frontend.type.Type;
+import java.util.HashSet;
+import java.util.Set;
 import utils.NodeVisitor;
 import utils.backend.*;
+import utils.backend.register.ARMConcreteRegister;
+import utils.backend.register.ARMConcreteRegisterAllocator;
+import utils.backend.register.Register;
 import utils.frontend.symbolTable.SymbolTable;
 
 import java.util.LinkedHashMap;
@@ -40,28 +45,16 @@ import static frontend.node.expr.UnopNode.Unop.MINUS;
 import static utils.Utils.*;
 import static utils.Utils.SystemCallInstruction.*;
 import static utils.backend.ARMInstructionRoutines.routineFunctionMap;
-import static utils.backend.ARMConcreteRegister.*;
+import static utils.backend.register.ARMConcreteRegister.*;
 import static utils.Utils.RoutineInstruction.*;
 import static utils.backend.Cond.*;
 
 public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
-  /* a list of instructions for storing different helper functions
-   * would be appended to the end of instructions list while printing */
-  private Map<RoutineInstruction, List<Instruction>> helperFunctions = new LinkedHashMap<>();
-  /* constant fields */
-  private static Register SP = new ARMConcreteRegister(ARMRegisterLabel.SP);
-
   /* maximum of bytes that can be added/subtracted from the stack pointer */
   public static int MAX_STACK_STEP = (1 << 10);
   /* const used in visitBinop, for checking multiply overflow */
   public static int ASR_SHIFT_CONST = 31;
-
-  /* some headers */
-  public static String BRANCH_HEADER = "L";
-  public static String MSG_HEADER = "msg_";
-  public static String FUNC_HEADER = "f_";
-  public static String MAIN_BODY_NAME = "main";
 
   /* the ARM concrete register allocator */
   private final ARMConcreteRegisterAllocator armRegAllocator;
@@ -77,6 +70,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private final LabelGenerator msgLabelGenerator;
   /* mark if we are visiting a lhs or rhs of an expr */
   private boolean isLhs;
+
+  /* a list of instructions for storing different helper functions
+   * would be appended to the end of instructions list while printing */
+  private final List<Instruction> ARMRoutines;
+  /* record which helpers already exist, we don't want repeated helper functions */
+  private final Set<RoutineInstruction> alreadyExist;
 
   /* offset used when pushing variable in stack in visitFunctionCall 
    * USED FOR evaluating function parameters, not for changing parameters' offset in function body*/
@@ -106,6 +105,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     branchLabelGenerator = new LabelGenerator(BRANCH_HEADER);
     msgLabelGenerator = new LabelGenerator(MSG_HEADER);
     stackOffset = 0;
+    ARMRoutines = new ArrayList<>();
+    alreadyExist = new HashSet<>();
     isLhs = false;
   }
 
@@ -743,15 +744,32 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   /* below are helper functions used in this class */
   private void checkAndAddRoutine(RoutineInstruction routine, LabelGenerator labelGenerator, Map<Label, String> dataSegment) {
-    if (!helperFunctions.containsKey(routine)) {
-      helperFunctions.put(routine, routineFunctionMap.get(routine).routineFunctionAssemble(routine, labelGenerator, dataSegment));
+    Map<RoutineInstruction, RoutineInstruction> linkedRoutines = Map.of(
+      THROW_RUNTIME_ERROR, PRINT_STRING,
+      FREE_ARRAY, THROW_RUNTIME_ERROR,
+      FREE_PAIR, THROW_RUNTIME_ERROR,
+      CHECK_NULL_POINTER, THROW_RUNTIME_ERROR,
+      CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR,
+      THROW_OVERFLOW_ERROR, THROW_RUNTIME_ERROR
+    );
+    
+    if (!alreadyExist.contains(routine)) {
+      alreadyExist.add(routine);
+      ARMRoutines.addAll(routineFunctionMap.get(routine)
+                     .routineFunctionAssemble(routine, labelGenerator, dataSegment));
+
+      if (linkedRoutines.keySet().contains(routine)) {
+        RoutineInstruction r = linkedRoutines.get(routine);
+        checkAndAddRoutine(r, labelGenerator, dataSegment);
+        alreadyExist.add(r);
+      }
     }
   }
 
   /* below are getter and setter of this class */
 
   public List<Instruction> getInstructions() {
-    helperFunctions.values().forEach(instructions::addAll);
+    instructions.addAll(ARMRoutines);
     return instructions;
   }
 

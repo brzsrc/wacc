@@ -3,10 +3,9 @@ package backend.instructions;
 import java.util.Map;
 
 import backend.instructions.arithmeticLogic.MovType;
-import backend.instructions.arithmeticLogic.MovType.*;
 import backend.instructions.operand.Operand2;
 import frontend.node.expr.BinopNode;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 import static backend.instructions.arithmeticLogic.MovType.*;
 import static frontend.node.expr.BinopNode.Binop.*;

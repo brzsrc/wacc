@@ -2,7 +2,7 @@ package backend.instructions.operand;
 
 import backend.instructions.operand.Immediate.BitNum;
 
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 /* operand specified as Table 1-14 in ARM spec */
 public class Operand2 {
@@ -44,7 +44,7 @@ public class Operand2 {
     @Override
     public String toString() {
         StringBuilder res = new StringBuilder();
-        /* TODO: need better code quality here */
+
         if (Rm != null) res.append(Rm.toString());
         if (operator != Operand2Operator.NONE) res.append(", " + operator.toString() + " ");
         if (immed != null) res.append(immed.toString());

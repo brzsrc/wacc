@@ -1,7 +1,7 @@
 package backend.instructions;
 
 import backend.instructions.operand.Operand2;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class Cmp extends Instruction {
   /* CMP{cond} <Rn>, <operand2> */
