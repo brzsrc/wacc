@@ -1,9 +1,7 @@
 package backend.instructions.memory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class ARMStack implements Stack {
+
   /* used for task3 optimisation */
   public static final int MAX_ARM_STACK_SIZE = 65536;
 

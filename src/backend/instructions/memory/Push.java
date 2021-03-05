@@ -5,8 +5,9 @@ import java.util.List;
 import utils.backend.register.Register;
 
 public class Push extends Instruction {
+
   /* used for task3 optimisation */
-  private List<Register> reglist;
+  private final List<Register> reglist;
 
   public Push(List<Register> reglist) {
     this.reglist = reglist;
@@ -14,6 +15,7 @@ public class Push extends Instruction {
 
   @Override
   public String assemble() {
-    return "PUSH {" + reglist.stream().map(Register::toString).reduce((i, j) -> i + ", " + j).get() + "}";
+    return "PUSH {" + reglist.stream().map(Register::toString).reduce((i, j) -> i + ", " + j).get()
+        + "}";
   }
 }

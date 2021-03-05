@@ -4,6 +4,7 @@ import backend.instructions.operand.Operand2;
 import utils.backend.register.Register;
 
 public class Cmp extends Instruction {
+
   /* CMP{cond} <Rn>, <operand2> */
   private final Register Rd;
   private final Operand2 operand2;

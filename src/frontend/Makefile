@@ -11,7 +11,7 @@ UTILS_DIR           := $(ROOT_DIR)/src/utils/frontend $(ROOT_DIR)/src/utils/*.ja
 
 ANTLR	:= antlrBuild
 FIND	:= find
-RM	    := rm -rf
+RM	  := rm -rf
 MKDIR	:= mkdir -p
 JAVA	:= java
 JAVAC	:= javac

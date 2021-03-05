@@ -4,13 +4,10 @@ import backend.instructions.addressing.Addressing;
 import utils.backend.register.Register;
 
 public class LDR extends Instruction {
-  /* LDR{cond} <Rd>, <a_mode2> */
-  public enum LdrMode { LDR, LDRB, LDRSB, LDREQ, LDRNE, LDRLT, LDRCS }
 
-  private Register register;
-  private Addressing addr;
-  private LdrMode mode;
-
+  private final Register register;
+  private final Addressing addr;
+  private final LdrMode mode;
   public LDR(Register register, Addressing addr, LdrMode mode) {
     this.register = register;
     this.addr = addr;
@@ -28,4 +25,7 @@ public class LDR extends Instruction {
     str.append(addr);
     return mode.name() + " " + str.toString();
   }
+
+  /* LDR{cond} <Rd>, <a_mode2> */
+  public enum LdrMode {LDR, LDRB, LDRSB, LDREQ, LDRNE, LDRLT, LDRCS}
 }

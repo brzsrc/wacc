@@ -5,5 +5,6 @@ import java.util.List;
 import utils.backend.register.Register;
 
 public interface UnopAssemble {
-  public List<Instruction> unopAssemble(Register rd, Register rn);
+
+  List<Instruction> unopAssemble(Register rd, Register rn);
 }

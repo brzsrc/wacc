@@ -1,5 +1,36 @@
 package utils.backend;
 
+import static backend.instructions.LDR.LdrMode.LDR;
+import static backend.instructions.LDR.LdrMode.LDRCS;
+import static backend.instructions.LDR.LdrMode.LDREQ;
+import static backend.instructions.LDR.LdrMode.LDRLT;
+import static backend.instructions.LDR.LdrMode.LDRNE;
+import static backend.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
+import static utils.Utils.RoutineInstruction.CHECK_ARRAY_BOUND;
+import static utils.Utils.RoutineInstruction.CHECK_DIVIDE_BY_ZERO;
+import static utils.Utils.RoutineInstruction.CHECK_NULL_POINTER;
+import static utils.Utils.RoutineInstruction.FREE_PAIR;
+import static utils.Utils.RoutineInstruction.PRINT_BOOL;
+import static utils.Utils.RoutineInstruction.PRINT_INT;
+import static utils.Utils.RoutineInstruction.PRINT_LN;
+import static utils.Utils.RoutineInstruction.PRINT_REFERENCE;
+import static utils.Utils.RoutineInstruction.PRINT_STRING;
+import static utils.Utils.RoutineInstruction.READ_INT;
+import static utils.Utils.RoutineInstruction.THROW_RUNTIME_ERROR;
+import static utils.Utils.SystemCallInstruction.EXIT;
+import static utils.Utils.SystemCallInstruction.FFLUSH;
+import static utils.Utils.SystemCallInstruction.FREE;
+import static utils.Utils.SystemCallInstruction.PRINTF;
+import static utils.Utils.SystemCallInstruction.PUTS;
+import static utils.Utils.SystemCallInstruction.SCANF;
+import static utils.backend.Cond.EQ;
+import static utils.backend.register.ARMConcreteRegister.LR;
+import static utils.backend.register.ARMConcreteRegister.PC;
+import static utils.backend.register.ARMConcreteRegister.SP;
+import static utils.backend.register.ARMConcreteRegister.r0;
+import static utils.backend.register.ARMConcreteRegister.r1;
+import static utils.backend.register.ARMConcreteRegister.r2;
+
 import backend.instructions.B;
 import backend.instructions.BL;
 import backend.instructions.Cmp;
@@ -7,23 +38,19 @@ import backend.instructions.Instruction;
 import backend.instructions.LDR;
 import backend.instructions.Label;
 import backend.instructions.Mov;
-import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.addressing.AddressingMode2;
+import backend.instructions.addressing.LabelAddressing;
 import backend.instructions.arithmeticLogic.Add;
 import backend.instructions.memory.Pop;
 import backend.instructions.memory.Push;
 import backend.instructions.operand.Operand2;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import utils.Utils;
 import utils.Utils.RoutineInstruction;
-
-import java.util.*;
-
-import static backend.instructions.LDR.LdrMode.*;
-import static backend.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
-import static utils.Utils.SystemCallInstruction.*;
-import static utils.backend.register.ARMConcreteRegister.*;
-import static utils.Utils.RoutineInstruction.*;
-import static utils.backend.Cond.EQ;
 
 public class ARMInstructionRoutines {
 
@@ -39,13 +66,6 @@ public class ARMInstructionRoutines {
   private static final String PRINT_ARRAY_INDEX_TOO_LARGE_MSG = "\"ArrayIndexOutOfBoundsError: index too large\\n\\0\"";
   private static final String PRINT_BOOL_TRUE = "\"true\\0\"";
   private static final String PRINT_BOOL_FALSE = "\"false\\0\"";
-
-  /* adding a private constructor to override the default public constructor in order to 
-     indicate ARMInstructionRoutines class cannot be instantiated */
-  private ARMInstructionRoutines() {
-    throw new IllegalStateException("Utility Class cannot be instantiated!");
-  }
-
   public static RoutineFunction addRead = (routine, labelGenerator, dataSegment) -> {
     /* add the helper function label */
     Label readLabel = new Label(routine.toString());
@@ -56,17 +76,16 @@ public class ARMInstructionRoutines {
     dataSegment.put(msgLabel, asciiMsg);
 
     return List.of(
-      readLabel,
-      new Push(Collections.singletonList(LR)),
-      /* fst arg of read is the snd arg of scanf (storing address) */
-      new Mov(r1, new Operand2(r0)),
-      /* fst arg of scanf is the format */
-      new LDR(r0, new LabelAddressing(msgLabel)),
-      /* skip the first 4 byte of the msg which is the length of it */
-      new Add(r0, r0, new Operand2(4)), new BL(SCANF.toString()),
-      new Pop(Collections.singletonList(PC)));
+        readLabel,
+        new Push(Collections.singletonList(LR)),
+        /* fst arg of read is the snd arg of scanf (storing address) */
+        new Mov(r1, new Operand2(r0)),
+        /* fst arg of scanf is the format */
+        new LDR(r0, new LabelAddressing(msgLabel)),
+        /* skip the first 4 byte of the msg which is the length of it */
+        new Add(r0, r0, new Operand2(4)), new BL(SCANF.toString()),
+        new Pop(Collections.singletonList(PC)));
   };
-
   public static RoutineFunction addPrint = (routine, labelGenerator, dataSegment) -> {
     Label msgLabel = labelGenerator.getLabel();
     switch (routine) {
@@ -84,7 +103,6 @@ public class ARMInstructionRoutines {
         return addPrintSingle(PRINT_REFERENCE, dataSegment, labelGenerator);
     }
   };
-
   public static RoutineFunction addPrintln = (routine, labelGenerator, dataSegment) -> {
     /* overwrite, routine has to be PRINTLN */
     routine = PRINT_LN;
@@ -96,19 +114,18 @@ public class ARMInstructionRoutines {
     Label label = new Label(routine.toString());
 
     return List.of(
-      label,
-      new Push(Collections.singletonList(LR)), new LDR(r0, new LabelAddressing(printlnMsgLabel)),
-      /* skip the first 4 byte of the msg which is the length of it */
-      new Add(r0, r0, new Operand2(4)),
-      new BL(PUTS.toString()),
-      /* refresh the r0 and buffer */
-      new Mov(r0, new Operand2(0)),
-      new BL(FFLUSH.toString()),
-      new Pop(Collections.singletonList(PC))
+        label,
+        new Push(Collections.singletonList(LR)), new LDR(r0, new LabelAddressing(printlnMsgLabel)),
+        /* skip the first 4 byte of the msg which is the length of it */
+        new Add(r0, r0, new Operand2(4)),
+        new BL(PUTS.toString()),
+        /* refresh the r0 and buffer */
+        new Mov(r0, new Operand2(0)),
+        new BL(FFLUSH.toString()),
+        new Pop(Collections.singletonList(PC))
     );
   };
-
-  public static RoutineFunction addThrowRuntimeError = (routine, labelGenerator, dataSegment) ->  {
+  public static RoutineFunction addThrowRuntimeError = (routine, labelGenerator, dataSegment) -> {
     List<Instruction> instructions = new ArrayList<>(List.of(
         /* add the helper function label */
         new Label(THROW_RUNTIME_ERROR.toString()),
@@ -119,7 +136,6 @@ public class ARMInstructionRoutines {
 
     return instructions;
   };
-
   public static RoutineFunction addFree = (routine, labelGenerator, dataSegment) -> {
 
     Label msg = addMsg(PRINT_NULL_REF_MSG, dataSegment, labelGenerator);
@@ -133,15 +149,15 @@ public class ARMInstructionRoutines {
         new B(EQ, THROW_RUNTIME_ERROR.toString())
     ));
 
-    if(routine.equals(FREE_PAIR)) {
+    if (routine.equals(FREE_PAIR)) {
       List<Instruction> free_pair_instructions = List.of(
-        new Push(Collections.singletonList(r0)),
-        new LDR(r0, new AddressingMode2(OFFSET, r0)),
-        new BL(FREE.toString()),
-        new LDR(r0, new AddressingMode2(OFFSET, SP)),
-        new LDR(r0, new AddressingMode2(OFFSET, r0, 4)),
-        new BL(FREE.toString()),
-        new Pop(Collections.singletonList(r0))
+          new Push(Collections.singletonList(r0)),
+          new LDR(r0, new AddressingMode2(OFFSET, r0)),
+          new BL(FREE.toString()),
+          new LDR(r0, new AddressingMode2(OFFSET, SP)),
+          new LDR(r0, new AddressingMode2(OFFSET, r0, 4)),
+          new BL(FREE.toString()),
+          new Pop(Collections.singletonList(r0))
       );
       instructions.addAll(free_pair_instructions);
     }
@@ -150,7 +166,6 @@ public class ARMInstructionRoutines {
 
     return instructions;
   };
-
   public static RoutineFunction addCheckNullPointer = (routine, labelGenerator, dataSegment) -> {
     Label msgLabel = labelGenerator.getLabel();
     dataSegment.put(msgLabel, PRINT_NULL_REF_MSG);
@@ -167,8 +182,7 @@ public class ARMInstructionRoutines {
 
     return instructions;
   };
-
-  public static RoutineFunction addCheckDivByZero = (routine, labelGenerator, dataSegment) ->  {
+  public static RoutineFunction addCheckDivByZero = (routine, labelGenerator, dataSegment) -> {
     /* overwrite, routine has to be check divide by zero */
     routine = CHECK_DIVIDE_BY_ZERO;
 
@@ -187,8 +201,7 @@ public class ARMInstructionRoutines {
 
     return instructions;
   };
-
-  public static RoutineFunction addCheckArrayBound = (routine, labelGenerator, dataSegment) ->  {
+  public static RoutineFunction addCheckArrayBound = (routine, labelGenerator, dataSegment) -> {
     /* overwrite, routine has to be check array bound */
     routine = CHECK_ARRAY_BOUND;
 
@@ -198,19 +211,18 @@ public class ARMInstructionRoutines {
     dataSegment.put(indexOutOfBoundLabel, PRINT_ARRAY_INDEX_TOO_LARGE_MSG);
 
     return List.of(
-      new Label(routine.toString()),
-      new Push(Collections.singletonList(LR)),
-      new Cmp(r0, new Operand2(0)),
-      new LDR(r0, new LabelAddressing(negativeIndexLabel), LDRLT),
-      new BL(Cond.LT, THROW_RUNTIME_ERROR.toString()),
-      new LDR(r1, new AddressingMode2(OFFSET, r1)),
-      new Cmp(r0, new Operand2(r1)),
-      new LDR(r0, new LabelAddressing(indexOutOfBoundLabel), LDRCS),
-      new BL(Cond.CS, THROW_RUNTIME_ERROR.toString()),
-      new Pop(Collections.singletonList(PC))
+        new Label(routine.toString()),
+        new Push(Collections.singletonList(LR)),
+        new Cmp(r0, new Operand2(0)),
+        new LDR(r0, new LabelAddressing(negativeIndexLabel), LDRLT),
+        new BL(Cond.LT, THROW_RUNTIME_ERROR.toString()),
+        new LDR(r1, new AddressingMode2(OFFSET, r1)),
+        new Cmp(r0, new Operand2(r1)),
+        new LDR(r0, new LabelAddressing(indexOutOfBoundLabel), LDRCS),
+        new BL(Cond.CS, THROW_RUNTIME_ERROR.toString()),
+        new Pop(Collections.singletonList(PC))
     );
   };
-
   public static RoutineFunction addThrowOverflowError = (routine, labelGenerator, dataSegment) -> {
     Label overflowMsgLabel = labelGenerator.getLabel();
     dataSegment.put(overflowMsgLabel, PRINT_OVERFLOW_MSG);
@@ -223,9 +235,33 @@ public class ARMInstructionRoutines {
 
     return instructions;
   };
+  public static final Map<RoutineInstruction, RoutineFunction> routineFunctionMap = Map.ofEntries(
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.READ_INT, addRead),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.READ_CHAR, addRead),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_INT, addPrint),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_BOOL, addPrint),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_CHAR, addPrint),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_STRING, addPrint),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_REFERENCE, addPrint),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_LN, addPrintln),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.CHECK_DIVIDE_BY_ZERO, addCheckDivByZero),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.THROW_RUNTIME_ERROR, addThrowRuntimeError),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.CHECK_ARRAY_BOUND, addCheckArrayBound),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.FREE_ARRAY, addFree),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.FREE_PAIR, addFree),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.CHECK_NULL_POINTER, addCheckNullPointer),
+      new AbstractMap.SimpleEntry<>(RoutineInstruction.THROW_OVERFLOW_ERROR, addThrowOverflowError)
+  );
+
+  /* adding a private constructor to override the default public constructor in order to
+     indicate ARMInstructionRoutines class cannot be instantiated */
+  private ARMInstructionRoutines() {
+    throw new IllegalStateException("Utility Class cannot be instantiated!");
+  }
 
   /* print string (char array included) */
-  private static List<Instruction> addPrintMultiple(Map<Label, String> dataSegment, LabelGenerator labelGenerator) {
+  private static List<Instruction> addPrintMultiple(Map<Label, String> dataSegment,
+      LabelGenerator labelGenerator) {
     /* add the format into the data list */
     Label msg = addMsg(PRINT_STRING_MSG, dataSegment, labelGenerator);
 
@@ -245,7 +281,8 @@ public class ARMInstructionRoutines {
   }
 
   /* print int, print char or print reference */
-  private static List<Instruction> addPrintSingle(RoutineInstruction routine, Map<Label, String> dataSegment, LabelGenerator labelGenerator) {
+  private static List<Instruction> addPrintSingle(RoutineInstruction routine,
+      Map<Label, String> dataSegment, LabelGenerator labelGenerator) {
     /* add the format into the data list */
     String asciiMsg = routine.equals(PRINT_INT) ? PRINT_INT_MSG : PRINT_REF_MSG;
     Label msg = addMsg(asciiMsg, dataSegment, labelGenerator);
@@ -265,7 +302,8 @@ public class ARMInstructionRoutines {
   }
 
   /* print bool */
-  private static List<Instruction> addPrintBool(Map<Label, String> dataSegment, LabelGenerator labelGenerator) {
+  private static List<Instruction> addPrintBool(Map<Label, String> dataSegment,
+      LabelGenerator labelGenerator) {
     /* add the msgTrue into the data list */
     Label msgTrue = addMsg(PRINT_BOOL_TRUE, dataSegment, labelGenerator);
     /* add the msgFalse into the data list */
@@ -286,37 +324,20 @@ public class ARMInstructionRoutines {
     return instructions;
   }
 
-  public static final Map<RoutineInstruction, RoutineFunction> routineFunctionMap = Map.ofEntries(
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.READ_INT, addRead),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.READ_CHAR, addRead),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_INT, addPrint),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_BOOL, addPrint),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_CHAR, addPrint),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_STRING, addPrint),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_REFERENCE, addPrint),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.PRINT_LN, addPrintln),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.CHECK_DIVIDE_BY_ZERO, addCheckDivByZero),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.THROW_RUNTIME_ERROR, addThrowRuntimeError),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.CHECK_ARRAY_BOUND, addCheckArrayBound),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.FREE_ARRAY, addFree),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.FREE_PAIR, addFree),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.CHECK_NULL_POINTER, addCheckNullPointer),
-      new AbstractMap.SimpleEntry<>(RoutineInstruction.THROW_OVERFLOW_ERROR, addThrowOverflowError)
-  );
-
   private static List<Instruction> addCommonPrint() {
     return List.of(
-      /* skip the first 4 byte of the msg which is the length of it */
-      new Add(r0, r0, new Operand2(4)),
-      new BL(PRINTF.toString()),
-      /* refresh the r0 and buffer */
-      new Mov(r0, new Operand2(0)),
-      new BL(FFLUSH.toString()),
-      new Pop(Collections.singletonList(PC))
+        /* skip the first 4 byte of the msg which is the length of it */
+        new Add(r0, r0, new Operand2(4)),
+        new BL(PRINTF.toString()),
+        /* refresh the r0 and buffer */
+        new Mov(r0, new Operand2(0)),
+        new BL(FFLUSH.toString()),
+        new Pop(Collections.singletonList(PC))
     );
   }
 
-  private static Label addMsg(String msgAscii, Map<Label, String> data, LabelGenerator labelGenerator) {
+  private static Label addMsg(String msgAscii, Map<Label, String> data,
+      LabelGenerator labelGenerator) {
     /* add a Msg into the data list */
     Label msgLabel = labelGenerator.getLabel();
     data.put(msgLabel, msgAscii);

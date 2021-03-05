@@ -1,19 +1,17 @@
 package utils;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import frontend.type.ArrayType;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import frontend.type.PairType;
 import frontend.type.Type;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.antlr.v4.runtime.ParserRuleContext;
 import utils.frontend.SemanticErrorHandler;
 import utils.frontend.symbolTable.Symbol;
 import utils.frontend.symbolTable.SymbolTable;
@@ -36,52 +34,55 @@ public class Utils {
   public static final Type CHAR_ARRAY_TYPE = new ArrayType(CHAR_BASIC_TYPE);
 
   /* a list of allowed types in read, free, cmp statement */
-  public static final Set<Type> readStatAllowedTypes = new HashSet<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
-  public static final Set<Type> freeStatAllowedTypes = new HashSet<>(Arrays.asList(ARRAY_TYPE, PAIR_TYPE));
-  public static final Set<Type> cmpStatAllowedTypes = new HashSet<>(Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
+  public static final Set<Type> readStatAllowedTypes = new HashSet<>(
+      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
+  public static final Set<Type> freeStatAllowedTypes = new HashSet<>(
+      Arrays.asList(ARRAY_TYPE, PAIR_TYPE));
+  public static final Set<Type> cmpStatAllowedTypes = new HashSet<>(
+      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
 
   /* mapping from string literals to internal representations of UnopEnum and Type */
   public static final Map<String, Unop> unopEnumMapping = Map.of(
-    "-", Unop.MINUS,
-    "chr", Unop.CHR,
-    "!", Unop.NOT,
-    "len", Unop.LEN,
-    "ord", Unop.ORD
+      "-", Unop.MINUS,
+      "chr", Unop.CHR,
+      "!", Unop.NOT,
+      "len", Unop.LEN,
+      "ord", Unop.ORD
   );
   public static final Map<String, Type> unopTypeMapping = Map.of(
-    "-", INT_BASIC_TYPE,
-    "chr", INT_BASIC_TYPE,
-    "!", BOOL_BASIC_TYPE,
-    "len", ARRAY_TYPE,
-    "ord", CHAR_BASIC_TYPE
+      "-", INT_BASIC_TYPE,
+      "chr", INT_BASIC_TYPE,
+      "!", BOOL_BASIC_TYPE,
+      "len", ARRAY_TYPE,
+      "ord", CHAR_BASIC_TYPE
   );
   public static final Map<String, Binop> binopEnumMapping = Map.of(
-    "+", Binop.PLUS,
-    "-", Binop.MINUS,
-    "*", Binop.MUL,
-    "/", Binop.DIV,
-    "%", Binop.MOD
+      "+", Binop.PLUS,
+      "-", Binop.MINUS,
+      "*", Binop.MUL,
+      "/", Binop.DIV,
+      "%", Binop.MOD
   );
   public static final Map<String, Binop> EqEnumMapping = Map.of(
-    "==", Binop.EQUAL,
-    "!=", Binop.INEQUAL
+      "==", Binop.EQUAL,
+      "!=", Binop.INEQUAL
   );
   public static final Map<String, Binop> CmpEnumMapping = Map.of(
-    ">", Binop.GREATER,
-    ">=", Binop.GREATER_EQUAL,
-    "<", Binop.LESS,
-    "<=", Binop.LESS_EQUAL
+      ">", Binop.GREATER,
+      ">=", Binop.GREATER_EQUAL,
+      "<", Binop.LESS,
+      "<=", Binop.LESS_EQUAL
   );
   public static final Map<Character, Character> escCharMap = Map.of(
-    '0', '\0',
-    'b', '\b',
-    't', '\t',
-    'n', '\n',
-    'f', '\f',
-    'r', '\r',
-    '\"', '\"',
-    '\'', '\'',
-    '\\', '\\'
+      '0', '\0',
+      'b', '\b',
+      't', '\t',
+      'n', '\n',
+      'f', '\f',
+      'r', '\r',
+      '\"', '\"',
+      '\'', '\'',
+      '\\', '\\'
   );
 
   /* error code used in ErrorHandlers */
@@ -101,30 +102,7 @@ public class Utils {
   public static String FUNC_HEADER = "f_";
   public static String MAIN_BODY_NAME = "main";
 
-  /* system call instruction */
-  public enum SystemCallInstruction {
-    MALLOC, PUTCHAR, SCANF, EXIT, PRINTF, FFLUSH, PUTS, FREE;
-
-    @Override
-    public String toString() { return name().toLowerCase(); }
-  }
-
-  /* ARM routine instruction */
-  public enum RoutineInstruction {
-    READ_INT, READ_CHAR, PRINT_INT, PRINT_BOOL, PRINT_CHAR, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
-    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR, CHECK_NULL_POINTER,
-    THROW_OVERFLOW_ERROR;
-
-    @Override
-    public String toString() {
-      if (this == PRINT_CHAR) {
-        return SystemCallInstruction.PUTCHAR.toString();
-      }
-      return "p_" + name().toLowerCase();
-    }
-  }
-  
-  /* adding a private constructor to override the default public constructor in order to 
+  /* adding a private constructor to override the default public constructor in order to
      indicate Utils class cannot be instantiated */
   private Utils() {
     throw new IllegalStateException("Utility Class cannot be instantiated!");
@@ -183,5 +161,30 @@ public class Utils {
 
   public static boolean isCharInRange(int intVal) {
     return intVal >= 0 && intVal < 128;
+  }
+
+  /* system call instruction */
+  public enum SystemCallInstruction {
+    MALLOC, PUTCHAR, SCANF, EXIT, PRINTF, FFLUSH, PUTS, FREE;
+
+    @Override
+    public String toString() {
+      return name().toLowerCase();
+    }
+  }
+
+  /* ARM routine instruction */
+  public enum RoutineInstruction {
+    READ_INT, READ_CHAR, PRINT_INT, PRINT_BOOL, PRINT_CHAR, PRINT_STRING, PRINT_REFERENCE, PRINT_LN,
+    CHECK_DIVIDE_BY_ZERO, THROW_RUNTIME_ERROR, CHECK_ARRAY_BOUND, FREE_ARRAY, FREE_PAIR, CHECK_NULL_POINTER,
+    THROW_OVERFLOW_ERROR;
+
+    @Override
+    public String toString() {
+      if (this == PRINT_CHAR) {
+        return SystemCallInstruction.PUTCHAR.toString();
+      }
+      return "p_" + name().toLowerCase();
+    }
   }
 }
