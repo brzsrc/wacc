@@ -16,6 +16,18 @@ public class ASTPrinter implements NodeVisitor<Void> {
     }
   }
 
+  /* TODO: add struct printer, may need to print the StructDeclareNode as well */
+
+  @Override
+  public Void visitStructElemNode(StructElemNode node) {
+    return null;
+  }
+
+  @Override
+  public Void visitStructNode(StructNode node) {
+    return null;
+  }
+
   @Override
   public Void visitArrayElemNode(ArrayElemNode node) {
     visit(node.getArray());

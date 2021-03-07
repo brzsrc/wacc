@@ -3,6 +3,7 @@ package frontend;
 import frontend.antlr.WACCParser.*;
 import frontend.antlr.WACCParserBaseVisitor;
 
+import frontend.node.StructDeclareNode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,7 @@ import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 
 import frontend.type.*;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import utils.frontend.symbolTable.Symbol;
 import utils.frontend.symbolTable.SymbolTable;
 
@@ -35,6 +37,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* recording the current SymbolTable during parser tree visits */
   private SymbolTable currSymbolTable;
 
+  /* global data struct table, used to record all struct */
+  private final Map<String, StructDeclareNode> globalStructTable;
+
   /* global function table, used to record all functions */
   private final Map<String, FuncNode> globalFuncTable;
 
@@ -47,9 +52,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* record whether a skipable semantic error is found in visiting to support checking of multiple errors */
   private boolean semanticError;
 
+  /* record whether the 'null' is used to represent uninitialised struct or not */
+  private boolean isStruct;
+
   /* constructor of SemanticChecker */
   public SemanticChecker() {
     currSymbolTable = null;
+    globalStructTable = new HashMap<>();
     globalFuncTable = new HashMap<>();
     isMainFunction = false;
     expectedFunctionReturn = null;
@@ -57,6 +66,26 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitProgram(ProgramContext ctx) {
+
+    /* add the struct name in order to have recursive data struct */
+    for (StructContext s : ctx.struct()) {
+      String structName = s.IDENT().getText();
+
+      if (globalFuncTable.containsKey(structName)) {
+        symbolRedeclared(ctx, structName);
+        semanticError = true;
+      }
+
+      /* do not add the node during the first retrieve (would do it later) */
+      globalStructTable.put(structName, null);
+    }
+
+    /* visit these struct, and update the map */
+    for (StructContext s : ctx.struct()) {
+      StructDeclareNode node = (StructDeclareNode) visitStruct(s);
+      globalStructTable.replace(s.IDENT().getText(), node);
+    }
+
     /* add the identifiers and parameter list of functions in the globalFuncTable first */
     for (FuncContext f : ctx.func()) {
       String funcName = f.IDENT().getText();
@@ -115,6 +144,19 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     }
 
     return new ProgramNode(globalFuncTable, body);
+  }
+
+  @Override
+  public Node visitStruct(StructContext ctx) {
+    List<IdentNode> elements = new ArrayList<>();
+
+    for (ParamContext elem : ctx.param_list().param()) {
+      Type elemType = visit(elem.type()).asTypeDeclareNode().getType();
+      IdentNode elemNode = new IdentNode(elemType, elem.IDENT().getText());
+      elements.add(elemNode);
+    }
+
+    return new StructDeclareNode(elements);
   }
 
   @Override
@@ -470,8 +512,53 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   @Override
+  public Node visitStructExpr(StructExprContext ctx) {
+    String name = ctx.new_struct().IDENT().getText();
+    StructDeclareNode struct = globalStructTable.get(name);
+    List<ExprContext> exprContexts = ctx.new_struct().arg_list().expr();
+    List<ExprNode> elemNodes = new ArrayList<>();
+
+    for (int i = 0; i < exprContexts.size(); i++) {
+      isStruct = struct.getElemType(i) instanceof StructType;
+      ExprNode node = visit(exprContexts.get(i)).asExprNode();
+      isStruct = false;
+      elemNodes.add(node);
+    }
+
+    return new StructNode(elemNodes, struct.getOffsets(), struct.getSize());
+  }
+
+  @Override
+  public Node visitStructElemExpr(StructElemExprContext ctx) {
+    /* e.g. a.b.c where a is the variable name and b is the elem of a, and c is elem of a.b */
+    List<TerminalNode> identifiers = ctx.struct_elem().IDENT();
+    assert identifiers.size() >= 2;
+
+    int curPos = 0;
+    List<Integer> offsets = new ArrayList<>();
+    Symbol symbol = lookUpWithNotFoundException(ctx, currSymbolTable, identifiers.get(0).getText());
+    Type type = symbol.getExprNode().getType();
+
+    do {
+      assert type instanceof StructType;
+      String structName = ((StructType) type).getName();
+      StructDeclareNode struct = globalStructTable.get(structName);
+      /* TODO: check that the struct has this elem (elemNode != null) */
+      offsets.add(struct.findOffset(identifiers.get(curPos + 1).getText()));
+      type = struct.findElem(identifiers.get(curPos + 1).getText()).getType();
+      curPos++;
+    } while (curPos < identifiers.size() - 1);
+
+    StructElemNode node = new StructElemNode(offsets, identifiers.get(0).getText(), symbol);
+    node.setType(type);
+    return node;
+  }
+
+
+  @Override
   public Node visitFunctionCall(FunctionCallContext ctx) {
     String funcName = ctx.IDENT().getText();
+    /* TODO: function here can be null, add a check for this */
     FuncNode function = globalFuncTable.get(funcName);
     List<ExprNode> params = new ArrayList<>();
 
@@ -510,9 +597,10 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new BoolNode(ctx.BOOL_LITER().getText().equals("true"));
   }
 
+  /* pairExpr is basically 'null', extend 'null' to represent uninitialised struct */
   @Override
   public Node visitPairExpr(PairExprContext ctx) {
-    return new PairNode();
+    return (isStruct)? new StructNode() : new PairNode();
   }
 
   @Override
@@ -560,6 +648,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new BinopNode(expr1, expr2, binop);
   }
 
+  /* TODO: this is totally same as the visitIdent, remove duplicate later */
   @Override
   public Node visitIdExpr(IdExprContext ctx) {
     String name = ctx.IDENT().getText();
@@ -712,5 +801,18 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     TypeDeclareNode rightChild = visit(ctx.pair_elem_type(1)).asTypeDeclareNode();
     Type type = new PairType(leftChild.getType(), rightChild.getType());
     return new TypeDeclareNode(type);
+  }
+
+  @Override
+  public Node visitStructType(StructTypeContext ctx) { return visitStruct_type(ctx.struct_type()); }
+
+  @Override
+  public Node visitStruct_type(Struct_typeContext ctx) {
+    String name = ctx.IDENT().getText();
+    if (!globalStructTable.containsKey(name)) {
+      /* TODO: throw a data struct type undefined semantic error,
+       *       could do it together with the function undefined */
+    }
+    return new TypeDeclareNode(new StructType(name));
   }
 }

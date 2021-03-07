@@ -30,6 +30,11 @@ PAIR_LITER : 'null' ;
 PAIR       : 'pair' ;
 NEWPAIR    : 'newpair' ;
 
+// struct
+STRUCT     : 'struct' ;
+NEW        : 'new' ;
+DOT        : '.' ;
+
 // keywords
 BEGIN   : 'begin' ;
 END     : 'end' ;
@@ -58,6 +63,8 @@ OPEN_PARENTHESES     : '(' ;
 CLOSE_PARENTHESES    : ')' ;
 OPEN_SQUARE_BRACKET  : '[' ;
 CLOSE_SQUARE_BRACKET : ']' ;
+OPEN_CURLY_BRACKET   : '{' ;
+CLOSE_CURLY_BRACKET  : '}' ;
 
 // operator fragments
 PLUS  : '+' ;
