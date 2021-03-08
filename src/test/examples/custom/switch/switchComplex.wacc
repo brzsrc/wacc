@@ -27,6 +27,6 @@ begin
         break
       default
         println "You got bigger than 2!"
-    done;
+    done
   done
 end

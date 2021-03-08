@@ -7,6 +7,7 @@
 
 begin
   char c = 'c';
+  string content = "";
   switch c do
     case 'a'
       content = "Incorrect!";

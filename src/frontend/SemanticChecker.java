@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import frontend.node.FuncNode;
 import frontend.node.Node;
@@ -14,6 +15,8 @@ import frontend.node.ProgramNode;
 import frontend.node.TypeDeclareNode;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
+import frontend.node.stat.JumpNode.JumpType;
+import frontend.node.stat.SwitchNode.CaseStat;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 
@@ -47,12 +50,16 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* record whether a skipable semantic error is found in visiting to support checking of multiple errors */
   private boolean semanticError;
 
+  /* record the for-loop incrementer so that break and continue know what to do before jumping */
+  private StatNode currForloopIncrement;
+
   /* constructor of SemanticChecker */
   public SemanticChecker() {
     currSymbolTable = null;
     globalFuncTable = new HashMap<>();
     isMainFunction = false;
     expectedFunctionReturn = null;
+    currForloopIncrement = null;
   }
 
   @Override
@@ -219,6 +226,78 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     node.setScope(currSymbolTable);
 
     return node;
+  }
+
+  @Override 
+  public Node visitDoWhileStat(DoWhileStatContext ctx) {
+    /* check that the condition of while statement is of type boolean */
+    ExprNode condition = visit(ctx.expr()).asExprNode();
+    Type conditionType = condition.getType();
+    semanticError |= typeCheck(ctx.expr(), BOOL_BASIC_TYPE, conditionType);
+
+    /* get the StatNode of the execution body of while loop */
+    currSymbolTable = new SymbolTable(currSymbolTable);
+    StatNode body = visit(ctx.stat()).asStatNode();
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    StatNode node = (body instanceof ScopeNode) ?
+            new WhileNode(condition, body, true) :
+            new WhileNode(condition, new ScopeNode(body), true);
+    node.setScope(currSymbolTable);
+
+    return node;
+  }
+
+  @Override
+  public Node visitForStat(ForStatContext ctx) {
+    StatNode init = visit(ctx.for_stat(0)).asStatNode();
+    ExprNode cond = visit(ctx.expr()).asExprNode();
+    StatNode increment = visit(ctx.for_stat(1)).asStatNode();
+
+    currForloopIncrement = increment;
+    StatNode body = visit(ctx.stat()).asStatNode();
+
+    StatNode forNode = new ForNode(init, cond, increment, body);
+    
+    return forNode;
+  }
+
+  @Override
+  public Node visitForStatSeq(ForStatSeqContext ctx) {
+    StatNode stat1 = visit(ctx.for_stat(0)).asStatNode();
+    StatNode stat2 = visit(ctx.for_stat(1)).asStatNode();
+    
+    return new ScopeNode(stat1, stat2);
+  }
+
+  @Override
+  public Node visitBreakStat(BreakStatContext ctx) {
+    /* TODO: remember to check if the break statement is within for, while, do-while, or switch */
+    return new JumpNode(JumpType.BREAK, currForloopIncrement);
+  }
+
+  @Override
+  public Node visitContinueStat(ContinueStatContext ctx) {
+    /* TODO: remember to check if the break statement is within for, while, or do-while */
+    return new JumpNode(JumpType.CONTINUE, currForloopIncrement);
+  }
+
+  @Override
+  public Node visitSwitchStat(SwitchStatContext ctx) {
+    ExprNode expr = visit(ctx.expr(0)).asExprNode();
+
+    int numOfCases = ctx.expr().size() - 1;
+    List<CaseStat> cases = new ArrayList<>();
+    StatNode defaultCase = visit(ctx.stat(numOfCases)).asStatNode();
+
+    for (int i = 1; i < numOfCases; i++) {
+      ExprNode caseExpr = visit(ctx.expr(i)).asExprNode();
+      StatNode caseStat = visit(ctx.stat(i - 1)).asStatNode();
+      CaseStat singleCase = new CaseStat(caseExpr, caseStat);
+      cases.add(singleCase);
+    }
+
+    return new SwitchNode(expr, cases, defaultCase);
   }
 
   @Override

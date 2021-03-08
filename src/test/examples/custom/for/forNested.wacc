@@ -14,5 +14,5 @@ begin
       print " "
     done;
     println ""
-  done;
+  done
 end

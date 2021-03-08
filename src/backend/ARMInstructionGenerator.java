@@ -28,6 +28,7 @@ import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
+import frontend.node.stat.JumpNode.JumpType;
 import frontend.type.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,6 +76,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       ARRAY_TYPE, PRINT_REFERENCE,
       PAIR_TYPE, PRINT_REFERENCE
   );
+
   /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
   /* mark if we are visiting a lhs or rhs of an expr */
@@ -86,6 +88,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
      accumulated, on enter a new scope, decrease on exit
      no need to distinguish function and non function scope, as non function scope does not call return */
   private int funcStackSize;
+  /* recording the jump-to label for branching statement, i.e. break, continue */
+  private Label currBreakJumpToLabel;
+  private Label currContinueJumpToLabel;
 
   public ARMInstructionGenerator() {
     armRegAllocator = new ARMConcreteRegisterAllocator();
@@ -98,6 +103,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     ARMRoutines = new ArrayList<>();
     alreadyExist = new HashSet<>();
     isLhs = false;
+    currBreakJumpToLabel = null;
+    currContinueJumpToLabel = null;
   }
 
   @Override
@@ -650,10 +657,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitWhileNode(WhileNode node) {
-
     /* 1 unconditional jump to end of loop, where conditional branch exists */
+    /* if we encountere a do-while loop, then do not add the conditional jump */
     Label testLabel = branchLabelGenerator.getLabel();
-    instructions.add(new B(NULL, testLabel.getName()));
+    if (!node.isDoWhile()) {
+      instructions.add(new B(NULL, testLabel.getName()));
+    }
 
     /* 2 get a label, mark the start of the loop */
     Label startLabel = branchLabelGenerator.getLabel();
@@ -670,6 +679,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 5 conditional branch jump to the start of loop */
     instructions.add(new B(EQ, startLabel.getName()));
+
+    Label nextLabel = branchLabelGenerator.getLabel();
+    instructions.add(nextLabel);
+    currBreakJumpToLabel = nextLabel;
+    currContinueJumpToLabel = testLabel;
 
     armRegAllocator.free();
 
@@ -767,6 +781,59 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   public Map<Label, String> getDataSegmentMessages() {
     return dataSegmentMessages;
+  }
+
+  @Override
+  public Void visitForNode(ForNode node) {
+    /* 1 translate the initiator of the for-loop */
+    visit(node.getInit());
+
+    /* 2 create a label and translate for for-loop body */
+    Label bodyLabel = branchLabelGenerator.getLabel();
+    Label condLabel = branchLabelGenerator.getLabel();
+
+    instructions.add(new B(NULL, condLabel.getName()));
+
+    instructions.add(bodyLabel);
+    visit(node.getBody());
+    /* here we also need to append the for-loop in crement at the end */
+    visit(node.getIncrement());
+
+    /* 3 add label for condition checking */
+    instructions.add(condLabel);
+    visit(node.getCond());
+    instructions.add(new Cmp(armRegAllocator.curr(), new Operand2(TRUE)));
+
+    /* 4 conditional branch jump to the start of loop */
+    instructions.add(new B(EQ, bodyLabel.getName()));
+
+    /* 5 create the label for the following instructions */
+    Label nextLabel = branchLabelGenerator.getLabel();
+    instructions.add(nextLabel);
+    currBreakJumpToLabel = nextLabel;
+    currContinueJumpToLabel = condLabel;
+
+    return null;
+  }
+
+  @Override
+  public Void visitJumpNode(JumpNode node) {
+    /* this snippet is to deal with the for-loop increment */
+    StatNode increment = node.getForIncrement();
+    if (increment != null) visit(increment);
+
+    if (node.getJumpType().equals(JumpType.BREAK)) {
+      instructions.add(new B(NULL, currBreakJumpToLabel.getName()));
+    } else if (node.getJumpType().equals(JumpType.CONTINUE)) {
+      instructions.add(new B(NULL, currContinueJumpToLabel.getName()));
+    }
+
+    return null;
+  }
+
+  @Override
+  public Void visitSwitchNode(SwitchNode node) {
+    return null;
   }
 
 }
