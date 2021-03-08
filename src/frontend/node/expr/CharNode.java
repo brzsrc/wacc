@@ -28,4 +28,13 @@ public class CharNode extends ExprNode {
     return visitor.visitCharNode(this);
   }
 
+  @Override
+  public boolean isImmediate() {
+    return true;
+  }
+
+  @Override
+  public CharNode asCharNode() {
+    return this;
+  }
 }
