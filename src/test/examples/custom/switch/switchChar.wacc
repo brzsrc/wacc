@@ -1,0 +1,25 @@
+# a simple switch statement processing char type
+
+# Output:
+# Correct!
+
+# Program:
+
+begin
+  char c = 'c';
+  switch c do
+    case 'a'
+      content = "Incorrect!";
+      break
+    case 'b'
+      content = "Incorrect!";
+      break
+    case 'c'
+      content = "Correct!";
+      break
+    default
+      content = "Should not print this line"
+  done;
+
+  print content
+end

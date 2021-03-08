@@ -9,19 +9,29 @@ func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat 
 param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
-stat : SKP                               #SkipStat
-     | type IDENT ASSIGN assign_rhs      #DeclareStat
-     | assign_lhs ASSIGN assign_rhs      #AssignStat
-     | READ assign_lhs                   #ReadStat
-     | FREE expr                         #FreeStat
-     | RETURN expr                       #ReturnStat
-     | EXIT expr                         #ExitStat
-     | PRINT expr                        #PrintStat
-     | PRINTLN expr                      #PrintlnStat
-     | IF expr THEN stat ELSE stat FI    #IfStat
-     | WHILE expr DO stat DONE           #WhileStat
-     | BEGIN stat END                    #ScopeStat
-     | stat SEMICOLON stat               #SeqStat
+stat : SKP                            #SkipStat
+     | type IDENT ASSIGN assign_rhs   #DeclareStat
+     | assign_lhs ASSIGN assign_rhs   #AssignStat
+     | READ assign_lhs                #ReadStat
+     | FREE expr                      #FreeStat
+     | RETURN expr                    #ReturnStat
+     | EXIT expr                      #ExitStat
+     | PRINT expr                     #PrintStat
+     | PRINTLN expr                   #PrintlnStat
+     | BREAK                          #BreakStat
+     | CONTINUE                       #ContinueStat
+     | IF expr THEN stat ELSE stat FI #IfStat
+     | FOR OPEN_PARENTHESES
+       (expr (COMMA expr)*)? SEMICOLON
+       (expr (COMMA expr)*)? SEMICOLON
+       (expr (COMMA expr)*)?
+       CLOSE_PARENTHESES DO stat DONE #ForStat
+     | SWITCH expr DO (CASE expr)* 
+       DEFAULT expr DONE              #SwitchStat
+     | DO stat WHILE expr             #DoWhileStat
+     | WHILE expr DO stat DONE        #WhileStat
+     | BEGIN stat END                 #ScopeStat
+     | stat SEMICOLON stat            #SeqStat
      ;
 
 assign_lhs : IDENT      #Ident

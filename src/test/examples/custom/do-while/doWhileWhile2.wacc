@@ -1,0 +1,28 @@
+# do-while loop mixed with while loop
+
+# Output:
+# 0
+# 1
+# 2
+# 3
+# 4
+# 5
+# Finished!
+
+# Program:
+
+begin
+  int i = 0;
+
+  do
+    println i
+  while i < 3;
+
+  while i < 6
+  do
+    println i;
+    i = i + 1
+  done;
+  
+  println "Finished!"
+end

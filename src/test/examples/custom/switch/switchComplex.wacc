@@ -1,0 +1,32 @@
+# a switch statement with complex expr
+
+# Output:
+# You got 1!
+# You got 2!
+# You got bigger than 2!
+# You got bigger than 2!
+# You got 1!
+# You got 2!
+# You got bigger than 2!
+# You got bigger than 2!
+
+# Program:
+
+begin
+  int[] a = [1, 0, 0, 1];
+  int[] b = [4, 3, 2, 1];
+  for (int i = 0; i < len(a); i = i + 1) do
+    switch a[i] * b[len(a) - i - 1] do
+      case 0
+        continue
+      case 1
+        println "You got 1!";
+        break
+      case 2
+        println "You got 2!";
+        break
+      default
+        println "You got bigger than 2!"
+    done;
+  done
+end

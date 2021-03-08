@@ -1,0 +1,16 @@
+# an infinite while-loop with a break statement
+
+# Output:
+# exit with status code 0
+
+# Program:
+
+begin
+  int code = 14;
+  while true do
+    code = i;
+    break;
+    println "This line should not be printed"
+  done;
+  exit code
+end

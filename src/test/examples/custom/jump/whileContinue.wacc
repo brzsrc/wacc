@@ -1,0 +1,21 @@
+# a while-loop that will only print odd numbers
+
+# Output:
+# 1
+# 3
+# 5
+# 7
+# 9
+
+# Program:
+
+begin
+  int i = 0;
+  while i < 10 do
+    if i % 2 == 0 then
+      continue
+    else
+      println i
+    fi
+  done
+end

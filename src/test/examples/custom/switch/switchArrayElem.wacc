@@ -1,0 +1,23 @@
+# a simple switch statement processing string type
+
+# Output:
+# Correct!
+
+# Program:
+
+begin
+  int[] a = [1, 2, 3, 4, 5];
+  string content = "";
+  switch a[1] do
+    case 1
+      content = "Incorrect!";
+      break
+    case 2
+      content = "Correct!";
+      break
+    default
+      content = "Should not print this line"
+  done;
+
+  print content
+end
