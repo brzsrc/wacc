@@ -34,7 +34,7 @@ public class BoolNode extends ExprNode {
   }
 
   @Override
-  public BoolNode asBoolNode() {
-    return this;
+  public int getCastedVal() {
+    return val ? 1 : 0;
   }
 }

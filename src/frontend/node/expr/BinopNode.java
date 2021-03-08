@@ -72,7 +72,6 @@ public class BinopNode extends ExprNode {
 
   @Override
   public boolean isImmediate() {
-    System.err.println("WARNING: calling isImmediate on binopExpr, child visit should ");
     return expr1.isImmediate() && expr2.isImmediate();
   }
 }

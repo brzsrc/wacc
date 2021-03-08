@@ -664,7 +664,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* Check the range of integer in the chr unary operator */
     if (unop.equals(Unop.CHR) && isInteger(exprText)) {
       Integer intVal = intParse(ctx.expr(), exprText);
-      if (isCharInRange(intVal)) {
+      if (!isCharInRange(intVal)) {
         charOperatorRangeError(ctx.expr(), exprText);
       }
     }

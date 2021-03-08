@@ -1,20 +1,20 @@
 package utils;
 
 import frontend.node.Node;
+import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
-import frontend.node.expr.IntegerNode;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.type.ArrayType;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import frontend.type.PairType;
 import frontend.type.Type;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import utils.frontend.SemanticErrorHandler;
@@ -98,18 +98,23 @@ public class Utils {
           Binop.MOD, ((Integer x, Integer y) -> x % y)
   );
 
-  public static final Map<Binop, BiFunction<Integer, Integer, Boolean >> arithmeticCmpMap = Map.of(
-          Binop.GREATER, ((Integer x, Integer y) -> x > y),
-          Binop.GREATER_EQUAL, ((Integer x, Integer y) -> x >= y),
-          Binop.LESS, ((Integer x, Integer y) -> x < y),
-          Binop.LESS_EQUAL, ((Integer x, Integer y) -> x <= y),
-          Binop.EQUAL, ((Integer x, Integer y) -> x == y),
-          Binop.INEQUAL, ((Integer x, Integer y) -> x != y)
+  public static final Map<Binop, BiFunction<Integer, Integer, Boolean>> cmpMap = Map.of(
+          Binop.GREATER, ((x, y) -> x > y),
+          Binop.GREATER_EQUAL, ((x,  y) -> x >= y),
+          Binop.LESS, ((x, y) -> x < y),
+          Binop.LESS_EQUAL, ((x, y) -> x <= y),
+          Binop.EQUAL, ((x, y) -> x.compareTo(y) == 0),
+          Binop.INEQUAL, ((x, y) -> x.compareTo(y) != 0),
+          Binop.AND, ((x, y) -> (x & y) == 1),
+          Binop.OR, ((x, y) -> (x | y) == 0)
   );
 
-  public static final Map<Binop, BinaryOperator<Boolean> > booleanCmpMap = Map.of(
-          Binop.AND, ((Boolean x, Boolean y) -> x && y),
-          Binop.OR, ((Boolean x, Boolean y) -> x || y)
+  public static final Map<Unop, Function<ExprNode, ExprNode>> unopApplyMap = Map.of(
+          Unop.MINUS, (x -> new UnopNode(x, Unop.MINUS)),
+          Unop.NOT, (x -> new BoolNode(x.getCastedVal() != 1)),
+          Unop.LEN, (x -> new IntegerNode(x.getCastedVal())),
+          Unop.ORD, (x -> new IntegerNode(x.getCastedVal())),
+          Unop.CHR, (x -> new CharNode((char) x.getCastedVal()))
   );
 
   /* error code used in ErrorHandlers */
@@ -217,42 +222,4 @@ public class Utils {
 
   /**
    * functions used in optimisations */
-
-  public static int arithmeticMerge(int a, int b, Binop binop) {
-    int val = 0;
-    int uncheckedVal = 0;
-    try {
-      switch (binop) {
-        case PLUS:
-          val = Math.addExact(a, b);
-          uncheckedVal = a + b;
-          break;
-
-        case MINUS:
-          val = Math.subtractExact(a, b);
-          uncheckedVal = a - b;
-          break;
-
-        case MUL:
-          val = Math.multiplyExact(a, b);
-          uncheckedVal = a * b;
-          break;
-
-        case DIV:
-          val = a / b;
-          break;
-
-        case MOD:
-          val = a % b;
-          break;
-
-        default:
-          throw new IllegalArgumentException("cannot call arithmeticMerge with binop " + binop);
-      }
-    } catch (ArithmeticException e) {
-      System.out.println("WARNING: ");
-      return uncheckedVal;
-    }
-    return val;
-  }
 }

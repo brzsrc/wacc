@@ -34,7 +34,7 @@ public class CharNode extends ExprNode {
   }
 
   @Override
-  public CharNode asCharNode() {
-    return this;
+  public int getCastedVal() {
+    return getAsciiValue();
   }
 }

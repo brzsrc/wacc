@@ -29,7 +29,12 @@ public class IntegerNode extends ExprNode {
   }
 
   @Override
-  public IntegerNode asIntegerNode() {
-    return this;
+  public boolean isImmediate() {
+    return true;
+  }
+
+  @Override
+  public int getCastedVal() {
+    return getVal();
   }
 }

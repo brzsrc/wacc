@@ -7,50 +7,56 @@ import frontend.node.expr.*;
 import frontend.node.stat.*;
 import utils.NodeVisitor;
 
+import javax.swing.text.html.parser.Entity;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static utils.Utils.*;
 
 public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitArrayElemNode(ArrayElemNode node) {
-    return null;
+    /* only simplify all indexes, nothing else to be changed */
+    List<ExprNode> params = simplifyExprList(node.getIndex());
+    return new ArrayElemNode(node.getArray(), params, node.getType(), node.getName(), node.getSymbol());
   }
 
   @Override
   public Node visitArrayNode(ArrayNode node) {
-    return null;
+    /* only simplify all contents, nothing else to be changed */
+    List<ExprNode> content = simplifyExprList(node.getContent());
+    return new ArrayNode(node.getType().asArrayType().getContentType(), content, node.getLength());
   }
 
   @Override
   public Node visitBinopNode(BinopNode node) {
-    ExprNode expr1 = node.getExpr1();
-    ExprNode expr2 = node.getExpr2();
+    ExprNode expr1 = visit(node.getExpr1()).asExprNode();
+    ExprNode expr2 = visit(node.getExpr2()).asExprNode();
+    System.out.println("checking binop");
+
+    /* if either of the nodes is not immediate, stop constant propagation
+    *  return a node with so far the simplified form */
     if (!expr1.isImmediate() || !expr2.isImmediate()) {
-      return node;
+      return new BinopNode(expr1, expr2, node.getOperator());
     }
 
-    /* if one expression is integer, then binop is arithmetic evaluation */
+    /*  apply arithmetic evaluation */
     if (arithmeticApplyMap.containsKey(node.getOperator())) {
       int val = arithmeticApplyMap.get(node.getOperator()).apply(
-              expr1.asIntegerNode().getVal(),
-              expr2.asIntegerNode().getVal());
+              expr1.getCastedVal(),
+              expr2.getCastedVal());
+      System.out.println("visiting arithmetic");
       return new IntegerNode(val);
     }
 
-    /* if expression is  */
-    if (arithmeticCmpMap.containsKey(node.getOperator())) {
-      boolean val = arithmeticCmpMap.get(node.getOperator()).apply(
-              expr1.asIntegerNode().getVal(),
-              expr2.asIntegerNode().getVal());
+    /* otherwise, have to be binop covered by cmpMap key */
+    assert cmpMap.containsKey(node.getOperator());
 
-      return new BoolNode(val);
-    }
-
-    assert booleanCmpMap.containsKey(node.getOperator());
-
-    boolean val = booleanCmpMap.get(node.getOperator()).apply(
-            expr1.asBoolNode().getVal(),
-            expr2.asBoolNode().getVal());
+    System.out.println("visiting cmp");
+    boolean val = cmpMap.get(node.getOperator()).apply(expr1.getCastedVal(), expr2.getCastedVal());
     return new BoolNode(val);
   }
 
@@ -66,107 +72,188 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitFunctionCallNode(FunctionCallNode node) {
-    return null;
+    List<ExprNode> params = simplifyExprList(node.getParams());
+    return new FunctionCallNode(node.getFunction(), params, node.getFuncSymbolTable());
   }
 
   @Override
   public Node visitIdentNode(IdentNode node) {
-    return null;
+    return node;
   }
 
   @Override
   public Node visitIntegerNode(IntegerNode node) {
-    return null;
+    return node;
   }
 
   @Override
   public Node visitPairElemNode(PairElemNode node) {
-    return null;
+    /* from WACC language definition, can never call fst newpair(1, 2)
+    *  expr contained can never be immediate */
+    return node;
   }
 
   @Override
   public Node visitPairNode(PairNode node) {
-    return null;
+
+    /* if one child is null, the pair node is null, no simplify */
+    if (node.getFst() == null) {
+      return node;
+    }
+
+    ExprNode expr1 = visit(node.getFst()).asExprNode();
+    ExprNode expr2 = visit(node.getSnd()).asExprNode();
+
+    return new PairNode(expr1, expr2);
   }
 
   @Override
   public Node visitStringNode(StringNode node) {
-    return null;
+    return node;
   }
 
   @Override
   public Node visitUnopNode(UnopNode node) {
+    System.out.println("checking unop");
 
-    return null;
+    if (!node.isImmediate()) {
+      return node;
+    }
+
+    assert unopApplyMap.containsKey(node.getOperator());
+
+    /* visit expr first, ensure child expr have already been simplified */
+    ExprNode expr = visit(node.getExpr()).asExprNode();
+    System.out.println("entered unop");
+    return unopApplyMap.get(node.getOperator()).apply(expr);
   }
 
   @Override
   public Node visitAssignNode(AssignNode node) {
-    return null;
+    ExprNode exprNode = visit(node.getRhs()).asExprNode();
+    AssignNode resultNode = new AssignNode(node.getLhs(), exprNode);
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitDeclareNode(DeclareNode node) {
-    return null;
+    ExprNode exprNode = visit(node.getRhs()).asExprNode();
+    DeclareNode resultNode = new DeclareNode(node.getIdentifier(), exprNode);
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitExitNode(ExitNode node) {
-    return null;
+    ExitNode resultNode = new ExitNode(visit(node.getValue()).asExprNode());
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitFreeNode(FreeNode node) {
-    return null;
+    /* free is expected to have to be pointer, optimise here is expected no effect */
+    FreeNode resultNode = new FreeNode(visit(node.getExpr()).asExprNode());
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitIfNode(IfNode node) {
-    return null;
+    ExprNode cond = visit(node.getCond()).asExprNode();
+
+    StatNode ifBody = visit(node.getIfBody()).asStatNode();
+    StatNode elseBody = visit(node.getElseBody()).asStatNode();
+
+    IfNode resultNode = new IfNode(cond, ifBody, elseBody);
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitPrintlnNode(PrintlnNode node) {
-    return null;
+    PrintlnNode resultNode = new PrintlnNode(visit(node.getExpr()).asExprNode());
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitPrintNode(PrintNode node) {
-    return null;
+    PrintNode resultNode = new PrintNode(visit(node.getExpr()).asExprNode());
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitReadNode(ReadNode node) {
-    return null;
+    ReadNode resultNode = new ReadNode(visit(node.getInputExpr()).asExprNode());
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitReturnNode(ReturnNode node) {
-    return null;
+    ReturnNode resultNode = new ReturnNode(visit(node.getExpr()).asExprNode());
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitScopeNode(ScopeNode node) {
-    return null;
+    List<StatNode> body = new ArrayList<>();
+    for (StatNode statNode : node.getBody()) {
+      body.add(visit(statNode).asStatNode());
+    }
+    return new ScopeNode(node, body);
   }
 
   @Override
   public Node visitSkipNode(SkipNode node) {
-    return null;
+    return node;
   }
 
   @Override
   public Node visitWhileNode(WhileNode node) {
-    return null;
+    ExprNode cond = visit(node.getCond()).asExprNode();
+    StatNode body = visit(node.getBody()).asStatNode();
+    WhileNode resultNode = new WhileNode(cond, body);
+    resultNode.setScope(node.getScope());
+    return resultNode;
   }
 
   @Override
   public Node visitFuncNode(FuncNode node) {
-    return null;
+    StatNode newFunctionBody = visit(node.getFunctionBody()).asStatNode();
+    node.setFunctionBody(newFunctionBody);
+    return node;
+
   }
 
   @Override
   public Node visitProgramNode(ProgramNode node) {
-    return null;
+    Map<String, FuncNode> functions = new HashMap<>();
+    for (Map.Entry<String, FuncNode> entry : node.getFunctions().entrySet()) {
+      /* explicit call visitFuncNode, can call cast */
+      functions.put(entry.getKey(), (FuncNode) visitFuncNode(entry.getValue()));
+    }
+    System.out.println("optimising body");
+    StatNode body = visit(node.getBody()).asStatNode();
+    return new ProgramNode(functions, body);
+  }
+
+  /* helper function for simplify al list of expr
+  *  can only be placed in optimise, since require visit function, which call THIS */
+  private List<ExprNode> simplifyExprList(List<ExprNode> rawExprs) {
+    /* can happen when simplify array */
+    if (rawExprs == null) {
+      return null;
+    }
+
+    List<ExprNode> params = new ArrayList<>();
+    for (ExprNode param : rawExprs) {
+      params.add(visit(param).asExprNode());
+    }
+    return params;
   }
 }

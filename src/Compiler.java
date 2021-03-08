@@ -18,9 +18,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import optimize.ConstantPropagation;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import utils.NodeVisitor;
 import utils.frontend.ParserErrorHandler;
 
 public class Compiler {
@@ -61,6 +64,26 @@ public class Compiler {
         SemanticChecker semanticChecker = new SemanticChecker();
         program = semanticChecker.visitProgram(tree);
 
+        int optimise_cmd_index = cmd_ops.indexOf("--optimise");
+        String optimise_level = cmd_ops.get(optimise_cmd_index + 1);
+        System.out.println(optimise_level);
+        switch (optimise_level) {
+          case "0":
+            break;
+          case "1":
+            NodeVisitor<Node> constPropOptimiser = new ConstantPropagation();
+            program = constPropOptimiser.visit(program);
+            System.out.println("optimising");
+            break;
+          default:
+            System.out.println("unsupported optimisation level: " + optimise_level);
+        }
+
+        for (String cmd : cmd_ops) {
+          System.out.println(cmd);
+        }
+
+        /* print optimised ast tree */
         if (cmd_ops.contains("--print_ast")) {
           ASTPrinter painter = new ASTPrinter();
           painter.visit(program);

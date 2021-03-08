@@ -34,6 +34,10 @@ public class FunctionCallNode extends ExprNode {
     return params;
   }
 
+  public SymbolTable getFuncSymbolTable() {
+    return funcSymbolTable;
+  }
+
   @Override
   public <T> T accept(NodeVisitor<T> visitor) {
     return visitor.visitFunctionCallNode(this);
