@@ -70,8 +70,7 @@ public class BinopNode extends ExprNode {
     return visitor.visitBinopNode(this);
   }
 
-  @Override
-  public boolean isImmediate() {
-    return expr1.isImmediate() && expr2.isImmediate();
-  }
+  /* should not overwrite is immediate,
+   * since even if both child are immediate, it means evaluator failed to simplify it,
+   * calling getCast val on it will cause error */
 }

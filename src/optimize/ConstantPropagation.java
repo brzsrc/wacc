@@ -35,7 +35,6 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   public Node visitBinopNode(BinopNode node) {
     ExprNode expr1 = visit(node.getExpr1()).asExprNode();
     ExprNode expr2 = visit(node.getExpr2()).asExprNode();
-    System.out.println("checking binop");
 
     /* if either of the nodes is not immediate, stop constant propagation
     *  return a node with so far the simplified form */
@@ -45,17 +44,15 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
     /*  apply arithmetic evaluation */
     if (arithmeticApplyMap.containsKey(node.getOperator())) {
-      int val = arithmeticApplyMap.get(node.getOperator()).apply(
+      ExprNode simpChild = arithmeticApplyMap.get(node.getOperator()).apply(
               expr1.getCastedVal(),
               expr2.getCastedVal());
-      System.out.println("visiting arithmetic");
-      return new IntegerNode(val);
+      return simpChild == null ? new BinopNode(expr1, expr2, node.getOperator()) : simpChild;
     }
 
     /* otherwise, have to be binop covered by cmpMap key */
     assert cmpMap.containsKey(node.getOperator());
 
-    System.out.println("visiting cmp");
     boolean val = cmpMap.get(node.getOperator()).apply(expr1.getCastedVal(), expr2.getCastedVal());
     return new BoolNode(val);
   }
@@ -114,8 +111,6 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitUnopNode(UnopNode node) {
-    System.out.println("checking unop");
-
     if (!node.isImmediate()) {
       return node;
     }
@@ -124,8 +119,10 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
     /* visit expr first, ensure child expr have already been simplified */
     ExprNode expr = visit(node.getExpr()).asExprNode();
-    System.out.println("entered unop");
-    return unopApplyMap.get(node.getOperator()).apply(expr);
+    ExprNode simpChild = unopApplyMap.get(node.getOperator()).apply(expr);
+    return simpChild == null ?
+            new UnopNode(expr, node.getOperator()) :
+            simpChild;
   }
 
   @Override
@@ -237,7 +234,6 @@ public class ConstantPropagation implements NodeVisitor<Node> {
       /* explicit call visitFuncNode, can call cast */
       functions.put(entry.getKey(), (FuncNode) visitFuncNode(entry.getValue()));
     }
-    System.out.println("optimising body");
     StatNode body = visit(node.getBody()).asStatNode();
     return new ProgramNode(functions, body);
   }

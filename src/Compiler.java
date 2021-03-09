@@ -66,21 +66,15 @@ public class Compiler {
 
         int optimise_cmd_index = cmd_ops.indexOf("--optimise");
         String optimise_level = cmd_ops.get(optimise_cmd_index + 1);
-        System.out.println(optimise_level);
         switch (optimise_level) {
           case "0":
             break;
           case "1":
             NodeVisitor<Node> constPropOptimiser = new ConstantPropagation();
             program = constPropOptimiser.visit(program);
-            System.out.println("optimising");
             break;
           default:
             System.out.println("unsupported optimisation level: " + optimise_level);
-        }
-
-        for (String cmd : cmd_ops) {
-          System.out.println(cmd);
         }
 
         /* print optimised ast tree */

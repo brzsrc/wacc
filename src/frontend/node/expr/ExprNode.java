@@ -37,7 +37,6 @@ public abstract class ExprNode implements Node {
   /* if the expr contain value that does not depend on variable
   *  i.e if expr is int, char, bool*/
   public boolean isImmediate() {
-    System.out.println("in is imm" + this.getClass());
     return false;
   }
 
@@ -46,7 +45,7 @@ public abstract class ExprNode implements Node {
   *  int return value
   *  bool return 1 if true, 0 if false */
   public int getCastedVal() {
-    throw new IllegalArgumentException("calling getVal on type not immediate");
+    throw new IllegalArgumentException("calling getVal on type not immediate, this type is " + this.getClass().getName());
   }
 
 }

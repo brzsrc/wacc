@@ -90,12 +90,12 @@ public class Utils {
       '\\', '\\'
   );
 
-  public static final Map<Binop, BinaryOperator<Integer>> arithmeticApplyMap = Map.of(
-          Binop.PLUS, Integer::sum,
-          Binop.MINUS, ((Integer x, Integer y) -> x - y),
-          Binop.MUL, ((Integer x, Integer y) -> x * y),
-          Binop.DIV, ((Integer x, Integer y) -> x / y),
-          Binop.MOD, ((Integer x, Integer y) -> x % y)
+  public static final Map<Binop, BiFunction<Integer, Integer, ExprNode>> arithmeticApplyMap = Map.of(
+          Binop.PLUS, ((x, y) -> arithmeticWithCheck(x, y, Math::addExact)),
+          Binop.MINUS, ((x, y) -> arithmeticWithCheck(x, y, Math::subtractExact)),
+          Binop.MUL, ((x, y) -> arithmeticWithCheck(x, y, Math::multiplyExact)),
+          Binop.DIV, ((x, y) -> new IntegerNode(x / y)),
+          Binop.MOD, ((x, y) -> new IntegerNode(x % y))
   );
 
   public static final Map<Binop, BiFunction<Integer, Integer, Boolean>> cmpMap = Map.of(
@@ -110,12 +110,22 @@ public class Utils {
   );
 
   public static final Map<Unop, Function<ExprNode, ExprNode>> unopApplyMap = Map.of(
-          Unop.MINUS, (x -> new UnopNode(x, Unop.MINUS)),
+          Unop.MINUS, (x -> arithmeticWithCheck(0, x.getCastedVal(), Math::subtractExact)),
           Unop.NOT, (x -> new BoolNode(x.getCastedVal() != 1)),
           Unop.LEN, (x -> new IntegerNode(x.getCastedVal())),
           Unop.ORD, (x -> new IntegerNode(x.getCastedVal())),
           Unop.CHR, (x -> new CharNode((char) x.getCastedVal()))
   );
+
+  private static ExprNode arithmeticWithCheck(int a, int b, BinaryOperator<Integer> exactOperator) {
+    try {
+      return new IntegerNode(exactOperator.apply(a, b));
+    } catch (ArithmeticException e) {
+      System.out.println("WARNING: arithmetic " + " on " + a + " and " + b + " will cause overflow");
+    }
+    /* return null, inform upper caller to return the original node */
+    return null;
+  }
 
   /* error code used in ErrorHandlers */
   public static final int SYNTAX_ERROR_CODE = 100;
