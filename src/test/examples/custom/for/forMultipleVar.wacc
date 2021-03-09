@@ -11,7 +11,7 @@ begin
   for (int i = 0, int j = 5; i < j; i = i + 1, j = j - 1) do
     print "i = ";
     print i;
-    print ", ";
+    print ", j = ";
     print j;
     println ""
   done

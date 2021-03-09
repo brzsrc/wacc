@@ -311,6 +311,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitIdentNode(IdentNode node) {
 
     int identTypeSize = node.getType().getSize();
+
     /* put pointer that point to ident's value in stack to next available register */
     int offset = currSymbolTable.getSize()
         - currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
@@ -666,6 +667,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 2 get a label, mark the start of the loop */
     Label startLabel = branchLabelGenerator.getLabel();
+    Label nextLabel = branchLabelGenerator.getLabel();
+
+    currBreakJumpToLabel = nextLabel;
+    currContinueJumpToLabel = testLabel;
+
     instructions.add(startLabel);
 
     /* 3 loop body */
@@ -680,10 +686,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* 5 conditional branch jump to the start of loop */
     instructions.add(new B(EQ, startLabel.getName()));
 
-    Label nextLabel = branchLabelGenerator.getLabel();
     instructions.add(nextLabel);
-    currBreakJumpToLabel = nextLabel;
-    currContinueJumpToLabel = testLabel;
 
     armRegAllocator.free();
 
@@ -788,9 +791,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* 1 translate the initiator of the for-loop */
     visit(node.getInit());
 
-    /* 2 create a label and translate for for-loop body */
+    /* 2 create labels and translate for for-loop body */
     Label bodyLabel = branchLabelGenerator.getLabel();
     Label condLabel = branchLabelGenerator.getLabel();
+    Label nextLabel = branchLabelGenerator.getLabel();
+
+    currBreakJumpToLabel = nextLabel;
+    currContinueJumpToLabel = condLabel;
 
     instructions.add(new B(NULL, condLabel.getName()));
 
@@ -801,17 +808,32 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 3 add label for condition checking */
     instructions.add(condLabel);
+    currSymbolTable = node.getBody().getScope();
+    /* TODO: better code quality here */
+    int stackSize = currSymbolTable.getSize();
+    int temp = stackSize;
+    while (temp > 0) {
+      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
+      instructions.add(new Sub(SP, SP,
+          new Operand2(realStackSize)));
+      temp = temp - realStackSize;
+    }
     visit(node.getCond());
+    temp = stackSize;
+    while (temp > 0) {
+      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
+      instructions.add(new Add(SP, SP,
+          new Operand2(realStackSize)));
+      temp = temp - realStackSize;
+    }
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
     instructions.add(new Cmp(armRegAllocator.curr(), new Operand2(TRUE)));
 
     /* 4 conditional branch jump to the start of loop */
     instructions.add(new B(EQ, bodyLabel.getName()));
 
-    /* 5 create the label for the following instructions */
-    Label nextLabel = branchLabelGenerator.getLabel();
+    /* 5 add the label for the following instructions after for-loop */
     instructions.add(nextLabel);
-    currBreakJumpToLabel = nextLabel;
-    currContinueJumpToLabel = condLabel;
 
     return null;
   }

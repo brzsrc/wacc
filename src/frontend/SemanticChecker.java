@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import frontend.node.FuncNode;
 import frontend.node.Node;
@@ -250,14 +249,25 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitForStat(ForStatContext ctx) {
+    currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode init = visit(ctx.for_stat(0)).asStatNode();
     ExprNode cond = visit(ctx.expr()).asExprNode();
     StatNode increment = visit(ctx.for_stat(1)).asStatNode();
-
     currForloopIncrement = increment;
     StatNode body = visit(ctx.stat()).asStatNode();
 
-    StatNode forNode = new ForNode(init, cond, increment, body);
+    StatNode _init = init instanceof ScopeNode ? init : new ScopeNode(init);
+    StatNode _increment = increment instanceof ScopeNode ? increment : new ScopeNode(increment);
+    StatNode _body = body instanceof ScopeNode ? body : new ScopeNode(body);
+
+    StatNode forNode = new ForNode(_init, cond, _increment, _body);
+
+    _init.setScope(currSymbolTable);
+    _increment.setScope(currSymbolTable);
+
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    forNode.setScope(currSymbolTable);
     
     return forNode;
   }
@@ -273,13 +283,17 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitBreakStat(BreakStatContext ctx) {
     /* TODO: remember to check if the break statement is within for, while, do-while, or switch */
-    return new JumpNode(JumpType.BREAK, currForloopIncrement);
+    StatNode breakNode = new JumpNode(JumpType.BREAK, currForloopIncrement);
+    breakNode.setScope(currSymbolTable);
+    return breakNode;
   }
 
   @Override
   public Node visitContinueStat(ContinueStatContext ctx) {
     /* TODO: remember to check if the break statement is within for, while, or do-while */
-    return new JumpNode(JumpType.CONTINUE, currForloopIncrement);
+    StatNode continueNode = new JumpNode(JumpType.CONTINUE, currForloopIncrement);
+    continueNode.setScope(currSymbolTable);
+    return continueNode;
   }
 
   @Override

@@ -22,9 +22,9 @@ stat : skp                            #StatSkipStat    // This visitor will be r
      | CONTINUE                       #ContinueStat
      | IF expr THEN stat ELSE stat FI #IfStat
      | FOR OPEN_PARENTHESES
-       (for_stat)? SEMICOLON
-       (expr)? SEMICOLON
-       (for_stat)?
+       for_stat SEMICOLON
+       expr SEMICOLON
+       for_stat
        CLOSE_PARENTHESES DO stat DONE #ForStat
      | SWITCH expr DO (CASE expr stat)*
        DEFAULT stat DONE              #SwitchStat

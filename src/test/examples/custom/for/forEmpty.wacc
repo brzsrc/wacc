@@ -1,22 +1,21 @@
 # a for-loop with three empty expr in its statement
 
 # Output:
-# 0 1 2
-# 1 2 3
-# 2 3 4
+# 0, 1, 2, 3, 4, 5
 
 # Program:
 
 begin
   int i = 0;
-  for ( ; ; ) do
+  for (skip; true; skip) do
     print i;
     i = i + 1;
     if i > 5
     then
       break
     else
-      skip
+      print ", "
     fi
-  done
+  done;
+  println ""
 end
