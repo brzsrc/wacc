@@ -16,9 +16,12 @@ public class StructDeclareNode implements Node {
   private final Map<String, IdentNode> elemNameMap;
   private final Map<String, Integer> offsetMap;
   private final int size;
+  /* for printAST only */
+  private final String name;
 
-  public StructDeclareNode(List<IdentNode> elements) {
+  public StructDeclareNode(List<IdentNode> elements, String name) {
     this.elements = elements;
+    this.name = name;
     offsets = new ArrayList<>();
     elemNameMap = new HashMap<>();
     offsetMap = new HashMap<>();
@@ -40,8 +43,12 @@ public class StructDeclareNode implements Node {
     return offsetMap.get(name);
   }
 
-  public Type getElemType(int index) {
-    return elements.get(index).getType();
+  public IdentNode getElem(int index) {
+    return elements.get(index);
+  }
+
+  public int getElemCount() {
+    return elements.size();
   }
 
   public List<Integer> getOffsets() {
@@ -50,6 +57,10 @@ public class StructDeclareNode implements Node {
 
   public int getSize() {
     return size;
+  }
+
+  public String getName() {
+    return name;
   }
 
   @Override

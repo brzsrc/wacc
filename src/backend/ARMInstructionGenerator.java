@@ -109,12 +109,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitStructElemNode(StructElemNode node) {
-    /* get the address of this array and store it in an available register */
+    /* get the address of this struct and store it in an available register */
     Register addrReg = armRegAllocator.allocate();
     int offset = currSymbolTable.getSize()
         - currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
         + stackOffset;
     instructions.add(new Add(addrReg, SP, new Operand2(offset)));
+
     instructions.add(new LDR(addrReg, new AddressingMode2(OFFSET, addrReg)));
 
     /* depth 0 is always reached */
@@ -135,22 +136,34 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitStructNode(StructNode node) {
+    /* if the struct is not initialised (null) */
+    if (!node.isInitialised()) {
+      ARMConcreteRegister reg = armRegAllocator.allocate();
+      instructions.add(new LDR(reg, new ImmediateAddressing(0)));
+      return null;
+    }
 
     /* load R0 with the number of bytes needed and malloc  */
     instructions.add(new LDR(r0, new ImmediateAddressing(node.getSize())));
     instructions.add(new BL(MALLOC.toString()));
 
-    /* then MOV the result pointer of the array to the next available register */
+    /* then MOV the result pointer of the struct to the next available register */
     Register addrReg = armRegAllocator.allocate();
-
     instructions.add(new Mov(addrReg, new Operand2(r0)));
 
+    /* visit the content */
     for (int i = 0; i < node.getElemCount(); i++) {
       visit(node.getElem(i));
       instructions.add(new STR(armRegAllocator.curr(), new AddressingMode2(OFFSET, addrReg, node.getElemOffset(i)), STR));
       armRegAllocator.free();
     }
 
+    return null;
+  }
+
+  /* nothing to do for the StructDeclareNode in the backend */
+  @Override
+  public Void visitStructDeclareNode(StructDeclareNode node) {
     return null;
   }
 

@@ -53,7 +53,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   private boolean semanticError;
 
   /* record whether the 'null' is used to represent uninitialised struct or not */
-  private boolean isStruct;
+  private boolean isStruct = false;
 
   /* constructor of SemanticChecker */
   public SemanticChecker() {
@@ -156,7 +156,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       elements.add(elemNode);
     }
 
-    return new StructDeclareNode(elements);
+    return new StructDeclareNode(elements, ctx.IDENT().getText());
   }
 
   @Override
@@ -515,51 +515,67 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitStructExpr(StructExprContext ctx) {
     String name = ctx.new_struct().IDENT().getText();
     StructDeclareNode struct = globalStructTable.get(name);
+    if (struct == null) {
+      symbolNotFound(ctx, name);
+    }
     List<ExprContext> exprContexts = ctx.new_struct().arg_list().expr();
     List<ExprNode> elemNodes = new ArrayList<>();
 
     for (int i = 0; i < exprContexts.size(); i++) {
-      isStruct = struct.getElemType(i) instanceof StructType;
+      boolean lastStatus = isStruct;
+      isStruct = struct.getElem(i).getType().equalToType(STRUCT_TYPE);
       ExprNode node = visit(exprContexts.get(i)).asExprNode();
-      isStruct = false;
+      isStruct = lastStatus;
       elemNodes.add(node);
     }
 
-    return new StructNode(elemNodes, struct.getOffsets(), struct.getSize());
+    return new StructNode(elemNodes, struct.getOffsets(), struct.getSize(), name);
   }
 
   @Override
-  public Node visitStructElemExpr(StructElemExprContext ctx) {
+  public Node visitStruct_elem(Struct_elemContext ctx) {
     /* e.g. a.b.c where a is the variable name and b is the elem of a, and c is elem of a.b */
-    List<TerminalNode> identifiers = ctx.struct_elem().IDENT();
+    List<TerminalNode> identifiers = ctx.IDENT();
     assert identifiers.size() >= 2;
 
     int curPos = 0;
     List<Integer> offsets = new ArrayList<>();
+    /* this is just for printAST */
+    List<String> elemNames = new ArrayList<>();
     Symbol symbol = lookUpWithNotFoundException(ctx, currSymbolTable, identifiers.get(0).getText());
     Type type = symbol.getExprNode().getType();
 
     do {
-      assert type instanceof StructType;
+      semanticError |= typeCheck(ctx, STRUCT_TYPE, type);
       String structName = ((StructType) type).getName();
       StructDeclareNode struct = globalStructTable.get(structName);
-      /* TODO: check that the struct has this elem (elemNode != null) */
-      offsets.add(struct.findOffset(identifiers.get(curPos + 1).getText()));
-      type = struct.findElem(identifiers.get(curPos + 1).getText()).getType();
+      String elemName = identifiers.get(curPos + 1).getText();
+      elemNames.add(elemName);
+      IdentNode elemNode = struct.findElem(elemName);
+      if (elemNode == null) {
+        symbolNotFound(ctx, elemName);
+      }
+      offsets.add(struct.findOffset(elemName));
+      type = elemNode.getType();
       curPos++;
     } while (curPos < identifiers.size() - 1);
 
-    StructElemNode node = new StructElemNode(offsets, identifiers.get(0).getText(), symbol);
-    node.setType(type);
+    StructElemNode node = new StructElemNode(offsets, identifiers.get(0).getText(), symbol, elemNames, type);
     return node;
   }
 
+  @Override
+  public Node visitStructElemExpr(StructElemExprContext ctx) {
+    return visitStruct_elem(ctx.struct_elem());
+  }
 
   @Override
   public Node visitFunctionCall(FunctionCallContext ctx) {
     String funcName = ctx.IDENT().getText();
-    /* TODO: function here can be null, add a check for this */
     FuncNode function = globalFuncTable.get(funcName);
+    if (function == null) {
+      symbolNotFound(ctx, funcName);
+    }
     List<ExprNode> params = new ArrayList<>();
 
     /* check whether function has same number of parameter */
@@ -648,7 +664,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new BinopNode(expr1, expr2, binop);
   }
 
-  /* TODO: this is totally same as the visitIdent, remove duplicate later */
   @Override
   public Node visitIdExpr(IdExprContext ctx) {
     String name = ctx.IDENT().getText();
@@ -810,8 +825,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitStruct_type(Struct_typeContext ctx) {
     String name = ctx.IDENT().getText();
     if (!globalStructTable.containsKey(name)) {
-      /* TODO: throw a data struct type undefined semantic error,
-       *       could do it together with the function undefined */
+      symbolNotFound(ctx, name);
     }
     return new TypeDeclareNode(new StructType(name));
   }

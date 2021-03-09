@@ -1,5 +1,6 @@
 package utils;
 
+import frontend.type.StructType;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ public class Utils {
   public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING);
   public static final Type ARRAY_TYPE = new ArrayType();
   public static final Type PAIR_TYPE = new PairType();
+  public static final Type STRUCT_TYPE = new StructType();
 
   /* char array type would be the same as string for printf */
   public static final Type CHAR_ARRAY_TYPE = new ArrayType(CHAR_BASIC_TYPE);
