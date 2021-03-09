@@ -2,13 +2,11 @@
 
 # Output:
 # You got 1!
-# You got 2!
+# 0
+# You got 0!
+# You got 0!
 # You got bigger than 2!
-# You got bigger than 2!
-# You got 1!
-# You got 2!
-# You got bigger than 2!
-# You got bigger than 2!
+# 3
 
 # Program:
 
@@ -18,6 +16,7 @@ begin
   for (int i = 0; i < len(a); i = i + 1) do
     switch a[i] * b[len(a) - i - 1] do
       case 0
+        println "You got 0!";
         continue
       case 1
         println "You got 1!";
@@ -27,6 +26,7 @@ begin
         break
       default
         println "You got bigger than 2!"
-    done
+    done;
+    println i
   done
 end

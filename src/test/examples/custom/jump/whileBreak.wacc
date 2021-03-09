@@ -8,7 +8,7 @@
 begin
   int code = 14;
   while true do
-    code = i;
+    code = 0;
     break;
     println "This line should not be printed"
   done;

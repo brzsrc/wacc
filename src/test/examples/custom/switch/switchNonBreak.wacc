@@ -11,7 +11,7 @@
 # Program:
 
 begin
-  int i = 2;
+  int i = 0;
   switch i do
     case 0
       println "The first branch"

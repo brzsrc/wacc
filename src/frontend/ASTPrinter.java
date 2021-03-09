@@ -386,6 +386,8 @@ public class ASTPrinter implements NodeVisitor<Void> {
       leadingSpace -= INDENT_SIZE;
     }
 
+    visit(node.getDefault());
+
     leadingSpace -= INDENT_SIZE;
 
     return null;

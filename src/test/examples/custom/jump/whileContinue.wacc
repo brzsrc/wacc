@@ -13,9 +13,11 @@ begin
   int i = 0;
   while i < 10 do
     if i % 2 == 0 then
+      i = i + 1;
       continue
     else
       println i
-    fi
+    fi;
+    i = i + 1
   done
 end

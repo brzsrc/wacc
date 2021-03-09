@@ -29,6 +29,7 @@ import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
 import frontend.node.stat.JumpNode.JumpType;
+import frontend.node.stat.SwitchNode.CaseStat;
 import frontend.type.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,6 +80,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
+  /* record the symbolTable of the innermost loop */
+  private SymbolTable currForLoopSymbolTable;
   /* mark if we are visiting a lhs or rhs of an expr */
   private boolean isLhs;
   /* offset used when pushing variable in stack in visitFunctionCall
@@ -105,6 +108,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     isLhs = false;
     currBreakJumpToLabel = null;
     currContinueJumpToLabel = null;
+    currForLoopSymbolTable = null;
   }
 
   @Override
@@ -802,6 +806,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new B(NULL, condLabel.getName()));
 
     instructions.add(bodyLabel);
+    currForLoopSymbolTable = node.getBody().getScope();
     visit(node.getBody());
     /* here we also need to append the for-loop in crement at the end */
     visit(node.getIncrement());
@@ -840,13 +845,25 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitJumpNode(JumpNode node) {
-    /* this snippet is to deal with the for-loop increment */
-    StatNode increment = node.getForIncrement();
-    if (increment != null) visit(increment);
-
     if (node.getJumpType().equals(JumpType.BREAK)) {
       instructions.add(new B(NULL, currBreakJumpToLabel.getName()));
     } else if (node.getJumpType().equals(JumpType.CONTINUE)) {
+      /* this snippet is to deal with the for-loop increment */
+      StatNode increment = node.getForIncrement();
+      if (increment != null) visit(increment);
+
+      /* this snippet is to deal with for-loop stack difference */
+      if (currForLoopSymbolTable != null) {
+        int stackSize = currForLoopSymbolTable.getSize();
+        int temp = stackSize;
+        while (temp > 0) {
+          int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
+          instructions.add(new Add(SP, SP,
+              new Operand2(realStackSize)));
+          temp = temp - realStackSize;
+        }
+      }
+      
       instructions.add(new B(NULL, currContinueJumpToLabel.getName()));
     }
 
@@ -855,6 +872,36 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitSwitchNode(SwitchNode node) {
+    visit(node.getExpr());
+
+    List<Label> cLabels = new ArrayList<>();
+    
+    for (CaseStat c : node.getCases()) {
+      visit(c.getExpr());
+      Label cLabel = branchLabelGenerator.getLabel();
+      cLabels.add(cLabel);
+      instructions.add(new Cmp(armRegAllocator.last(), new Operand2(armRegAllocator.curr())));
+      instructions.add(new B(EQ, cLabel.getName()));
+      armRegAllocator.free();
+    }
+
+    Label defaultLabel = branchLabelGenerator.getLabel();
+    Label afterLabel = branchLabelGenerator.getLabel();
+
+    currBreakJumpToLabel = afterLabel;
+
+    instructions.add(new B(NULL, defaultLabel.getName()));
+
+    for (int i = 0; i < cLabels.size(); i++) {
+      instructions.add(cLabels.get(i));
+      visit(node.getCases().get(i).getBody());
+    }
+
+    instructions.add(defaultLabel);
+    visit(node.getDefault());
+
+    instructions.add(afterLabel);
+
     return null;
   }
 

@@ -43,6 +43,10 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* used after function declare step, to detect RETURN statement in main body */
   private boolean isMainFunction;
 
+  /* used in determining whether branching statement is legal, i.e. break/continue is within a loop/switch */
+  private boolean isBreakAllowed;
+  private boolean isContinueAllowed;
+
   /* used only in function declare step, to check function has the correct return type */
   private Type expectedFunctionReturn;
 
@@ -50,15 +54,19 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   private boolean semanticError;
 
   /* record the for-loop incrementer so that break and continue know what to do before jumping */
-  private StatNode currForloopIncrement;
+  private StatNode currForLoopIncrementBreak;
+  private StatNode currForLoopIncrementContinue;
 
   /* constructor of SemanticChecker */
   public SemanticChecker() {
     currSymbolTable = null;
     globalFuncTable = new HashMap<>();
     isMainFunction = false;
+    isBreakAllowed = false;
+    isContinueAllowed = false;
     expectedFunctionReturn = null;
-    currForloopIncrement = null;
+    currForLoopIncrementBreak = null;
+    currForLoopIncrementContinue = null;
   }
 
   @Override
@@ -216,7 +224,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     /* get the StatNode of the execution body of while loop */
     currSymbolTable = new SymbolTable(currSymbolTable);
+    isBreakAllowed = isContinueAllowed = true;
     StatNode body = visit(ctx.stat()).asStatNode();
+    isBreakAllowed = isContinueAllowed = false;
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     StatNode node = (body instanceof ScopeNode) ?
@@ -236,7 +246,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     /* get the StatNode of the execution body of while loop */
     currSymbolTable = new SymbolTable(currSymbolTable);
+    isBreakAllowed = isContinueAllowed = true;
     StatNode body = visit(ctx.stat()).asStatNode();
+    isBreakAllowed = isContinueAllowed = false;
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     StatNode node = (body instanceof ScopeNode) ?
@@ -251,10 +263,16 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitForStat(ForStatContext ctx) {
     currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode init = visit(ctx.for_stat(0)).asStatNode();
+
+    isBreakAllowed = isContinueAllowed = true;
     ExprNode cond = visit(ctx.expr()).asExprNode();
     StatNode increment = visit(ctx.for_stat(1)).asStatNode();
-    currForloopIncrement = increment;
+    currForLoopIncrementBreak = increment;
+    currForLoopIncrementContinue = increment;
     StatNode body = visit(ctx.stat()).asStatNode();
+    currForLoopIncrementBreak = null;
+    currForLoopIncrementContinue = null;
+    isBreakAllowed = isContinueAllowed = false;
 
     StatNode _init = init instanceof ScopeNode ? init : new ScopeNode(init);
     StatNode _increment = increment instanceof ScopeNode ? increment : new ScopeNode(increment);
@@ -282,16 +300,20 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitBreakStat(BreakStatContext ctx) {
-    /* TODO: remember to check if the break statement is within for, while, do-while, or switch */
-    StatNode breakNode = new JumpNode(JumpType.BREAK, currForloopIncrement);
+    if (!isBreakAllowed) {
+      branchStatementPositionError(ctx, JumpType.BREAK);
+    }
+    StatNode breakNode = new JumpNode(JumpType.BREAK, currForLoopIncrementBreak);
     breakNode.setScope(currSymbolTable);
     return breakNode;
   }
 
   @Override
   public Node visitContinueStat(ContinueStatContext ctx) {
-    /* TODO: remember to check if the break statement is within for, while, or do-while */
-    StatNode continueNode = new JumpNode(JumpType.CONTINUE, currForloopIncrement);
+    if (!isContinueAllowed) {
+      branchStatementPositionError(ctx, JumpType.CONTINUE);
+    }
+    StatNode continueNode = new JumpNode(JumpType.CONTINUE, currForLoopIncrementContinue);
     continueNode.setScope(currSymbolTable);
     return continueNode;
   }
@@ -300,18 +322,31 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitSwitchStat(SwitchStatContext ctx) {
     ExprNode expr = visit(ctx.expr(0)).asExprNode();
 
-    int numOfCases = ctx.expr().size() - 1;
+    int numOfCases = ctx.expr().size();
     List<CaseStat> cases = new ArrayList<>();
-    StatNode defaultCase = visit(ctx.stat(numOfCases)).asStatNode();
+    StatNode defaultCase = visit(ctx.stat(numOfCases - 1)).asStatNode();
+
+    currForLoopIncrementBreak = null;
+    SymbolTable switchSymbolTable = new SymbolTable(currSymbolTable);
 
     for (int i = 1; i < numOfCases; i++) {
       ExprNode caseExpr = visit(ctx.expr(i)).asExprNode();
-      StatNode caseStat = visit(ctx.stat(i - 1)).asStatNode();
-      CaseStat singleCase = new CaseStat(caseExpr, caseStat);
-      cases.add(singleCase);
+
+      currSymbolTable = switchSymbolTable;
+      isBreakAllowed = true;
+      StatNode caseNode = visit(ctx.stat(i - 1)).asStatNode();
+      isBreakAllowed = false;
+      caseNode.setScope(currSymbolTable);
+      currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+      CaseStat caseStat = new CaseStat(caseExpr, caseNode);
+      cases.add(caseStat);
     }
 
-    return new SwitchNode(expr, cases, defaultCase);
+    StatNode switchNode = new SwitchNode(expr, cases, defaultCase);
+    switchNode.setScope(currSymbolTable);
+
+    return switchNode;
   }
 
   @Override

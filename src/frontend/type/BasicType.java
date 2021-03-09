@@ -2,8 +2,6 @@ package frontend.type;
 
 import static utils.Utils.*;
 
-import java.util.Objects;
-
 public class BasicType implements Type {
 
   private final BasicTypeEnum basicTypeEnum;

@@ -16,7 +16,7 @@ begin
       continue
     else
       num = i
-    fi
+    fi;
     println num
-  done;
+  done
 end
