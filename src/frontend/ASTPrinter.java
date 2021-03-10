@@ -98,7 +98,7 @@ public class ASTPrinter implements NodeVisitor<Void> {
       System.out.print("\\0");
       return null;
     }
-    System.out.print(node.getAsciiValue());
+    System.out.print("<char:" + node.getAsciiValue() + ">");
     return null;
 
   }

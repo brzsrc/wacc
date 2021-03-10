@@ -1,0 +1,14 @@
+
+begin
+  int a = 0;
+  bool b = false;
+  char c = ' ';
+
+  b = !true;
+  b = !false;
+  a = -(+2);
+  a = -(-2147483648);
+  a = ord 'a';
+  c = chr 97
+
+end

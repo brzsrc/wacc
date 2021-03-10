@@ -1,0 +1,14 @@
+WARNING: arithmetic  on 0 and -2147483648 will cause overflow
+{scope
+  INTEGER a = 0
+  BOOLEAN b = false
+  CHAR c = <char:32>
+  b (5) = false
+  b (5) = true
+  a (4) = -2
+  a (4) = MINUS-2147483648
+  a (4) = 97
+  c (6) = <char:97>
+}
+Assembly file created!
+Assembly has been written to the file!

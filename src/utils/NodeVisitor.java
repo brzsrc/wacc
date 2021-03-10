@@ -7,8 +7,7 @@ import frontend.node.stat.*;
 public interface NodeVisitor<T> {
 
   default T visit(Node node) {
-    node.accept(this);
-    return null;
+    return node.accept(this);
   }
 
   T visitStructElemNode(StructElemNode node);

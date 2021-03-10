@@ -49,4 +49,7 @@ public class UnopNode extends ExprNode {
     return visitor.visitUnopNode(this);
   }
 
+  public boolean isImmediate() {
+    return expr.isImmediate();
+  }
 }

@@ -1,11 +1,7 @@
 package utils;
 
-import frontend.type.StructType;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import frontend.node.Node;
+import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.type.ArrayType;
@@ -87,6 +83,43 @@ public class Utils {
       '\'', '\'',
       '\\', '\\'
   );
+
+  public static final Map<Binop, BiFunction<Integer, Integer, ExprNode>> arithmeticApplyMap = Map.of(
+          Binop.PLUS, ((x, y) -> arithmeticWithCheck(x, y, Math::addExact)),
+          Binop.MINUS, ((x, y) -> arithmeticWithCheck(x, y, Math::subtractExact)),
+          Binop.MUL, ((x, y) -> arithmeticWithCheck(x, y, Math::multiplyExact)),
+          Binop.DIV, ((x, y) -> new IntegerNode(x / y)),
+          Binop.MOD, ((x, y) -> new IntegerNode(x % y))
+  );
+
+  public static final Map<Binop, BiFunction<Integer, Integer, Boolean>> cmpMap = Map.of(
+          Binop.GREATER, ((x, y) -> x > y),
+          Binop.GREATER_EQUAL, ((x,  y) -> x >= y),
+          Binop.LESS, ((x, y) -> x < y),
+          Binop.LESS_EQUAL, ((x, y) -> x <= y),
+          Binop.EQUAL, ((x, y) -> x.compareTo(y) == 0),
+          Binop.INEQUAL, ((x, y) -> x.compareTo(y) != 0),
+          Binop.AND, ((x, y) -> (x & y) == 1),
+          Binop.OR, ((x, y) -> (x | y) == 0)
+  );
+
+  public static final Map<Unop, Function<ExprNode, ExprNode>> unopApplyMap = Map.of(
+          Unop.MINUS, (x -> arithmeticWithCheck(0, x.getCastedVal(), Math::subtractExact)),
+          Unop.NOT, (x -> new BoolNode(x.getCastedVal() != 1)),
+          Unop.LEN, (x -> new IntegerNode(x.getCastedVal())),
+          Unop.ORD, (x -> new IntegerNode(x.getCastedVal())),
+          Unop.CHR, (x -> new CharNode((char) x.getCastedVal()))
+  );
+
+  private static ExprNode arithmeticWithCheck(int a, int b, BinaryOperator<Integer> exactOperator) {
+    try {
+      return new IntegerNode(exactOperator.apply(a, b));
+    } catch (ArithmeticException e) {
+      System.out.println("WARNING: arithmetic " + " on " + a + " and " + b + " will cause overflow");
+    }
+    /* return null, inform upper caller to return the original node */
+    return null;
+  }
 
   /* error code used in ErrorHandlers */
   public static final int SYNTAX_ERROR_CODE = 100;
@@ -190,4 +223,7 @@ public class Utils {
       return "p_" + name().toLowerCase();
     }
   }
+
+  /**
+   * functions used in optimisations */
 }

@@ -23,7 +23,7 @@ do
    case $opt in
       p ) PARSE_ONLY="--parse_only" ;;
       t ) PRINT_AST="--print_ast" ;;
-      o ) echo "Level $OPTARG is currently unavailable" ;;
+      o ) OPTIMISE="--optimise $OPTARG" ;;
       a ) ASSEMBLY="--assembly" ;;
       x ) EXECUTE="--execute" ;;
       h ) helpFunction ;;
@@ -39,4 +39,4 @@ then
 fi
 
 # compile the given wacc file here
-java -cp ./bin:./lib/antlr-4.9.1-complete.jar Compiler $1 $PARSE_ONLY $PRINT_AST $OPTIMIZE "--assembly" $EXECUTE
+java -cp ./bin:./lib/antlr-4.9.1-complete.jar Compiler $1 $PARSE_ONLY $PRINT_AST $OPTIMISE "--assembly" $EXECUTE

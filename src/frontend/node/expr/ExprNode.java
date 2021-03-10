@@ -1,5 +1,6 @@
 package frontend.node.expr;
 
+import com.sun.security.jgss.GSSUtil;
 import frontend.node.Node;
 import frontend.type.Type;
 
@@ -28,4 +29,23 @@ public abstract class ExprNode implements Node {
   public int getWeight() {
     return weight;
   }
+
+  /**
+   *  functions for optimisations
+   */
+
+  /* if the expr contain value that does not depend on variable
+  *  i.e if expr is int, char, bool*/
+  public boolean isImmediate() {
+    return false;
+  }
+
+  /* overwrite by Char, Integer, Bool nodes,
+  *  char return ascii num,
+  *  int return value
+  *  bool return 1 if true, 0 if false */
+  public int getCastedVal() {
+    throw new IllegalArgumentException("calling getVal on type not immediate, this type is " + this.getClass().getName());
+  }
+
 }
