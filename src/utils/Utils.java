@@ -1,5 +1,11 @@
 package utils;
 
+import frontend.type.StructType;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.type.ArrayType;
@@ -7,10 +13,6 @@ import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import frontend.type.PairType;
 import frontend.type.Type;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import org.antlr.v4.runtime.ParserRuleContext;
 import utils.frontend.SemanticErrorHandler;
 import utils.frontend.symbolTable.Symbol;
@@ -29,6 +31,7 @@ public class Utils {
   public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING);
   public static final Type ARRAY_TYPE = new ArrayType();
   public static final Type PAIR_TYPE = new PairType();
+  public static final Type STRUCT_TYPE = new StructType();
 
   /* char array type would be the same as string for printf */
   public static final Type CHAR_ARRAY_TYPE = new ArrayType(CHAR_BASIC_TYPE);

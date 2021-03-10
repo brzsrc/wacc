@@ -11,6 +11,12 @@ public interface NodeVisitor<T> {
     return null;
   }
 
+  T visitStructElemNode(StructElemNode node);
+
+  T visitStructNode(StructNode node);
+
+  T visitStructDeclareNode(StructDeclareNode node);
+
   T visitArrayElemNode(ArrayElemNode node);
 
   T visitArrayNode(ArrayNode node);
