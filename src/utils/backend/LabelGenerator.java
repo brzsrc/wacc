@@ -1,6 +1,6 @@
 package utils.backend;
 
-import backend.instructions.Label;
+import backend.arm.instructions.Label;
 
 public class LabelGenerator {
 
