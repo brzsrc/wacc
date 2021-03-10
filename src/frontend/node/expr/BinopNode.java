@@ -70,4 +70,7 @@ public class BinopNode extends ExprNode {
     return visitor.visitBinopNode(this);
   }
 
+  /* should not overwrite is immediate,
+   * since even if both child are immediate, it means evaluator failed to simplify it,
+   * calling getCast val on it will cause error */
 }

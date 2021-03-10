@@ -28,4 +28,13 @@ public class BoolNode extends ExprNode {
     return visitor.visitBoolNode(this);
   }
 
+  @Override
+  public boolean isImmediate() {
+    return true;
+  }
+
+  @Override
+  public int getCastedVal() {
+    return val ? 1 : 0;
+  }
 }

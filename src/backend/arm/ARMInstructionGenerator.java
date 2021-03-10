@@ -68,16 +68,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private final List<ARMInstruction> ARMRoutines;
   /* record which helpers already exist, we don't want repeated helper functions */
   private final Set<RoutineInstruction> alreadyExist;
-  /* used for mapping type with its print routine function */
-  private final Map<Type, RoutineInstruction> typeRoutineMap = Map.of(
-      INT_BASIC_TYPE, PRINT_INT,
-      CHAR_BASIC_TYPE, PRINT_CHAR,
-      BOOL_BASIC_TYPE, PRINT_BOOL,
-      STRING_BASIC_TYPE, PRINT_STRING,
-      CHAR_ARRAY_TYPE, PRINT_STRING,
-      ARRAY_TYPE, PRINT_REFERENCE,
-      PAIR_TYPE, PRINT_REFERENCE
-  );
 
   /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
@@ -92,6 +82,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
      accumulated, on enter a new scope, decrease on exit
      no need to distinguish function and non function scope, as non function scope does not call return */
   private int funcStackSize;
+
+  /* used for mapping type with its print routine function */
+  private final Map<Type, RoutineInstruction> typeRoutineMap = Map.of(
+    INT_BASIC_TYPE,    PRINT_INT,
+    CHAR_BASIC_TYPE,   PRINT_CHAR,
+    BOOL_BASIC_TYPE,   PRINT_BOOL,
+    STRING_BASIC_TYPE, PRINT_STRING,
+    CHAR_ARRAY_TYPE,   PRINT_STRING
+  );
   /* recording the jump-to label for branching statement, i.e. break, continue */
   private Label currBreakJumpToLabel;
   private Label currContinueJumpToLabel;
@@ -110,6 +109,66 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     currBreakJumpToLabel = null;
     currContinueJumpToLabel = null;
     currForLoopSymbolTable = null;
+  }
+
+  @Override
+  public Void visitStructElemNode(StructElemNode node) {
+    /* get the address of this struct and store it in an available register */
+    Register addrReg = armRegAllocator.allocate();
+    int offset = currSymbolTable.getSize()
+        - currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
+        + stackOffset;
+    instructions.add(new Add(addrReg, SP, new Operand2(offset)));
+
+    instructions.add(new LDR(addrReg, new AddressingMode2(OFFSET, addrReg)));
+
+    /* depth 0 is always reached */
+    instructions.add(new Add(addrReg, addrReg, new Operand2(node.getOffset(0))));
+
+    for (int i = 1; i < node.getDepth(); i++) {
+      instructions.add(new LDR(addrReg, new AddressingMode2(OFFSET, addrReg)));
+      instructions.add(new Add(addrReg, addrReg, new Operand2(node.getOffset(i))));
+    }
+
+    /* if is not lhs, load the struct elem content to `reg` */
+    if (!isLhs) {
+      instructions.add(new LDR(addrReg, new AddressingMode2(OFFSET, addrReg), LDR));
+    }
+
+    return null;
+  }
+
+  @Override
+  public Void visitStructNode(StructNode node) {
+    /* if the struct is not initialised (null) */
+    if (!node.isInitialised()) {
+      ARMConcreteRegister reg = armRegAllocator.allocate();
+      instructions.add(new LDR(reg, new ImmediateAddressing(0)));
+      return null;
+    }
+
+    /* load R0 with the number of bytes needed and malloc  */
+    instructions.add(new LDR(r0, new ImmediateAddressing(node.getSize())));
+    instructions.add(new BL(MALLOC.toString()));
+
+    /* then MOV the result pointer of the struct to the next available register */
+    Register addrReg = armRegAllocator.allocate();
+    instructions.add(new Mov(addrReg, new Operand2(r0)));
+
+    /* visit the content */
+    for (int i = 0; i < node.getElemCount(); i++) {
+      visit(node.getElem(i));
+      instructions.add(new STR(armRegAllocator.curr(), new AddressingMode2(OFFSET, addrReg, node.getElemOffset(i)), STR));
+      armRegAllocator.free();
+    }
+
+    return null;
+  }
+
+  /* nothing to do for the StructDeclareNode in the backend */
+  @Override
+  public Void visitStructDeclareNode(StructDeclareNode node) {
+    return null;
   }
 
   @Override
@@ -572,7 +631,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(new Mov(r0, new Operand2(armRegAllocator.curr())));
 
     Type type = node.getExpr().getType();
-    RoutineInstruction routine = typeRoutineMap.get(type);
+    RoutineInstruction routine = typeRoutineMap.getOrDefault(type, PRINT_REFERENCE);
 
     instructions.add(new BL(routine.toString()));
     checkAndAddRoutine(routine, msgLabelGenerator, dataSegmentMessages);

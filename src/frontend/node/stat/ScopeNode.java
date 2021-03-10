@@ -13,12 +13,13 @@ public class ScopeNode extends StatNode {
    * <stat> ; <stat> sequential statement
    */
 
-  private final List<StatNode> body = new ArrayList<>();
+  private final List<StatNode> body;
   private boolean isFuncBody = false;
   private boolean isBeginEnd = false;
   private boolean isForStat  = false;
 
   public ScopeNode(StatNode node) {
+    body = new ArrayList<>();
     if (node instanceof ScopeNode) {
       body.addAll(((ScopeNode) node).body);
     } else {
@@ -31,9 +32,18 @@ public class ScopeNode extends StatNode {
 
   /* Handle the sequential statement */
   public ScopeNode(StatNode before, StatNode after) {
+    body = new ArrayList<>();
     mergeScope(before);
     mergeScope(after);
     setLeaveAtEnd(getEndValue());
+  }
+
+  /* constructor used by optimisation */
+  public ScopeNode(ScopeNode cloneSrc, List<StatNode> body) {
+    this.body = body;
+    this.isBeginEnd = cloneSrc.isBeginEnd;
+    this.isFuncBody = cloneSrc.isFuncBody;
+    this.scope = cloneSrc.scope;
   }
 
   private void mergeScope(StatNode s) {

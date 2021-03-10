@@ -1,16 +1,24 @@
 package utils;
 
+import frontend.node.Node;
+import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.type.ArrayType;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import frontend.type.PairType;
+import frontend.type.StructType;
 import frontend.type.Type;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import utils.frontend.SemanticErrorHandler;
 import utils.frontend.symbolTable.Symbol;
@@ -29,6 +37,7 @@ public class Utils {
   public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING);
   public static final Type ARRAY_TYPE = new ArrayType();
   public static final Type PAIR_TYPE = new PairType();
+  public static final Type STRUCT_TYPE = new StructType();
 
   /* char array type would be the same as string for printf */
   public static final Type CHAR_ARRAY_TYPE = new ArrayType(CHAR_BASIC_TYPE);
@@ -84,6 +93,43 @@ public class Utils {
       '\'', '\'',
       '\\', '\\'
   );
+
+  public static final Map<Binop, BiFunction<Integer, Integer, ExprNode>> arithmeticApplyMap = Map.of(
+          Binop.PLUS, ((x, y) -> arithmeticWithCheck(x, y, Math::addExact)),
+          Binop.MINUS, ((x, y) -> arithmeticWithCheck(x, y, Math::subtractExact)),
+          Binop.MUL, ((x, y) -> arithmeticWithCheck(x, y, Math::multiplyExact)),
+          Binop.DIV, ((x, y) -> new IntegerNode(x / y)),
+          Binop.MOD, ((x, y) -> new IntegerNode(x % y))
+  );
+
+  public static final Map<Binop, BiFunction<Integer, Integer, Boolean>> cmpMap = Map.of(
+          Binop.GREATER, ((x, y) -> x > y),
+          Binop.GREATER_EQUAL, ((x,  y) -> x >= y),
+          Binop.LESS, ((x, y) -> x < y),
+          Binop.LESS_EQUAL, ((x, y) -> x <= y),
+          Binop.EQUAL, ((x, y) -> x.compareTo(y) == 0),
+          Binop.INEQUAL, ((x, y) -> x.compareTo(y) != 0),
+          Binop.AND, ((x, y) -> (x & y) == 1),
+          Binop.OR, ((x, y) -> (x | y) == 0)
+  );
+
+  public static final Map<Unop, Function<ExprNode, ExprNode>> unopApplyMap = Map.of(
+          Unop.MINUS, (x -> arithmeticWithCheck(0, x.getCastedVal(), Math::subtractExact)),
+          Unop.NOT, (x -> new BoolNode(x.getCastedVal() != 1)),
+          Unop.LEN, (x -> new IntegerNode(x.getCastedVal())),
+          Unop.ORD, (x -> new IntegerNode(x.getCastedVal())),
+          Unop.CHR, (x -> new CharNode((char) x.getCastedVal()))
+  );
+
+  private static ExprNode arithmeticWithCheck(int a, int b, BinaryOperator<Integer> exactOperator) {
+    try {
+      return new IntegerNode(exactOperator.apply(a, b));
+    } catch (ArithmeticException e) {
+      System.out.println("WARNING: arithmetic " + " on " + a + " and " + b + " will cause overflow");
+    }
+    /* return null, inform upper caller to return the original node */
+    return null;
+  }
 
   /* error code used in ErrorHandlers */
   public static final int SYNTAX_ERROR_CODE = 100;
@@ -187,4 +233,7 @@ public class Utils {
       return "p_" + name().toLowerCase();
     }
   }
+
+  /**
+   * functions used in optimisations */
 }

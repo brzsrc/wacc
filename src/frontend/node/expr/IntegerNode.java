@@ -27,4 +27,14 @@ public class IntegerNode extends ExprNode {
   public <T> T accept(NodeVisitor<T> visitor) {
     return visitor.visitIntegerNode(this);
   }
+
+  @Override
+  public boolean isImmediate() {
+    return true;
+  }
+
+  @Override
+  public int getCastedVal() {
+    return getVal();
+  }
 }

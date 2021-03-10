@@ -17,6 +17,41 @@ public class ASTPrinter implements NodeVisitor<Void> {
     }
   }
 
+
+  @Override
+  public Void visitStructElemNode(StructElemNode node) {
+    System.out.print(node.getName());
+    for(String elemName : node.getElemNames()) {
+      System.out.print("." + elemName);
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitStructNode(StructNode node) {
+    if (!node.isInitialised()) {
+      System.out.print("null");
+    }
+
+    System.out.print("new " + node.getName() + " {");
+    for (int i = 0; i < node.getElemCount(); i++) {
+      visit(node.getElem(i));
+      System.out.print((i == node.getElemCount() - 1) ? "}\n" : ", ");
+    }
+
+    return null;
+  }
+
+  @Override
+  public Void visitStructDeclareNode(StructDeclareNode node) {
+    System.out.print("struct " + node.getName() + " {");
+    for(int i = 0; i < node.getElemCount(); i++) {
+      visitIdentNode(node.getElem(i));
+      System.out.print((i == node.getElemCount() - 1) ? "}\n" : ", ");
+    }
+    return null;
+  }
+
   @Override
   public Void visitArrayElemNode(ArrayElemNode node) {
     visit(node.getArray());
@@ -63,7 +98,7 @@ public class ASTPrinter implements NodeVisitor<Void> {
       System.out.print("\\0");
       return null;
     }
-    System.out.print(node.getAsciiValue());
+    System.out.print("<char:" + node.getAsciiValue() + ">");
     return null;
 
   }
