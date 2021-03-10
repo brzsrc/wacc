@@ -28,6 +28,9 @@ import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
+import frontend.node.stat.JumpNode.JumpContext;
+import frontend.node.stat.JumpNode.JumpType;
+import frontend.node.stat.SwitchNode.CaseStat;
 import frontend.type.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,8 +78,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       ARRAY_TYPE, PRINT_REFERENCE,
       PAIR_TYPE, PRINT_REFERENCE
   );
+
   /* record the current symbolTable used during instruction generation */
   private SymbolTable currSymbolTable;
+  /* record the symbolTable of the innermost loop */
+  private SymbolTable currForLoopSymbolTable;
   /* mark if we are visiting a lhs or rhs of an expr */
   private boolean isLhs;
   /* offset used when pushing variable in stack in visitFunctionCall
@@ -86,6 +92,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
      accumulated, on enter a new scope, decrease on exit
      no need to distinguish function and non function scope, as non function scope does not call return */
   private int funcStackSize;
+  /* recording the jump-to label for branching statement, i.e. break, continue */
+  private Label currBreakJumpToLabel;
+  private Label currContinueJumpToLabel;
 
   public ARMInstructionGenerator() {
     armRegAllocator = new ARMConcreteRegisterAllocator();
@@ -98,6 +107,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     ARMRoutines = new ArrayList<>();
     alreadyExist = new HashSet<>();
     isLhs = false;
+    currBreakJumpToLabel = null;
+    currContinueJumpToLabel = null;
+    currForLoopSymbolTable = null;
   }
 
   @Override
@@ -136,7 +148,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
       instructions.add(new Add(addrReg, addrReg, new Operand2(POINTER_SIZE)));
 
-      int elemSize = node.getType().getSize() / 2;
+      int elemSize = i < node.getDepth() - 1 ? 2 : node.getType().getSize() / 2;
       instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, LSL, elemSize)));
 
       /* free indexReg to make it available for the indexing of the next depth */
@@ -304,6 +316,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitIdentNode(IdentNode node) {
 
     int identTypeSize = node.getType().getSize();
+
     /* put pointer that point to ident's value in stack to next available register */
     int offset = currSymbolTable.getSize()
         - currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
@@ -650,17 +663,30 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitWhileNode(WhileNode node) {
-
     /* 1 unconditional jump to end of loop, where conditional branch exists */
+    /* if we encountere a do-while loop, then do not add the conditional jump */
     Label testLabel = branchLabelGenerator.getLabel();
-    instructions.add(new B(NULL, testLabel.getName()));
+    if (!node.isDoWhile()) {
+      instructions.add(new B(NULL, testLabel.getName()));
+    }
 
     /* 2 get a label, mark the start of the loop */
     Label startLabel = branchLabelGenerator.getLabel();
+    Label nextLabel = branchLabelGenerator.getLabel();
+
+    /* restore the last jump-to label after visiting the while-loop body */
+    Label lastBreakJumpToLabel = currBreakJumpToLabel;
+    Label lastContinueJumpToLabel = currContinueJumpToLabel;
+    currBreakJumpToLabel = nextLabel;
+    currContinueJumpToLabel = testLabel;
+
     instructions.add(startLabel);
 
     /* 3 loop body */
     visit(node.getBody());
+
+    currBreakJumpToLabel = lastBreakJumpToLabel;
+    currContinueJumpToLabel = lastContinueJumpToLabel;
 
     /* 4 start of condition test */
     instructions.add(testLabel);
@@ -670,6 +696,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 5 conditional branch jump to the start of loop */
     instructions.add(new B(EQ, startLabel.getName()));
+
+    instructions.add(nextLabel);
 
     armRegAllocator.free();
 
@@ -767,6 +795,134 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   public Map<Label, String> getDataSegmentMessages() {
     return dataSegmentMessages;
+  }
+
+  @Override
+  public Void visitForNode(ForNode node) {
+    /* 1 translate the initiator of the for-loop */
+    visit(node.getInit());
+
+    /* 2 create labels and translate for for-loop body */
+    Label bodyLabel = branchLabelGenerator.getLabel();
+    Label condLabel = branchLabelGenerator.getLabel();
+    Label nextLabel = branchLabelGenerator.getLabel();
+
+    /* restore the last jump-to label after visiting the for-loop body */
+    Label lastBreakJumpToLabel = currBreakJumpToLabel;
+    Label lastContinueJumpToLabel = currContinueJumpToLabel;
+    currBreakJumpToLabel = nextLabel;
+    currContinueJumpToLabel = condLabel;
+
+    instructions.add(new B(NULL, condLabel.getName()));
+
+    instructions.add(bodyLabel);
+    currForLoopSymbolTable = node.getBody().getScope();
+    visit(node.getBody());
+
+    currBreakJumpToLabel = lastBreakJumpToLabel;
+    currContinueJumpToLabel = lastContinueJumpToLabel;
+
+    /* here we also need to append the for-loop in crement at the end */
+    visit(node.getIncrement());
+
+    /* 3 add label for condition checking */
+    instructions.add(condLabel);
+    currSymbolTable = node.getBody().getScope();
+    /* TODO: better code quality here */
+    int stackSize = currSymbolTable.getSize();
+    int temp = stackSize;
+    while (temp > 0) {
+      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
+      instructions.add(new Sub(SP, SP,
+          new Operand2(realStackSize)));
+      temp = temp - realStackSize;
+    }
+    visit(node.getCond());
+    temp = stackSize;
+    while (temp > 0) {
+      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
+      instructions.add(new Add(SP, SP,
+          new Operand2(realStackSize)));
+      temp = temp - realStackSize;
+    }
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+    instructions.add(new Cmp(armRegAllocator.curr(), new Operand2(TRUE)));
+    armRegAllocator.free();
+    /* 4 conditional branch jump to the start of loop */
+    instructions.add(new B(EQ, bodyLabel.getName()));
+
+    /* 5 add the label for the following instructions after for-loop */
+    instructions.add(nextLabel);
+
+    return null;
+  }
+
+  @Override
+  public Void visitJumpNode(JumpNode node) {
+    Instruction addStack = null;
+    /* this snippet is to deal with for-loop stack difference */
+    if (currForLoopSymbolTable != null && !node.getJumpContext().equals(JumpContext.SWITCH)) {
+      int stackSize = currForLoopSymbolTable.getSize();
+      int temp = stackSize;
+      while (temp > 0) {
+        int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
+        addStack = new Add(SP, SP,
+            new Operand2(realStackSize));
+        temp = temp - realStackSize;
+      }
+    }
+
+    if (node.getJumpType().equals(JumpType.BREAK)) {
+      if (addStack != null) instructions.add(addStack);
+      instructions.add(new B(NULL, currBreakJumpToLabel.getName()));
+    } else if (node.getJumpType().equals(JumpType.CONTINUE)) {
+      /* this snippet is to deal with the for-loop increment */
+      StatNode increment = node.getForIncrement();
+      if (increment != null) visit(increment);
+      if (addStack != null) instructions.add(addStack);
+      instructions.add(new B(NULL, currContinueJumpToLabel.getName()));
+    }
+
+    return null;
+  }
+
+  @Override
+  public Void visitSwitchNode(SwitchNode node) {
+    visit(node.getExpr());
+
+    List<Label> cLabels = new ArrayList<>();
+    
+    for (CaseStat c : node.getCases()) {
+      visit(c.getExpr());
+      Label cLabel = branchLabelGenerator.getLabel();
+      cLabels.add(cLabel);
+      instructions.add(new Cmp(armRegAllocator.last(), new Operand2(armRegAllocator.curr())));
+      instructions.add(new B(EQ, cLabel.getName()));
+      armRegAllocator.free();
+    }
+
+    Label defaultLabel = branchLabelGenerator.getLabel();
+    Label afterLabel = branchLabelGenerator.getLabel();
+
+    /* restore the jump-to label after visiting the switch cases and default */
+    Label lastBreakJumpToLabel = currBreakJumpToLabel;
+    currBreakJumpToLabel = afterLabel;
+
+    instructions.add(new B(NULL, defaultLabel.getName()));
+
+    for (int i = 0; i < cLabels.size(); i++) {
+      instructions.add(cLabels.get(i));
+      visit(node.getCases().get(i).getBody());
+    }
+
+    instructions.add(defaultLabel);
+    visit(node.getDefault());
+
+    currBreakJumpToLabel = lastBreakJumpToLabel;
+
+    instructions.add(afterLabel);
+
+    return null;
   }
 
 }

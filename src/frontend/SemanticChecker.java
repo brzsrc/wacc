@@ -14,6 +14,9 @@ import frontend.node.ProgramNode;
 import frontend.node.TypeDeclareNode;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
+import frontend.node.stat.JumpNode.JumpContext;
+import frontend.node.stat.JumpNode.JumpType;
+import frontend.node.stat.SwitchNode.CaseStat;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 
@@ -41,18 +44,34 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* used after function declare step, to detect RETURN statement in main body */
   private boolean isMainFunction;
 
+  /* used in determining whether branching statement is legal, i.e. break/continue is within a loop/switch */
+  private boolean isBreakAllowed;
+  private boolean isContinueAllowed;
+  private boolean isJumpRepeated;
+  private JumpContext jumpContext;
+
   /* used only in function declare step, to check function has the correct return type */
   private Type expectedFunctionReturn;
 
   /* record whether a skipable semantic error is found in visiting to support checking of multiple errors */
   private boolean semanticError;
 
+  /* record the for-loop incrementer so that break and continue know what to do before jumping */
+  private StatNode currForLoopIncrementBreak;
+  private StatNode currForLoopIncrementContinue;
+
   /* constructor of SemanticChecker */
   public SemanticChecker() {
     currSymbolTable = null;
     globalFuncTable = new HashMap<>();
     isMainFunction = false;
+    isBreakAllowed = false;
+    isContinueAllowed = false;
+    jumpContext = null;
+    isJumpRepeated = false;
     expectedFunctionReturn = null;
+    currForLoopIncrementBreak = null;
+    currForLoopIncrementContinue = null;
   }
 
   @Override
@@ -210,8 +229,17 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     /* get the StatNode of the execution body of while loop */
     currSymbolTable = new SymbolTable(currSymbolTable);
+
+    boolean isNestedBreak = isBreakAllowed;
+    boolean isNestedContinue = isContinueAllowed;
+    isBreakAllowed = isContinueAllowed = true;
+    jumpContext = JumpContext.WHILE;
+    isJumpRepeated = false;
     StatNode body = visit(ctx.stat()).asStatNode();
     currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    if (!isNestedBreak) isBreakAllowed = false;
+    if (!isNestedContinue) isContinueAllowed = false;
 
     StatNode node = (body instanceof ScopeNode) ?
             new WhileNode(condition, body) :
@@ -219,6 +247,148 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     node.setScope(currSymbolTable);
 
     return node;
+  }
+
+  @Override 
+  public Node visitDoWhileStat(DoWhileStatContext ctx) {
+    /* check that the condition of while statement is of type boolean */
+    ExprNode condition = visit(ctx.expr()).asExprNode();
+    Type conditionType = condition.getType();
+    semanticError |= typeCheck(ctx.expr(), BOOL_BASIC_TYPE, conditionType);
+
+    /* get the StatNode of the execution body of while loop */
+    currSymbolTable = new SymbolTable(currSymbolTable);
+    isBreakAllowed = isContinueAllowed = true;
+    StatNode body = visit(ctx.stat()).asStatNode();
+    isBreakAllowed = isContinueAllowed = false;
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    StatNode node = (body instanceof ScopeNode) ?
+            new WhileNode(condition, body, true) :
+            new WhileNode(condition, new ScopeNode(body), true);
+    node.setScope(currSymbolTable);
+
+    return node;
+  }
+
+  @Override
+  public Node visitForStat(ForStatContext ctx) {
+    /* create the symbol table for the entire for-loop, including the initiator, cond, and increment */
+    currSymbolTable = new SymbolTable(currSymbolTable);
+    /* visit the initiator */
+    StatNode init = visit(ctx.for_stat(0)).asStatNode();
+
+    /* isNestedBreak and isNestedContinue is used for nested/mixed loops/switch statements */
+    boolean isNestedBreak = isBreakAllowed;
+    boolean isNestedContinue = isContinueAllowed;
+    
+    ExprNode cond = visit(ctx.expr()).asExprNode();
+    StatNode increment = visit(ctx.for_stat(1)).asStatNode();
+
+    /* mark the point where break and continue are allowed to appear */
+    isBreakAllowed = isContinueAllowed = true;
+    /* record the for-loop increment so that when `continue` appear, it still processes the increment in the assembly */
+    currForLoopIncrementBreak = increment;
+    currForLoopIncrementContinue = increment;
+    /* mark the jump context to let `break` know what statement its parent is */
+    jumpContext = JumpContext.FOR;
+    isJumpRepeated = false;
+    /* visit the for loop body */
+    StatNode body = visit(ctx.stat()).asStatNode();
+    currForLoopIncrementBreak = null;
+    currForLoopIncrementContinue = null;
+    if (!isNestedBreak) isBreakAllowed = false;
+    if (!isNestedContinue) isContinueAllowed = false;
+
+    StatNode _init = init instanceof ScopeNode ? init : new ScopeNode(init);
+    StatNode _increment = increment instanceof ScopeNode ? increment : new ScopeNode(increment);
+    StatNode _body = body instanceof ScopeNode ? body : new ScopeNode(body);
+
+    StatNode forNode = new ForNode(_init, cond, _increment, _body);
+
+    _init.setScope(currSymbolTable);
+    _increment.setScope(currSymbolTable);
+
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    forNode.setScope(currSymbolTable);
+    
+    return forNode;
+  }
+
+  @Override
+  public Node visitForStatSeq(ForStatSeqContext ctx) {
+    StatNode stat1 = visit(ctx.for_stat(0)).asStatNode();
+    StatNode stat2 = visit(ctx.for_stat(1)).asStatNode();
+    
+    return new ScopeNode(stat1, stat2);
+  }
+
+  @Override
+  public Node visitBreakStat(BreakStatContext ctx) {
+    if (isJumpRepeated) {
+      branchStatementMutipleError(ctx, JumpType.BREAK);
+    }
+    if (!isBreakAllowed) {
+      branchStatementPositionError(ctx, JumpType.BREAK);
+    }
+    StatNode breakNode = new JumpNode(JumpType.BREAK, currForLoopIncrementBreak, jumpContext);
+    breakNode.setScope(currSymbolTable);
+    isJumpRepeated = true;
+    return breakNode;
+  }
+
+  @Override
+  public Node visitContinueStat(ContinueStatContext ctx) {
+    if (isJumpRepeated) {
+      branchStatementMutipleError(ctx, JumpType.CONTINUE);
+    }
+    if (!isContinueAllowed) {
+      branchStatementPositionError(ctx, JumpType.CONTINUE);
+    }
+    StatNode continueNode = new JumpNode(JumpType.CONTINUE, currForLoopIncrementContinue, jumpContext);
+    continueNode.setScope(currSymbolTable);
+    isJumpRepeated = true;
+    return continueNode;
+  }
+
+  @Override
+  public Node visitSwitchStat(SwitchStatContext ctx) {
+    ExprNode expr = visit(ctx.expr(0)).asExprNode();
+
+    int numOfCases = ctx.expr().size();
+    List<CaseStat> cases = new ArrayList<>();
+    SymbolTable switchSymbolTable = new SymbolTable(currSymbolTable);
+
+    /* this is to deal with nested loop/switch cases */
+    boolean isNested = isBreakAllowed;
+    isBreakAllowed = true;
+    jumpContext = JumpContext.SWITCH;
+    isJumpRepeated = false;
+    StatNode defaultCase = visit(ctx.stat(numOfCases - 1)).asStatNode();
+    
+    defaultCase.setScope(switchSymbolTable);
+    currForLoopIncrementBreak = null;
+    
+
+    for (int i = 1; i < numOfCases; i++) {
+      ExprNode caseExpr = visit(ctx.expr(i)).asExprNode();
+
+      currSymbolTable = switchSymbolTable;
+      StatNode caseNode = visit(ctx.stat(i - 1)).asStatNode();
+      caseNode.setScope(currSymbolTable);
+      currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+      CaseStat caseStat = new CaseStat(caseExpr, caseNode);
+      cases.add(caseStat);
+    }
+
+    if (!isNested) isBreakAllowed = false;
+
+    StatNode switchNode = new SwitchNode(expr, cases, defaultCase);
+    switchNode.setScope(currSymbolTable);
+
+    return switchNode;
   }
 
   @Override

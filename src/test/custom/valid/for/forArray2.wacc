@@ -1,0 +1,22 @@
+# a nested for-loop for processing two dimenstional array
+
+# Output:
+# 6
+# 15
+# 24
+
+# Program:
+
+begin
+  int[] row1 = [1, 2, 3];
+  int[] row2 = [4, 5, 6];
+  int[] row3 = [7, 8, 9];
+  int[][] a = [row1, row2, row3];
+  for (int i = 0; i < len(a); i = i + 1) do
+    int sum = 0;
+    for (int j = 0; j < len(a[i]); j = j + 1) do
+      sum = sum + a[i][j]
+    done;
+    println sum
+  done
+end

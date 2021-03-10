@@ -3,6 +3,7 @@ package frontend;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
+import frontend.node.stat.SwitchNode.CaseStat;
 import utils.NodeVisitor;
 
 public class ASTPrinter implements NodeVisitor<Void> {
@@ -286,14 +287,27 @@ public class ASTPrinter implements NodeVisitor<Void> {
   public Void visitWhileNode(WhileNode node) {
     /* while COND : */
     appendLeadingSpace();
-    System.out.print("while ");
-    visit(node.getCond());
-    System.out.println(" :");
+    if (node.isDoWhile()) {
+      System.out.println("do ");
+      /* body */
+      leadingSpace += INDENT_SIZE;
+      visit(node.getBody());
 
-    /* body */
-    leadingSpace += INDENT_SIZE;
-    visit(node.getBody());
-    leadingSpace -= INDENT_SIZE;
+      System.out.print("while ");
+      visit(node.getCond());
+      System.out.println(" :");
+
+      leadingSpace -= INDENT_SIZE;
+    } else {
+      System.out.print("while ");
+      visit(node.getCond());
+      System.out.println(" :");
+
+      /* body */
+      leadingSpace += INDENT_SIZE;
+      visit(node.getBody());
+      leadingSpace -= INDENT_SIZE;
+    }
 
     return null;
 
@@ -327,5 +341,55 @@ public class ASTPrinter implements NodeVisitor<Void> {
     visit(node.getBody());
     return null;
 
+  }
+
+  @Override
+  public Void visitForNode(ForNode node) {
+    /* for 3 expressions : */
+    appendLeadingSpace();
+    System.out.print("for ");
+    visit(node.getInit());
+    visit(node.getCond());
+    visit(node.getIncrement());
+    System.out.println(" :");
+
+    /* body */
+    leadingSpace += INDENT_SIZE;
+    visit(node.getBody());
+    leadingSpace -= INDENT_SIZE;
+    return null;
+  }
+
+  @Override
+  public Void visitJumpNode(JumpNode node) {
+    System.out.println(node.getJumpType().name());
+    return null;
+  }
+
+  @Override
+  public Void visitSwitchNode(SwitchNode node) {
+    /* switch statement */
+    appendLeadingSpace();
+    System.out.println("switch ");
+    System.out.println(node.getExpr());
+
+    /* switch body */
+    leadingSpace += INDENT_SIZE;
+
+    for (CaseStat c : node.getCases()) {
+      System.out.println("case ");
+      visit(c.getExpr());
+
+      /* case body */
+      leadingSpace += INDENT_SIZE;
+      visit(c.getBody());
+      leadingSpace -= INDENT_SIZE;
+    }
+
+    visit(node.getDefault());
+
+    leadingSpace -= INDENT_SIZE;
+
+    return null;
   }
 }

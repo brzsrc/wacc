@@ -1,0 +1,12 @@
+# a for-loop with initiator re-declared within the loop body
+
+# Output:
+# #syntax error#
+
+# Program:
+
+begin
+  for (int i = 0; i < 0; i = i + 1) do
+    int i = 3
+  done
+end

@@ -5,6 +5,7 @@ import java.util.Set;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import frontend.node.stat.JumpNode.JumpType;
 import frontend.type.Type;
 
 import static utils.Utils.*;
@@ -111,6 +112,27 @@ public class SemanticErrorHandler {
     String msg = "No matching rule for " + visitorName + ", this is a bug in compiler";
     errorHandler(ctx, msg);
     System.exit(INTERNAL_ERROR_CODE);
+  }
+
+  public static void branchStatementPositionError(ParserRuleContext ctx, JumpType type) {
+    StringBuilder msg = new StringBuilder();
+    msg.append(type.name().toLowerCase() + " not within a loop");
+    switch (type) {
+      case BREAK:
+        msg.append(" or switch statement");
+        break;
+      case CONTINUE:
+      default:
+        msg.append("");
+    }
+    errorHandler(ctx, msg.toString());
+    System.exit(SYNTAX_ERROR_CODE);
+  }
+
+  public static void branchStatementMutipleError(ParserRuleContext ctx, JumpType type) {
+    String msg = type.name().toLowerCase() + " occured several times.";
+    errorHandler(ctx, msg);
+    System.exit(SEMANTIC_ERROR_CODE);
   }
 
   /* private common handler of all types of errors */

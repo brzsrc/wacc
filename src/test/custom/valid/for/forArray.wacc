@@ -1,0 +1,24 @@
+# a for-loop changing the contenet of array
+
+# Output:
+# 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+
+# Program:
+
+begin
+  int[] a = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  for (int i = 0; i < 10; i = i + 1) do
+    a[i] = i
+  done;
+  
+  for (int i = 0; i < 10; i = i + 1) do
+    print a[i];
+    if i < 9
+    then
+      print ", "
+    else
+      skip
+    fi
+  done;
+  println ""
+end

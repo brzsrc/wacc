@@ -1,0 +1,25 @@
+# a nested for-loop with a while-loop inside
+
+# Output:
+# The value of i should be 0: 0
+
+# Program:
+
+begin
+  int i = 14;
+  switch i do
+    case 2
+      println "This line should not be printed";
+      break
+    case 1
+      println "This line should not be printed";
+      break
+    default
+      i = 0;
+      break;
+      i = 13;
+      println "This line should not be printed"
+  done;
+  print "The value of i should be 0: ";
+  println i
+end

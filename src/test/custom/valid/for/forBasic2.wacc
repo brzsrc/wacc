@@ -1,0 +1,14 @@
+# simple for-loop using a variable declared within the for statement
+
+# Output:
+# 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+
+# Program:
+
+begin
+  for (int i = 0; i < 10; i = i + 1) do
+    print i;
+    print ", "
+  done;
+  println 10
+end

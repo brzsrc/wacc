@@ -58,6 +58,12 @@ public interface NodeVisitor<T> {
 
   T visitWhileNode(WhileNode node);
 
+  T visitForNode(ForNode node);
+
+  T visitJumpNode(JumpNode node);
+
+  T visitSwitchNode(SwitchNode node);
+
   T visitFuncNode(FuncNode node);
 
   T visitProgramNode(ProgramNode node);
