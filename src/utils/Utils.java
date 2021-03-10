@@ -8,7 +8,17 @@ import frontend.type.ArrayType;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import frontend.type.PairType;
+import frontend.type.StructType;
 import frontend.type.Type;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import utils.frontend.SemanticErrorHandler;
 import utils.frontend.symbolTable.Symbol;

@@ -3,6 +3,7 @@ package optimize;
 import frontend.node.FuncNode;
 import frontend.node.Node;
 import frontend.node.ProgramNode;
+import frontend.node.StructDeclareNode;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
 import utils.NodeVisitor;
@@ -251,5 +252,41 @@ public class ConstantPropagation implements NodeVisitor<Node> {
       params.add(visit(param).asExprNode());
     }
     return params;
+  }
+
+  @Override
+  public Node visitStructElemNode(StructElemNode node) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Node visitStructNode(StructNode node) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Node visitStructDeclareNode(StructDeclareNode node) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Node visitForNode(ForNode node) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Node visitJumpNode(JumpNode node) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Node visitSwitchNode(SwitchNode node) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

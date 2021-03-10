@@ -39,6 +39,7 @@ assign_lhs : IDENT        #Ident
            | array_elem   #LHSArrayElem // This visitor will be replaced by visitArray_elem()
            | pair_elem    #LHSPairElem  // This visitor will be replaced by visitors in pair_elem
            | struct_elem  #LHSStructElem // This visitor will be replaced by visitors in struct_elem
+           ;
 
 for_stat : skp                  #ForStatSkp     // This visitor will be replaced by #SkipStat
      | declare                  #ForStatDeclare // This visitor will be replaced by #DeclareStat
