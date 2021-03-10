@@ -24,6 +24,7 @@ COUNTER=0
 for folder in ${VALID_EXAMPLES[@]}; do
   for file in $(find $folder -name "*.wacc") 
   do 
+    echo $file
     ./compile $file 2>> $VALID_CHECKER_EXAMPLES_LOG
     ret=$?
     if [ $ret -ne 0 ]; then
