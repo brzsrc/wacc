@@ -2,8 +2,6 @@ package frontend.type;
 
 import static utils.Utils.*;
 
-import java.util.Objects;
-
 public class BasicType implements Type {
 
   private final BasicTypeEnum basicTypeEnum;
@@ -66,6 +64,6 @@ public class BasicType implements Type {
 
   @Override
   public int hashCode() {
-    return Objects.hash(basicTypeEnum);
+    return basicTypeEnum.hashCode();
   }
 }

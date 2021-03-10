@@ -49,7 +49,13 @@ FI      : 'fi' ;
 WHILE   : 'while' ;
 DO      : 'do' ;
 DONE    : 'done' ;
-CALL    : 'call' ;
+CASE    : 'case';
+FOR     : 'for';
+BREAK   : 'break';
+CONTINUE  : 'continue';
+SWITCH    : 'switch';
+DEFAULT   : 'default';
+CALL      : 'call' ;
 SEMICOLON : ';';
 COMMA     : ',';
 

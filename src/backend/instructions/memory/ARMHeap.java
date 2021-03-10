@@ -8,14 +8,13 @@ import backend.instructions.operand.Immediate.BitNum;
 import backend.instructions.operand.Operand2;
 import java.util.Arrays;
 import java.util.List;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class ARMHeap implements Heap {
 
-  /* TODO: find the correct value of this */
+  /* used for task3 optimisation */
   public static final int MAX_ARM_HEAP_SIZE = 65536;
   private int heapAddrCounter;
-  /* TODO: maybe we can maintain a list of free blocks here */
 
   public ARMHeap() {
     this.heapAddrCounter = 0;

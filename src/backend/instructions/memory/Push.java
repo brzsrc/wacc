@@ -2,11 +2,12 @@ package backend.instructions.memory;
 
 import backend.instructions.Instruction;
 import java.util.List;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class Push extends Instruction {
 
-  private List<Register> reglist;
+  /* used for task3 optimisation */
+  private final List<Register> reglist;
 
   public Push(List<Register> reglist) {
     this.reglist = reglist;
@@ -14,6 +15,7 @@ public class Push extends Instruction {
 
   @Override
   public String assemble() {
-    return "PUSH {" + reglist.stream().map(Register::toString).reduce((i, j) -> i + ", " + j).get() + "}";
+    return "PUSH {" + reglist.stream().map(Register::toString).reduce((i, j) -> i + ", " + j).get()
+        + "}";
   }
 }

@@ -1,0 +1,18 @@
+# for-loop with declaration of multiple variables within its statement
+
+# Output:
+# i = 0, j = 5
+# i = 1, j = 4
+# i = 2, j = 3
+
+# Program:
+
+begin
+  for (int i = 0, int j = 5; i < j; i = i + 1, j = j - 1) do
+    print "i = ";
+    print i;
+    print ", j = ";
+    print j;
+    println ""
+  done
+end

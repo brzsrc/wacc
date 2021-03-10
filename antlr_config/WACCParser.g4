@@ -9,20 +9,50 @@ func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat 
 param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
-stat : SKP                               #SkipStat
-     | type IDENT ASSIGN assign_rhs      #DeclareStat
-     | assign_lhs ASSIGN assign_rhs      #AssignStat
-     | READ assign_lhs                   #ReadStat
-     | FREE expr                         #FreeStat
-     | RETURN expr                       #ReturnStat
-     | EXIT expr                         #ExitStat
-     | PRINT expr                        #PrintStat
-     | PRINTLN expr                      #PrintlnStat
-     | IF expr THEN stat ELSE stat FI    #IfStat
-     | WHILE expr DO stat DONE           #WhileStat
-     | BEGIN stat END                    #ScopeStat
-     | stat SEMICOLON stat               #SeqStat
+stat : skp                            #StatSkipStat    // This visitor will be replaced by #SkipStat
+     | declare                        #StatDeclareStat // This visitor will be replaced by #DeclareStat
+     | assign                         #StatAssignStat  // This visitor will be replaced by #AssignStat
+     | read                           #StatReadStat    // This visitor will be replaced by #ReadStat
+     | free                           #StatFreeStat    // This visitor will be replaced by #FreeStat
+     | RETURN expr                    #ReturnStat      
+     | exit                           #StatExitStat    // This visitor will be replaced by #ExitStat
+     | print                          #StatPrintStat   // This visitor will be replaced by #PrintStat
+     | println                        #StatPrintlnStat // This visitor will be replaced by #PrintlnStat
+     | BREAK                          #BreakStat
+     | CONTINUE                       #ContinueStat
+     | IF expr THEN stat ELSE stat FI #IfStat
+     | FOR OPEN_PARENTHESES
+       for_stat SEMICOLON
+       expr SEMICOLON
+       for_stat
+       CLOSE_PARENTHESES DO stat DONE #ForStat
+     | SWITCH expr DO (CASE expr stat)*
+       DEFAULT stat DONE              #SwitchStat
+     | DO stat WHILE expr             #DoWhileStat
+     | WHILE expr DO stat DONE        #WhileStat
+     | BEGIN stat END                 #ScopeStat
+     | stat SEMICOLON stat            #SeqStat
      ;
+
+for_stat : skp                  #ForStatSkp     // This visitor will be replaced by #SkipStat
+     | declare                  #ForStatDeclare // This visitor will be replaced by #DeclareStat
+     | assign                   #ForStatAssign  // This visitor will be replaced by #AssignStat
+     | read                     #ForStatRead    // This visitor will be replaced by #ReadStat
+     | free                     #ForStatFree    // This visitor will be replaced by #FreeStat
+     | exit                     #ForStatExit    // This visitor will be replaced by #ExitStat
+     | print                    #ForStatPrint   // This visitor will be replaced by #PrintStat
+     | println                  #ForStatPrintln // This visitor will be replaced by #PrintlnStat
+     | for_stat COMMA for_stat  #ForStatSeq
+     ;
+
+skp     : SKP                          #SkipStat;
+declare : type IDENT ASSIGN assign_rhs #DeclareStat;
+assign  : assign_lhs ASSIGN assign_rhs #AssignStat;
+read    : READ assign_lhs              #ReadStat;
+free    : FREE expr                    #FreeStat;
+exit    : EXIT expr                    #ExitStat;
+print   : PRINT expr                   #PrintStat;
+println : PRINTLN expr                 #PrintlnStat;
 
 assign_lhs : IDENT      #Ident
            | array_elem #LHSArrayElem // This visitor will be replaced by visitArray_elem()
@@ -76,7 +106,8 @@ expr : INT_LITER      #IntExpr
      | expr bop=( '+' | '-' ) expr                    #ArithmeticExpr
      | expr bop=( '>' | '>=' | '<' | '<=' ) expr      #CmpExpr
      | expr bop=( '==' | '!=' ) expr                  #EqExpr
-     | expr bop=( '&&' | '||' ) expr                  #AndOrExpr
+     | expr '&&' expr                                 #AndExpr
+     | expr '||' expr                                 #OrExpr
      | OPEN_PARENTHESES expr CLOSE_PARENTHESES        #ParenExpr
      ;
 

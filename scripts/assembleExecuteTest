@@ -47,9 +47,7 @@ for folder in ${VALID_EXAMPLES[@]}; do
     timeout 5 qemu-arm -L /usr/arm-linux-gnueabi/ $EXECUTABLE_OUTPUT_FILE > "${EXECUTABLE_OUTPUT_FILE}.output.txt"
     ret2=$?
     echo "execution exit status" $ret2
-    if [ $ret1 -eq 0 ] && [ $ret2 -eq 0 ]; then
-      (( COUNTER += 1 ))
-    fi
+    (( COUNTER += 1 ))
     echo "$COUNTER / $(($TOTAL_COUNT)) files have been executed"
   done
 

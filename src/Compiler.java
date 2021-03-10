@@ -1,10 +1,14 @@
-import backend.ARMCodeGenerator;
 import backend.ARMInstructionGenerator;
-import backend.ARMCodeGenerator.OptimizationLevel;
+import backend.ARMInstructionPrinter;
 import backend.directives.CodeSegment;
 import backend.directives.DataSegment;
 import backend.directives.TextSegment;
 import frontend.ASTPrinter;
+import frontend.SemanticChecker;
+import frontend.antlr.WACCLexer;
+import frontend.antlr.WACCParser;
+import frontend.antlr.WACCParser.ProgramContext;
+import frontend.node.Node;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,16 +18,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import org.antlr.v4.runtime.*;
-
-import frontend.antlr.*;
-import frontend.antlr.WACCParser.ProgramContext;
-import frontend.node.Node;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import utils.frontend.ParserErrorHandler;
-import frontend.SemanticChecker;
 
 public class Compiler {
+
+  private static Object OptimizationLevel;
 
   public static void main(String[] args) {
     // Processing command line input
@@ -64,13 +66,14 @@ public class Compiler {
           painter.visit(program);
         }
 
-        if (cmd_ops.contains("--assembly") || cmd_ops.contains("--execute")) {
+        if (cmd_ops.contains("--assembly")) {
           ARMInstructionGenerator generator = new ARMInstructionGenerator();
           generator.visit(program);
           DataSegment data = new DataSegment(generator.getDataSegmentMessages());
           TextSegment text = new TextSegment();
           CodeSegment code = new CodeSegment(generator.getInstructions());
-          ARMCodeGenerator printer = new ARMCodeGenerator(data, text, code, OptimizationLevel.NONE);
+          ARMInstructionPrinter printer = new ARMInstructionPrinter(data, text, code,
+              ARMInstructionPrinter.OptimizationLevel.NONE);
 
           File asmFile = new File(file.getName().replaceFirst("[.][^.]+$", "") + ".s");
 
@@ -79,10 +82,6 @@ public class Compiler {
             asmWriter.write(printer.translate());
             asmWriter.close();
             System.out.println("Assembly has been written to the file!");
-          }
-
-          if (cmd_ops.contains("--assembly")) {
-            // System.out.println(printer.translate());
           }
         } else {
           System.out.println("File already exists");

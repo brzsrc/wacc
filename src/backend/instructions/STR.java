@@ -1,15 +1,13 @@
 package backend.instructions;
 
 import backend.instructions.addressing.Addressing;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class STR extends Instruction {
 
-  public enum StrMode { STR, STRB }
-
-  private Register srcReg;
-  private Addressing addr;
-  private StrMode mode;
+  private final Register srcReg;
+  private final Addressing addr;
+  private final StrMode mode;
 
   public STR(Register srcReg, Addressing addr, StrMode mode) {
     this.srcReg = srcReg;
@@ -25,4 +23,7 @@ public class STR extends Instruction {
   public String assemble() {
     return mode.name() + " " + srcReg + ", " + addr;
   }
+
+  /* STR{cond} <Rd>, <a_mode2> */
+  public enum StrMode {STR, STRB}
 }

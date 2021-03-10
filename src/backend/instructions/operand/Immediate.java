@@ -2,16 +2,13 @@ package backend.instructions.operand;
 
 public class Immediate {
 
-  public enum BitNum {SHIFT10, SHIFT32, CONST8, CONST5, CONST12, CONST16}
-
-  private int val;
-  private BitNum bitNum;
-  private boolean isChar;
-
+  private final int val;
+  private final BitNum bitNum;
+  private final boolean isChar;
   public Immediate(int val, BitNum bitNum) {
     this(val, bitNum, false);
   }
-  
+
   public Immediate(int val, BitNum bitNum, boolean isChar) {
     this.val = val;
     this.bitNum = bitNum;
@@ -33,8 +30,10 @@ public class Immediate {
   @Override
   public String toString() {
     if (isChar) {
-      return "#\'" + (char) val + "\'";
+      return "#'" + (char) val + "'";
     }
     return "#" + val;
   }
+
+  public enum BitNum {SHIFT10, SHIFT32, CONST8, CONST5, CONST12, CONST16}
 }

@@ -35,6 +35,18 @@ public class SymbolTable {
     return false;
   }
 
+  public boolean add(String name, ExprNode expr) {
+    if (dictionary.containsKey(name)) {
+      SemanticErrorHandler.symbolRedeclared(null, name);
+      return true;
+    }
+    
+    scopeSize += expr.getType().getSize();
+    this.dictionary.put(name, new Symbol(expr, scopeSize));
+    
+    return false;
+  }
+
   public Symbol lookup(String name) {
     // System.out.println("looking up " + name + dictionary.get(name).getStackOffset());
     return dictionary.get(name);

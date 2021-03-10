@@ -4,6 +4,7 @@ import utils.backend.Cond;
 
 public class BL extends B {
 
+  /* BL {cond} <label> */
   public BL(String label) {
     super(label);
   }

@@ -1,0 +1,25 @@
+# a switch statement without break statement
+# Without the break statement, the switch stateement will execute
+# all its branches until default is reached
+
+# Output:
+# The first branch
+# The second branch
+# The third branch
+# SHOULD print this line
+
+# Program:
+
+begin
+  int i = 0;
+  switch i do
+    case 0
+      println "The first branch"
+    case 1
+      println "The second branch"
+    case 2
+      println "The third branch!"
+    default
+      println "SHOULD print this line"
+  done
+end

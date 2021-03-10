@@ -6,15 +6,21 @@ import utils.NodeVisitor;
 public class WhileNode extends StatNode {
 
   /**
-   * Represent a while-loop node, with condition and body recorded
+   * Represent a while-loop or a do-while node, with condition and body recorded
    */
 
   private final ExprNode cond;
   private final StatNode body;
+  private final boolean isDoWhile;
 
-  public WhileNode(ExprNode cond, StatNode body) {
+  public WhileNode(ExprNode cond, StatNode body, boolean isDoWhile) {
     this.cond = cond;
     this.body = body;
+    this.isDoWhile = isDoWhile;
+  }
+
+  public WhileNode(ExprNode cond, StatNode body) {
+    this(cond, body, false);
   }
 
   public ExprNode getCond() {
@@ -23,6 +29,10 @@ public class WhileNode extends StatNode {
 
   public StatNode getBody() {
     return body;
+  }
+
+  public boolean isDoWhile() {
+    return this.isDoWhile;
   }
 
   @Override

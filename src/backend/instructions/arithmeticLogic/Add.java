@@ -1,13 +1,13 @@
 package backend.instructions.arithmeticLogic;
 
-import backend.instructions.operand.*;
-import frontend.node.expr.BinopNode.Binop;
+import backend.instructions.operand.Operand2;
 import utils.backend.Cond;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class Add extends ArithmeticLogic {
 
-  private Cond cond;
+  /* ADD{cond}{S} <Rd>, <Rn>, <operand2> */
+  private final Cond cond;
 
   public Add(Register rd, Register rn,
       Operand2 operand2) {
@@ -23,7 +23,7 @@ public class Add extends ArithmeticLogic {
 
   @Override
   public String assemble() {
-    return  "ADD" + cond + " " + Rd + ", " + Rn + ", " + operand2;
+    return "ADD" + cond + " " + Rd + ", " + Rn + ", " + operand2;
   }
 
 }

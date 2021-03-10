@@ -1,0 +1,17 @@
+# continue in a switch statement
+
+# Output:
+# #syntax error#
+
+# Program:
+
+begin
+  int i = 0;
+  switch i do
+    case 0
+      println "haha";
+      continue
+    default
+      println "default";
+  done
+end

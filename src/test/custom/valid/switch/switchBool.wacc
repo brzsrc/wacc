@@ -1,0 +1,26 @@
+# a simple switch statement processing bool type
+# It's not recommended to put a bool variable in the switch statement
+# as the code is not elegant. Simply use if-else in this scenario
+# However, we choose to support it anyway
+
+# Output:
+# Correct!
+
+# Program:
+
+begin
+  bool b = false;
+  string content = "";
+  switch b do
+    case true
+      content = "Incorrect!";
+      break
+    case false
+      content = "Correct!";
+      break
+    default
+      content = "Should not print this line"
+  done;
+
+  print content
+end
