@@ -1,0 +1,14 @@
+# break outside the for-loop
+
+# Output:
+# #syntax error#
+
+# Program:
+
+begin
+  for (int j = 0; j < 0; j = j + 1) do
+    println j
+  done;
+
+  break
+end

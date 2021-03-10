@@ -47,6 +47,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* used in determining whether branching statement is legal, i.e. break/continue is within a loop/switch */
   private boolean isBreakAllowed;
   private boolean isContinueAllowed;
+  private boolean isJumpRepeated;
   private JumpContext jumpContext;
 
   /* used only in function declare step, to check function has the correct return type */
@@ -67,6 +68,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     isBreakAllowed = false;
     isContinueAllowed = false;
     jumpContext = null;
+    isJumpRepeated = false;
     expectedFunctionReturn = null;
     currForLoopIncrementBreak = null;
     currForLoopIncrementContinue = null;
@@ -232,6 +234,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     boolean isNestedContinue = isContinueAllowed;
     isBreakAllowed = isContinueAllowed = true;
     jumpContext = JumpContext.WHILE;
+    isJumpRepeated = false;
     StatNode body = visit(ctx.stat()).asStatNode();
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
@@ -289,6 +292,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currForLoopIncrementContinue = increment;
     /* mark the jump context to let `break` know what statement its parent is */
     jumpContext = JumpContext.FOR;
+    isJumpRepeated = false;
     /* visit the for loop body */
     StatNode body = visit(ctx.stat()).asStatNode();
     currForLoopIncrementBreak = null;
@@ -322,21 +326,29 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitBreakStat(BreakStatContext ctx) {
+    if (isJumpRepeated) {
+      branchStatementMutipleError(ctx, JumpType.BREAK);
+    }
     if (!isBreakAllowed) {
       branchStatementPositionError(ctx, JumpType.BREAK);
     }
     StatNode breakNode = new JumpNode(JumpType.BREAK, currForLoopIncrementBreak, jumpContext);
     breakNode.setScope(currSymbolTable);
+    isJumpRepeated = true;
     return breakNode;
   }
 
   @Override
   public Node visitContinueStat(ContinueStatContext ctx) {
+    if (isJumpRepeated) {
+      branchStatementMutipleError(ctx, JumpType.CONTINUE);
+    }
     if (!isContinueAllowed) {
       branchStatementPositionError(ctx, JumpType.CONTINUE);
     }
     StatNode continueNode = new JumpNode(JumpType.CONTINUE, currForLoopIncrementContinue, jumpContext);
     continueNode.setScope(currSymbolTable);
+    isJumpRepeated = true;
     return continueNode;
   }
 
@@ -352,6 +364,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     boolean isNested = isBreakAllowed;
     isBreakAllowed = true;
     jumpContext = JumpContext.SWITCH;
+    isJumpRepeated = false;
     StatNode defaultCase = visit(ctx.stat(numOfCases - 1)).asStatNode();
     
     defaultCase.setScope(switchSymbolTable);

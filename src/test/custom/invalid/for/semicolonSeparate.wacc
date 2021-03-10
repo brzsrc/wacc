@@ -1,0 +1,12 @@
+# a for-loop with multiple declaration statement separated by semicolon
+
+# Output:
+# #syntax error#
+
+# Program:
+
+begin
+  for (int i = 0; int j = 0; j < 0; j = j + 1) do
+    println j
+  done
+end

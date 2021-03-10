@@ -129,6 +129,12 @@ public class SemanticErrorHandler {
     System.exit(SYNTAX_ERROR_CODE);
   }
 
+  public static void branchStatementMutipleError(ParserRuleContext ctx, JumpType type) {
+    String msg = type.name().toLowerCase() + " occured several times.";
+    errorHandler(ctx, msg);
+    System.exit(SEMANTIC_ERROR_CODE);
+  }
+
   /* private common handler of all types of errors */
   private static void errorHandler(ParserRuleContext ctx, String msg) {
     int lineNum;
