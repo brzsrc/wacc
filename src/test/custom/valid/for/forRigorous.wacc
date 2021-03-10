@@ -1,0 +1,149 @@
+# a rigorous testing against for-loop, including all the edge and advanced cases
+
+# Output:
+
+# matrix multiplication result:
+# 1 0 0
+# 0 1 0
+# 0 0 1
+# <printing "k and i + j are equal now: k = <value>, i + j = <value>" 10 times>
+# The average is 31
+# The mode is 41
+# badab
+
+# Program:
+
+begin
+
+  ########################################
+  ##       matrix multiplication
+  ########################################
+  int[] i1 = [0, 0, 0];
+  int[] i2 = [0, 0, 0];
+  int[] i3 = [0, 0, 0];
+  int[][] zero = [i1, i2, i3];
+
+  int[] a1 = [9, 4, 0];
+  int[] a2 = [8, 4, 1];
+  int[] a3 = [6, 3, 1];
+  int[][] a = [a1, a2, a3];
+
+  int[] b1 = [1, -4, 4];
+  int[] b2 = [-2, 9, -9];
+  int[] b3 = [0, -3, 4];
+  int[][] b = [b1, b2, b3];
+
+  for (int i = 0; i < len(a); i = i + 1) do
+    for (int j = 0; j < len(b[0]); j = j + 1) do
+      for (int k = 0; k < len(a); k = k + 1) do
+        zero[i][j] = zero[i][j] + a[i][k] * b[k][j]
+      done
+    done
+  done;
+
+  println "matrix multiplication result:";
+
+  for (int i = 0; i < len(zero); i = i + 1) do
+    for (int j = 0; j < len(zero[i]); j = j + 1) do
+      print zero[i][j];
+      print " "
+    done;
+    println ""
+  done;
+
+  ########################################
+  ##      rigorously nested loops
+  ########################################
+
+  for (int i = 0; i < 5; i = i + 1) do
+    for (int j = 0; j < i; j = j + 1) do
+      int k = 10;
+      while k >= 0 do
+        for (skip; k == i + j; skip) do
+          print "k and i + j are equal now: k = ";
+          print k;
+          print ", i + j = ";
+          println i + j;
+          break
+        done;
+        k = k - 1
+      done
+    done
+  done;
+
+  ########################################
+  ##       calculate avg and mode
+  ########################################
+  int[] arr = [44, 9, 43, 10, 41, 20, 36, 41, 23, 46];
+  int sum = 0;
+  for (int i = 0; i < len(arr); i = i + 1) do
+    sum = sum + arr[i]
+  done;
+  print "The average is ";
+  println sum / len(arr);
+  int mode = 0;
+  int modeCount = 0;
+  for (int i = 0; i < len(arr); i = i + 1) do
+    int val = arr[i];
+    int count = 0;
+    for (int j = 0; j < len(arr); j = j + 1) do
+      if arr[j] == val then
+        count = count + 1
+      else
+        skip
+      fi
+    done;
+    if modeCount < count then
+      modeCount = count;
+      mode = val
+    else
+      skip
+    fi
+  done;
+  print "The mode is ";
+  println mode;
+
+  ########################################
+  ##     Longest Palindrome Substring
+  ########################################
+  char[] s = ['b', 'a', 'b', 'a', 'd', 'a', 'b'];
+  int n = len(s);
+  bool[] dp1 = [false, false, false, false, false, false, false];
+  bool[] dp2 = [false, false, false, false, false, false, false];
+  bool[] dp3 = [false, false, false, false, false, false, false];
+  bool[] dp4 = [false, false, false, false, false, false, false];
+  bool[] dp5 = [false, false, false, false, false, false, false];
+  bool[] dp6 = [false, false, false, false, false, false, false];
+  bool[] dp7 = [false, false, false, false, false, false, false];
+  bool[][] dp = [dp1, dp2, dp3, dp4, dp5, dp6, dp7];
+
+  int maxLen = 0;
+  char[] ans = [' ', ' ', ' ', ' ', ' ', ' ', ' '];
+
+  for (int l = 0; l < n; l = l + 1) do
+    for (int i = 0; i + l < n; i = i + 1) do
+      int j = i + l;
+      if l == 0 then
+        dp[i][j] = true
+      else
+        if l == 1 then
+          dp[i][j] = s[i] == s[j]
+        else
+          dp[i][j] = s[i] == s[j] && dp[i + 1][j - 1]
+        fi
+      fi;
+
+      if dp[i][j] && l + 1 > maxLen then
+        for (int k = 0; k < l + 1; k = k + 1) do
+          ans[k] = s[i + k]
+        done;
+        maxLen = l + 1
+      else
+        skip
+      fi
+    done
+  done;
+
+  println ans
+
+end

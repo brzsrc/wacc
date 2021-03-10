@@ -1,26 +1,26 @@
 package backend.instructions.arithmeticLogic;
 
+import backend.instructions.BL;
+import backend.instructions.Cmp;
+import backend.instructions.Instruction;
 import backend.instructions.LDR;
+import backend.instructions.Mov;
+import backend.instructions.Mov.MovType;
 import backend.instructions.addressing.AddressingMode2;
 import backend.instructions.addressing.AddressingMode2.AddrMode2;
+import backend.instructions.operand.Immediate;
+import backend.instructions.operand.Immediate.BitNum;
+import backend.instructions.operand.Operand2;
+import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import backend.instructions.BL;
-import backend.instructions.Cmp;
-import backend.instructions.Instruction;
-import backend.instructions.Mov;
-import backend.instructions.operand.Immediate;
-import backend.instructions.operand.Operand2;
-import backend.instructions.operand.Immediate.BitNum;
-import frontend.node.expr.BinopNode.Binop;
-import utils.backend.ARMConcreteRegister;
-import utils.backend.ARMRegisterLabel;
 import utils.backend.Cond;
-import utils.backend.Register;
+import utils.backend.register.ARMConcreteRegister;
+import utils.backend.register.ARMRegisterLabel;
+import utils.backend.register.Register;
 
 public abstract class ArithmeticLogic extends Instruction {
 
@@ -28,11 +28,11 @@ public abstract class ArithmeticLogic extends Instruction {
 
   public static final BinopAssemble BasicBinopAsm = (rd, rn, op2, b) -> {
     Map<Binop, Instruction> m = Map.of(
-      Binop.PLUS, new Add(rd, rn, op2, Cond.S),
-      Binop.MINUS, new Sub(rd, rn, op2, Cond.S),
-      Binop.MUL, new SMull(rd, rn, op2),
-      Binop.AND, new And(rd, rn, op2),
-      Binop.OR, new Or(rd, rn, op2)
+        Binop.PLUS, new Add(rd, rn, op2, Cond.S),
+        Binop.MINUS, new Sub(rd, rn, op2, Cond.S),
+        Binop.MUL, new SMull(rd, rn, op2),
+        Binop.AND, new And(rd, rn, op2),
+        Binop.OR, new Or(rd, rn, op2)
     );
     return List.of(m.get(b));
   };
@@ -65,7 +65,7 @@ public abstract class ArithmeticLogic extends Instruction {
 
     Operand2 one = new Operand2(new Immediate(1, BitNum.CONST8));
     Operand2 zero = new Operand2(new Immediate(0, BitNum.CONST8));
-    
+
     list.add(new Cmp(rd, op2));
     /* default as false, set as true in following check */
     list.add(new Mov(rd, zero, MovType.MOV));
@@ -75,19 +75,19 @@ public abstract class ArithmeticLogic extends Instruction {
   };
 
   public static final Map<Binop, BinopAssemble> binopInstruction = Map.ofEntries(
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.PLUS, BasicBinopAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MINUS, BasicBinopAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MUL, BasicBinopAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.AND, BasicBinopAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.OR, BasicBinopAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.DIV, DivModAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MOD, DivModAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.GREATER, CmpAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.GREATER_EQUAL, CmpAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.LESS, CmpAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.LESS_EQUAL, CmpAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.EQUAL, CmpAsm),
-    new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.INEQUAL, CmpAsm)
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.PLUS, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MINUS, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MUL, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.AND, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.OR, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.DIV, DivModAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MOD, DivModAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.GREATER, CmpAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.GREATER_EQUAL, CmpAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.LESS, CmpAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.LESS_EQUAL, CmpAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.EQUAL, CmpAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.INEQUAL, CmpAsm)
   );
 
   public static final UnopAssemble ArrayLenAsm = (rd, rn) -> {
@@ -119,11 +119,11 @@ public abstract class ArithmeticLogic extends Instruction {
   };
 
   public static final Map<Unop, UnopAssemble> unopInstruction = Map.ofEntries(
-    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.LEN, ArrayLenAsm),
-    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.MINUS, NegationAsm),
-    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, LogicNotAsm),
-    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, OrdAsm),
-    new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm)
+      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.LEN, ArrayLenAsm),
+      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.MINUS, NegationAsm),
+      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, LogicNotAsm),
+      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, OrdAsm),
+      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm)
   );
 
   protected Register Rd, Rn;

@@ -1,0 +1,26 @@
+# a simple switch statement with three branches
+
+# Output:
+# Correct!
+
+# Program:
+
+begin
+  int i = 2;
+  string content = "";
+  switch i do
+    case 0
+      content = "Incorrect!";
+      break
+    case 1
+      content = "Incorrect!";
+      break
+    case 2
+      content = "Correct!";
+      break
+    default
+      content = "Should not print this line"
+  done;
+
+  print content
+end

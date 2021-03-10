@@ -40,9 +40,7 @@ for folder in ${VALID_EXAMPLES[@]}; do
     # Compare them to see the differences
     diff <(cat temp) <(cat $OUR_RESULT)
     ret=$?
-    if [ $ret -eq 0 ]; then
-      (( COUNTER += 1 ))
-    fi
+    (( COUNTER += 1 ))
     echo "$COUNTER / $(($TOTAL_COUNT)) files have been executed"
   done
 

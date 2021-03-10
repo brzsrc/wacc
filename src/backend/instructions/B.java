@@ -5,6 +5,7 @@ import static utils.backend.Cond.NULL;
 import utils.backend.Cond;
 
 public class B extends Instruction {
+
   /* B {cond} <label> */
   protected Label label;
   protected Cond cond;

@@ -4,7 +4,7 @@ import backend.instructions.Label;
 
 public class LabelGenerator {
 
-  private String header;
+  private final String header;
   private int labelCount;
 
   public LabelGenerator(String header) {

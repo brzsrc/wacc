@@ -1,11 +1,10 @@
 package backend.instructions.arithmeticLogic;
 
 import backend.instructions.operand.Operand2;
-import frontend.node.expr.BinopNode.Binop;
-import utils.backend.Cond;
-import utils.backend.Register;
+import utils.backend.register.Register;
 
 public class SMull extends ArithmeticLogic {
+
   /* SMULL{cond}{S} <RdLo>, <RdHi>, <Rm>, <Rs> */
   public SMull(Register rd, Register rn, Operand2 op2) {
     super(rd, rn, op2);

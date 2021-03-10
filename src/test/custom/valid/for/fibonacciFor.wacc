@@ -1,0 +1,22 @@
+# a for-loop for calculating the fibonacci sequence
+
+# Output:
+# The first 20 fibonacci numbers are:
+# 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, ...
+
+# Program:
+
+begin
+  int[] a = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  println "The first 20 fibonacci numbers are:";
+  for (int i = 2; i < len(a); i = i + 1) do
+    a[i] = a[i-1] + a[i-2]
+  done;
+
+  for (int i = 0; i < len(a); i = i + 1) do
+    print a[i];
+    print ", "
+  done;
+
+  print "..."
+end

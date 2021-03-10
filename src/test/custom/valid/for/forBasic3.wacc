@@ -1,0 +1,36 @@
+# a rigorous testing against for-loop, including all the edge cases
+
+# Output:
+# increment to 10!
+# increment to 20!
+# I'm out!
+
+# Program:
+
+begin
+  int a = 1;
+  int b = 2;
+  int c = 4;
+  int d = 8;
+  for (int i = 0; true; skip) do
+    switch (i) do
+      case 10
+        println "increment to 10!";
+        break
+      case 20
+        println "increment to 20!";
+        break
+      default
+        break
+    done;
+    
+    if i >= 30 then
+      println "I\'m out!";
+      break
+    else
+      skip
+    fi;
+
+    i = i + 1
+  done
+end

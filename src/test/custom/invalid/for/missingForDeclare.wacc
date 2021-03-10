@@ -1,0 +1,22 @@
+# a for-loop with missing initiator, condition, or increment
+
+# Output:
+# #syntax error#
+
+# Program:
+
+begin
+  for (int i = 0; i < 3; ) do
+    println i;
+    i = i + 1
+  done;
+
+  int j = 0;
+  for ( ; j < 10; j = j + 1) do
+    println j
+  done;
+
+  for (int i = 3; ; j = j + 1) do
+    break
+  done
+end

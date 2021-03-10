@@ -1,8 +1,9 @@
 package backend.instructions;
 
 public class Label extends Instruction {
+
   /* for example: msg_9: / f_createNewNode: / L0: */
-  private String labelName;
+  private final String labelName;
 
   public Label(String labelName) {
     this.labelName = labelName;

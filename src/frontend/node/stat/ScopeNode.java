@@ -16,6 +16,7 @@ public class ScopeNode extends StatNode {
   private final List<StatNode> body = new ArrayList<>();
   private boolean isFuncBody = false;
   private boolean isBeginEnd = false;
+  private boolean isForStat  = false;
 
   public ScopeNode(StatNode node) {
     if (node instanceof ScopeNode) {
@@ -59,6 +60,10 @@ public class ScopeNode extends StatNode {
 
   public void setFuncBody() {
     isFuncBody = true;
+  }
+
+  public void setForStat() {
+    isForStat = true;
   }
 
   public int getStackSize() {
