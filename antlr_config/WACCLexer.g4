@@ -92,8 +92,17 @@ AND           : '&&' ;
 OR            : '||' ;
 
 INT_LITER         : DIGIT+ ;
+BINARY_LITER      : '0b' BINARY+ ;
+OCTAL_LITER      : '0o' OCTAL+ ;
+HEX_LITER      : '0x' OCTAL+ ;
+
+fragment HEX    : [0-9] | [A-F] ;
+fragment OCTAL    : [0-7] ;
+fragment BINARY   : [0-1] ;
 fragment DIGIT    : [0-9] ;
 // fragment INT_SIGN : MINUS | PLUS ;
+
+
 
 // identifier rule
 IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;

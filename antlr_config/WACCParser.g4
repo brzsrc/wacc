@@ -107,6 +107,9 @@ struct_type : IDENT ;
 
 expr : INT_LITER      #IntExpr
      | PLUS INT_LITER #IntExpr
+     | BINARY_LITER   #BinaryExpr
+     | OCTAL_LITER    #OctalExpr
+     | HEX_LITER      #HexExpr
      | BOOL_LITER     #BoolExpr
      | CHAR_LITER     #CharExpr
      | STR_LITER      #StrExpr
@@ -127,3 +130,4 @@ expr : INT_LITER      #IntExpr
 
 array_elem  : IDENT (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
 array_liter : OPEN_SQUARE_BRACKET (expr (COMMA expr)*)? CLOSE_SQUARE_BRACKET ;
+

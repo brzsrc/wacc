@@ -854,6 +854,21 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   @Override
+  public Node visitHexExpr(HexExprContext ctx) {
+    return new IntegerNode(Integer.parseInt(ctx.HEX_LITER().getText().substring(2), 16));
+  }
+
+  @Override
+  public Node visitBinaryExpr(BinaryExprContext ctx) {
+    return new IntegerNode(Integer.parseInt(ctx.BINARY_LITER().getText().substring(2), 2));
+  }
+
+  @Override
+  public Node visitOctalExpr(OctalExprContext ctx) {
+    return new IntegerNode(Integer.parseInt(ctx.OCTAL_LITER().getText().substring(2), 8));
+  }
+
+  @Override
   public Node visitIntExpr(IntExprContext ctx) {
     return new IntegerNode(intParse(ctx, ctx.INT_LITER().getText()));
   }
