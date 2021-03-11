@@ -1,8 +1,8 @@
 import backend.arm.ARMInstructionGenerator;
 import backend.arm.ARMInstructionPrinter;
-import backend.arm.directives.CodeSegment;
-import backend.arm.directives.DataSegment;
-import backend.arm.directives.TextSegment;
+import backend.arm.segment.CodeSegment;
+import backend.arm.segment.DataSegment;
+import backend.arm.segment.TextSegment;
 import frontend.ASTPrinter;
 import frontend.SemanticChecker;
 import frontend.antlr.WACCLexer;

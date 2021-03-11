@@ -1,5 +1,6 @@
-package backend.arm.directives;
+package backend.arm.segment;
 
+import backend.common.Directive;
 import java.util.List;
 
 public class TextSegment implements Directive {

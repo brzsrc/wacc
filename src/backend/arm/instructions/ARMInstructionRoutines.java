@@ -1,4 +1,4 @@
-package utils.backend;
+package backend.arm.instructions;
 
 import static backend.arm.instructions.LDR.LdrMode.LDR;
 import static backend.arm.instructions.LDR.LdrMode.LDRCS;
@@ -24,25 +24,16 @@ import static utils.Utils.SystemCallInstruction.PRINTF;
 import static utils.Utils.SystemCallInstruction.PUTS;
 import static utils.Utils.SystemCallInstruction.SCANF;
 import static utils.backend.Cond.EQ;
-import static utils.backend.register.ARMConcreteRegister.LR;
-import static utils.backend.register.ARMConcreteRegister.PC;
-import static utils.backend.register.ARMConcreteRegister.SP;
-import static utils.backend.register.ARMConcreteRegister.r0;
-import static utils.backend.register.ARMConcreteRegister.r1;
-import static utils.backend.register.ARMConcreteRegister.r2;
+import static utils.backend.register.arm.ARMConcreteRegister.LR;
+import static utils.backend.register.arm.ARMConcreteRegister.PC;
+import static utils.backend.register.arm.ARMConcreteRegister.SP;
+import static utils.backend.register.arm.ARMConcreteRegister.r0;
+import static utils.backend.register.arm.ARMConcreteRegister.r1;
+import static utils.backend.register.arm.ARMConcreteRegister.r2;
 
-import backend.arm.instructions.B;
-import backend.arm.instructions.BL;
-import backend.arm.instructions.Cmp;
-import backend.arm.instructions.ARMInstruction;
-import backend.arm.instructions.LDR;
-import backend.arm.instructions.Label;
-import backend.arm.instructions.Mov;
 import backend.arm.instructions.addressing.AddressingMode2;
-import backend.arm.instructions.addressing.LabelAddressing;
+import backend.arm.instructions.addressing.ImmedAddress;
 import backend.arm.instructions.arithmeticLogic.Add;
-import backend.arm.instructions.Pop;
-import backend.arm.instructions.Push;
 import backend.arm.instructions.addressing.Operand2;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -51,6 +42,9 @@ import java.util.List;
 import java.util.Map;
 import utils.Utils;
 import utils.Utils.RoutineInstruction;
+import utils.backend.Cond;
+import utils.backend.LabelGenerator;
+import utils.backend.RoutineFunction;
 
 public class ARMInstructionRoutines {
 
@@ -72,7 +66,7 @@ public class ARMInstructionRoutines {
 
     /* add the format into the data list */
     String asciiMsg = routine == READ_INT ? PRINT_INT_MSG : PRINT_CHAR_MSG;
-    Label msgLabel = labelGenerator.getLabel();
+    Label msgLabel = labelGenerator.getLabel().asArmLabel();
     dataSegment.put(msgLabel, asciiMsg);
 
     return List.of(
@@ -81,13 +75,13 @@ public class ARMInstructionRoutines {
         /* fst arg of read is the snd arg of scanf (storing address) */
         new Mov(r1, new Operand2(r0)),
         /* fst arg of scanf is the format */
-        new LDR(r0, new LabelAddressing(msgLabel)),
+        new LDR(r0, new ImmedAddress(msgLabel)),
         /* skip the first 4 byte of the msg which is the length of it */
         new Add(r0, r0, new Operand2(4)), new BL(SCANF.toString()),
         new Pop(Collections.singletonList(PC)));
   };
   public static RoutineFunction addPrint = (routine, labelGenerator, dataSegment) -> {
-    Label msgLabel = labelGenerator.getLabel();
+    Label msgLabel = labelGenerator.getLabel().asArmLabel();
     switch (routine) {
       case PRINT_CHAR:
         return new ArrayList<>();
@@ -107,7 +101,7 @@ public class ARMInstructionRoutines {
     /* overwrite, routine has to be PRINTLN */
     routine = PRINT_LN;
 
-    Label printlnMsgLabel = labelGenerator.getLabel();
+    Label printlnMsgLabel = labelGenerator.getLabel().asArmLabel();
     dataSegment.put(printlnMsgLabel, PRINT_LN_MSG);
 
     /* add the helper function label */
@@ -115,7 +109,7 @@ public class ARMInstructionRoutines {
 
     return List.of(
         label,
-        new Push(Collections.singletonList(LR)), new LDR(r0, new LabelAddressing(printlnMsgLabel)),
+        new Push(Collections.singletonList(LR)), new LDR(r0, new ImmedAddress(printlnMsgLabel)),
         /* skip the first 4 byte of the msg which is the length of it */
         new Add(r0, r0, new Operand2(4)),
         new BL(PUTS.toString()),
@@ -145,7 +139,7 @@ public class ARMInstructionRoutines {
         new Label(routine.toString()),
         new Push(Collections.singletonList(LR)),
         new Cmp(r0, new Operand2(0)),
-        new LDR(r0, new LabelAddressing(msg), LDREQ),
+        new LDR(r0, new ImmedAddress(msg), LDREQ),
         new B(EQ, THROW_RUNTIME_ERROR.toString())
     ));
 
@@ -167,7 +161,7 @@ public class ARMInstructionRoutines {
     return instructions;
   };
   public static RoutineFunction addCheckNullPointer = (routine, labelGenerator, dataSegment) -> {
-    Label msgLabel = labelGenerator.getLabel();
+    Label msgLabel = labelGenerator.getLabel().asArmLabel();
     dataSegment.put(msgLabel, PRINT_NULL_REF_MSG);
 
     List<ARMInstruction> instructions = new ArrayList<>(List.of(
@@ -175,7 +169,7 @@ public class ARMInstructionRoutines {
         new Label(CHECK_NULL_POINTER.toString()),
         new Push(Collections.singletonList(LR)),
         new Cmp(r0, new Operand2(0)),
-        new LDR(r0, new LabelAddressing(msgLabel), LDREQ),
+        new LDR(r0, new ImmedAddress(msgLabel), LDREQ),
         new BL(EQ, THROW_RUNTIME_ERROR.toString()),
         new Pop(Collections.singletonList(PC))
     ));
@@ -186,7 +180,7 @@ public class ARMInstructionRoutines {
     /* overwrite, routine has to be check divide by zero */
     routine = CHECK_DIVIDE_BY_ZERO;
 
-    Label msgLabel = labelGenerator.getLabel();
+    Label msgLabel = labelGenerator.getLabel().asArmLabel();
     dataSegment.put(msgLabel, PRINT_DIV_ZERO_MSG);
 
     List<ARMInstruction> instructions = new ArrayList<>(List.of(
@@ -194,7 +188,7 @@ public class ARMInstructionRoutines {
         new Label(routine.toString()),
         new Push(Collections.singletonList(LR)),
         new Cmp(r1, new Operand2(0)),
-        new LDR(r0, new LabelAddressing(msgLabel), LDREQ),
+        new LDR(r0, new ImmedAddress(msgLabel), LDREQ),
         new BL(EQ, THROW_RUNTIME_ERROR.toString()),
         new Pop(Collections.singletonList(PC))
     ));
@@ -205,31 +199,31 @@ public class ARMInstructionRoutines {
     /* overwrite, routine has to be check array bound */
     routine = CHECK_ARRAY_BOUND;
 
-    Label negativeIndexLabel = labelGenerator.getLabel();
+    Label negativeIndexLabel = labelGenerator.getLabel().asArmLabel();
     dataSegment.put(negativeIndexLabel, PRINT_ARRAY_NEG_INDEX_MSG);
-    Label indexOutOfBoundLabel = labelGenerator.getLabel();
+    Label indexOutOfBoundLabel = labelGenerator.getLabel().asArmLabel();
     dataSegment.put(indexOutOfBoundLabel, PRINT_ARRAY_INDEX_TOO_LARGE_MSG);
 
     return List.of(
         new Label(routine.toString()),
         new Push(Collections.singletonList(LR)),
         new Cmp(r0, new Operand2(0)),
-        new LDR(r0, new LabelAddressing(negativeIndexLabel), LDRLT),
+        new LDR(r0, new ImmedAddress(negativeIndexLabel), LDRLT),
         new BL(Cond.LT, THROW_RUNTIME_ERROR.toString()),
         new LDR(r1, new AddressingMode2(OFFSET, r1)),
         new Cmp(r0, new Operand2(r1)),
-        new LDR(r0, new LabelAddressing(indexOutOfBoundLabel), LDRCS),
+        new LDR(r0, new ImmedAddress(indexOutOfBoundLabel), LDRCS),
         new BL(Cond.CS, THROW_RUNTIME_ERROR.toString()),
         new Pop(Collections.singletonList(PC))
     );
   };
   public static RoutineFunction addThrowOverflowError = (routine, labelGenerator, dataSegment) -> {
-    Label overflowMsgLabel = labelGenerator.getLabel();
+    Label overflowMsgLabel = labelGenerator.getLabel().asArmLabel();
     dataSegment.put(overflowMsgLabel, PRINT_OVERFLOW_MSG);
 
     List<ARMInstruction> instructions = new ArrayList<>(List.of(
         new Label(Utils.RoutineInstruction.THROW_OVERFLOW_ERROR.toString()),
-        new LDR(r0, new LabelAddressing(overflowMsgLabel), LDR),
+        new LDR(r0, new ImmedAddress(overflowMsgLabel), LDR),
         new BL(Utils.RoutineInstruction.THROW_RUNTIME_ERROR.toString())
     ));
 
@@ -273,7 +267,7 @@ public class ARMInstructionRoutines {
         new LDR(r1, new AddressingMode2(OFFSET, r0)),
         /* skip the fst 4 bytes which is the length of the string */
         new Add(r2, r0, new Operand2(4)),
-        new LDR(r0, new LabelAddressing(msg))
+        new LDR(r0, new ImmedAddress(msg))
     ));
     instructions.addAll(addCommonPrint());
 
@@ -294,7 +288,7 @@ public class ARMInstructionRoutines {
         /* put the content in r0 int o r1 as the snd arg of printf */
         new Mov(r1, new Operand2(r0)),
         /* fst arg of printf is the format */
-        new LDR(r0, new LabelAddressing(msg))
+        new LDR(r0, new ImmedAddress(msg))
     ));
     instructions.addAll(addCommonPrint());
 
@@ -316,9 +310,9 @@ public class ARMInstructionRoutines {
         /* cmp the content in r0 with 0 */
         new Cmp(r0, new Operand2(0)),
         /* if not equal to 0 LDR true */
-        new LDR(r0, new LabelAddressing(msgTrue), LDRNE),
+        new LDR(r0, new ImmedAddress(msgTrue), LDRNE),
         /* otherwise equal to 0 LDR false */
-        new LDR(r0, new LabelAddressing(msgFalse), LDREQ)
+        new LDR(r0, new ImmedAddress(msgFalse), LDREQ)
     ));
     instructions.addAll(addCommonPrint());
     return instructions;
@@ -339,7 +333,7 @@ public class ARMInstructionRoutines {
   private static Label addMsg(String msgAscii, Map<Label, String> data,
       LabelGenerator labelGenerator) {
     /* add a Msg into the data list */
-    Label msgLabel = labelGenerator.getLabel();
+    Label msgLabel = labelGenerator.getLabel().asArmLabel();
     data.put(msgLabel, msgAscii);
     return msgLabel;
   }

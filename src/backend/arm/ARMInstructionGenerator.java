@@ -11,10 +11,12 @@ import static utils.Utils.RoutineInstruction;
 import static utils.Utils.RoutineInstruction.*;
 import static utils.Utils.SystemCallInstruction.*;
 import static utils.Utils.*;
-import static utils.backend.ARMInstructionRoutines.routineFunctionMap;
+import static backend.arm.instructions.ARMInstructionRoutines.routineFunctionMap;
 import static utils.backend.Cond.*;
-import static utils.backend.register.ARMConcreteRegister.*;
+import static utils.backend.register.arm.ARMConcreteRegister.*;
 
+import backend.Instruction;
+import backend.InstructionGenerator;
 import backend.arm.instructions.*;
 import backend.arm.instructions.LDR.LdrMode;
 import backend.arm.instructions.STR.StrMode;
@@ -41,12 +43,12 @@ import java.util.Map;
 import java.util.Set;
 import utils.NodeVisitor;
 import utils.backend.LabelGenerator;
-import utils.backend.register.ARMConcreteRegister;
-import utils.backend.register.ARMConcreteRegisterAllocator;
+import utils.backend.register.arm.ARMConcreteRegister;
+import utils.backend.register.arm.ARMConcreteRegisterAllocator;
 import utils.backend.register.Register;
 import utils.frontend.symbolTable.SymbolTable;
 
-public class ARMInstructionGenerator implements NodeVisitor<Void> {
+public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction> {
 
   /* maximum of bytes that can be added/subtracted from the stack pointer */
   public static int MAX_STACK_STEP = (1 << 10);
@@ -55,33 +57,18 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   /* the ARM concrete register allocator */
   private final ARMConcreteRegisterAllocator armRegAllocator;
-  /* the code section of the assembly code */
-  private final List<ARMInstruction> instructions;
   /* the .data section of the assembly code */
-  private final Map<Label, String> dataSegmentMessages;
-  /* call getLabel() on branchLabelGenerator to get label in the format of "L0, L1, L2, ..." */
-  private final LabelGenerator branchLabelGenerator;
-  /* call getLabel() on msgLabelGenerator to get label in the format of "msg_0, msg_1, msg_2, ..."*/
-  private final LabelGenerator msgLabelGenerator;
+  protected final Map<Label, String> dataSegmentMessages;
   /* a list of instructions for storing different helper functions
    * would be appended to the end of instructions list while printing */
   private final List<ARMInstruction> ARMRoutines;
   /* record which helpers already exist, we don't want repeated helper functions */
   private final Set<RoutineInstruction> alreadyExist;
 
-  /* record the current symbolTable used during instruction generation */
-  private SymbolTable currSymbolTable;
-  /* record the symbolTable of the innermost loop */
-  private SymbolTable currForLoopSymbolTable;
-  /* mark if we are visiting a lhs or rhs of an expr */
-  private boolean isLhs;
-  /* offset used when pushing variable in stack in visitFunctionCall
-   * USED FOR evaluating function parameters, not for changing parameters' offset in function body*/
-  private int stackOffset;
-  /* used by visitFunc and visitReturn, set how many byte this function used on stack
-     accumulated, on enter a new scope, decrease on exit
-     no need to distinguish function and non function scope, as non function scope does not call return */
-  private int funcStackSize;
+  /* call getLabel() on branchLabelGenerator to get label in the format of "L0, L1, L2, ..." */
+  protected final LabelGenerator<Label> branchLabelGenerator;
+  /* call getLabel() on msgLabelGenerator to get label in the format of "msg_0, msg_1, msg_2, ..."*/
+  protected final LabelGenerator<Label> msgLabelGenerator;
 
   /* used for mapping type with its print routine function */
   private final Map<Type, RoutineInstruction> typeRoutineMap = Map.of(
@@ -96,19 +83,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   private Label currContinueJumpToLabel;
 
   public ARMInstructionGenerator() {
+    super();
     armRegAllocator = new ARMConcreteRegisterAllocator();
-    instructions = new ArrayList<>();
-    dataSegmentMessages = new LinkedHashMap<>();
-    currSymbolTable = null;
-    branchLabelGenerator = new LabelGenerator(BRANCH_HEADER);
-    msgLabelGenerator = new LabelGenerator(MSG_HEADER);
-    stackOffset = 0;
     ARMRoutines = new ArrayList<>();
     alreadyExist = new HashSet<>();
-    isLhs = false;
-    currBreakJumpToLabel = null;
-    currContinueJumpToLabel = null;
-    currForLoopSymbolTable = null;
+    branchLabelGenerator = new LabelGenerator<Label>(BRANCH_HEADER, Label.class);
+    msgLabelGenerator = new LabelGenerator<>(MSG_HEADER, Label.class);
+    dataSegmentMessages = new LinkedHashMap<>();
   }
 
   @Override
@@ -143,12 +124,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* if the struct is not initialised (null) */
     if (!node.isInitialised()) {
       ARMConcreteRegister reg = armRegAllocator.allocate();
-      instructions.add(new LDR(reg, new ImmediateAddressing(0)));
+      instructions.add(new LDR(reg, new ImmedAddress(0)));
       return null;
     }
 
     /* load R0 with the number of bytes needed and malloc  */
-    instructions.add(new LDR(r0, new ImmediateAddressing(node.getSize())));
+    instructions.add(new LDR(r0, new ImmedAddress(node.getSize())));
     instructions.add(new BL(MALLOC.toString()));
 
     /* then MOV the result pointer of the struct to the next available register */
@@ -196,7 +177,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       } else {
         indexReg = armRegAllocator.allocate();
         instructions
-            .add(new LDR(indexReg, new ImmediateAddressing(((IntegerNode) index).getVal())));
+            .add(new LDR(indexReg, new ImmedAddress(((IntegerNode) index).getVal())));
       }
 
       /* check array bound */
@@ -230,7 +211,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     size += POINTER_SIZE;
 
     /* load R0 with the number of bytes needed and malloc  */
-    instructions.add(new LDR(r0, new ImmediateAddressing(size)));
+    instructions.add(new LDR(r0, new ImmedAddress(size)));
     instructions.add(new BL(MALLOC.toString()));
 
     /* then MOV the result pointer of the array to the next available register */
@@ -251,7 +232,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     Register sizeReg = armRegAllocator.allocate();
     /* STR the size of the array in the first byte */
-    instructions.add(new LDR(sizeReg, new ImmediateAddressing(node.getLength())));
+    instructions.add(new LDR(sizeReg, new ImmedAddress(node.getLength())));
     instructions.add(new STR(sizeReg, new AddressingMode2(OFFSET, addrReg)));
 
     armRegAllocator.free();
@@ -328,7 +309,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitIntegerNode(IntegerNode node) {
     ARMConcreteRegister reg = armRegAllocator.allocate();
-    instructions.add(new LDR(reg, new ImmediateAddressing(node.getVal())));
+    instructions.add(new LDR(reg, new ImmedAddress(node.getVal())));
     return null;
   }
 
@@ -448,14 +429,14 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* null is also a pairNode
      *  if one of child is null, the other has to be null */
     if (node.getFst() == null || node.getSnd() == null) {
-      instructions.add(new LDR(armRegAllocator.allocate(), new ImmediateAddressing(0)));
+      instructions.add(new LDR(armRegAllocator.allocate(), new ImmedAddress(0)));
       return null;
     }
 
     /* 1 malloc pair */
     /* 1.1 move size of a pair in r0
      *    pair in heap is 2 pointers, so 8 byte */
-    instructions.add(new LDR(r0, new ImmediateAddressing(2 * POINTER_SIZE)));
+    instructions.add(new LDR(r0, new ImmedAddress(2 * POINTER_SIZE)));
 
     /* 1.2 BL malloc and get pointer in general use register*/
     instructions.add(new BL(MALLOC.toString()));
@@ -477,7 +458,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(child);
 
     /* 2 move size of fst child in r0 */
-    instructions.add(new LDR(r0, new ImmediateAddressing(child.getType().getSize())));
+    instructions.add(new LDR(r0, new ImmedAddress(child.getType().getSize())));
 
     /* 3 BL malloc, assign child value and get pointer in heap area pairPointer[0] or [1] */
     instructions.add(new BL(MALLOC.toString()));
@@ -494,13 +475,13 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitStringNode(StringNode node) {
     /* Add msg into the data list */
     String str = node.getString();
-    Label msgLabel = msgLabelGenerator.getLabel();
+    Label msgLabel = msgLabelGenerator.getLabel().asArmLabel();
     dataSegmentMessages.put(msgLabel, str);
 
     /* Add the instructions */
     ARMConcreteRegister reg = armRegAllocator.allocate();
 
-    Address strLabel = new LabelAddressing(msgLabel);
+    Address strLabel = new ImmedAddress(msgLabel);
     instructions.add(new LDR(reg, strLabel));
 
     return null;
@@ -590,8 +571,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitIfNode(IfNode node) {
-    Label ifLabel = branchLabelGenerator.getLabel();
-    Label exitLabel = branchLabelGenerator.getLabel();
+    Label ifLabel = branchLabelGenerator.getLabel().asArmLabel();
+    Label exitLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* 1 condition check, branch */
     visit(node.getCond());
@@ -724,14 +705,14 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitWhileNode(WhileNode node) {
     /* 1 unconditional jump to end of loop, where conditional branch exists */
     /* if we encountere a do-while loop, then do not add the conditional jump */
-    Label testLabel = branchLabelGenerator.getLabel();
+    Label testLabel = branchLabelGenerator.getLabel().asArmLabel();
     if (!node.isDoWhile()) {
       instructions.add(new B(NULL, testLabel.getName()));
     }
 
     /* 2 get a label, mark the start of the loop */
-    Label startLabel = branchLabelGenerator.getLabel();
-    Label nextLabel = branchLabelGenerator.getLabel();
+    Label startLabel = branchLabelGenerator.getLabel().asArmLabel();
+    Label nextLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* restore the last jump-to label after visiting the while-loop body */
     Label lastBreakJumpToLabel = currBreakJumpToLabel;
@@ -812,7 +793,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getBody());
 
     /* 5 set exit value */
-    instructions.add(new LDR(r0, new ImmediateAddressing(0)));
+    instructions.add(new LDR(r0, new ImmedAddress(0)));
 
     /* 6 POP {PC} .ltorg */
     instructions.add(new Pop(Collections.singletonList(PC)));
@@ -821,7 +802,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   }
 
   /* below are helper functions used in this class */
-  private void checkAndAddRoutine(RoutineInstruction routine, LabelGenerator labelGenerator,
+  private void checkAndAddRoutine(RoutineInstruction routine, LabelGenerator<Label> labelGenerator,
       Map<Label, String> dataSegment) {
     Map<RoutineInstruction, RoutineInstruction> linkedRoutines = Map.of(
         THROW_RUNTIME_ERROR, PRINT_STRING,
@@ -862,9 +843,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     visit(node.getInit());
 
     /* 2 create labels and translate for for-loop body */
-    Label bodyLabel = branchLabelGenerator.getLabel();
-    Label condLabel = branchLabelGenerator.getLabel();
-    Label nextLabel = branchLabelGenerator.getLabel();
+    Label bodyLabel = branchLabelGenerator.getLabel().asArmLabel();
+    Label condLabel = branchLabelGenerator.getLabel().asArmLabel();
+    Label nextLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* restore the last jump-to label after visiting the for-loop body */
     Label lastBreakJumpToLabel = currBreakJumpToLabel;
@@ -922,12 +903,11 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* this snippet is to deal with for-loop stack difference */
     if (currForLoopSymbolTable != null && !node.getJumpContext().equals(JumpContext.SWITCH)) {
       int stackSize = currForLoopSymbolTable.getSize();
-      int temp = stackSize;
-      while (temp > 0) {
-        int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
+      while (stackSize > 0) {
+        int realStackSize = stackSize / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : stackSize;
         addStack = new Add(SP, SP,
             new Operand2(realStackSize));
-        temp = temp - realStackSize;
+        stackSize = stackSize - realStackSize;
       }
     }
 
@@ -953,15 +933,15 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     
     for (CaseStat c : node.getCases()) {
       visit(c.getExpr());
-      Label cLabel = branchLabelGenerator.getLabel();
+      Label cLabel = branchLabelGenerator.getLabel().asArmLabel();
       cLabels.add(cLabel);
       instructions.add(new Cmp(armRegAllocator.last(), new Operand2(armRegAllocator.curr())));
       instructions.add(new B(EQ, cLabel.getName()));
       armRegAllocator.free();
     }
 
-    Label defaultLabel = branchLabelGenerator.getLabel();
-    Label afterLabel = branchLabelGenerator.getLabel();
+    Label defaultLabel = branchLabelGenerator.getLabel().asArmLabel();
+    Label afterLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* restore the jump-to label after visiting the switch cases and default */
     Label lastBreakJumpToLabel = currBreakJumpToLabel;

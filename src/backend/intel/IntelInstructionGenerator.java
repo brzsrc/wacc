@@ -1,5 +1,15 @@
 package backend.intel;
 
+import static utils.Utils.MAIN_BODY_NAME;
+import static utils.backend.register.arm.ARMConcreteRegister.LR;
+import static utils.backend.register.arm.ARMConcreteRegister.PC;
+import static utils.backend.register.arm.ARMConcreteRegister.r0;
+
+import backend.InstructionGenerator;
+import backend.intel.instructions.IntelInstruction;
+import backend.intel.instructions.Label;
+import backend.intel.instructions.Push;
+import backend.intel.instructions.directives.CFIEndProc;
 import frontend.node.FuncNode;
 import frontend.node.ProgramNode;
 import frontend.node.StructDeclareNode;
@@ -32,23 +42,18 @@ import frontend.node.stat.ScopeNode;
 import frontend.node.stat.SkipNode;
 import frontend.node.stat.SwitchNode;
 import frontend.node.stat.WhileNode;
-import utils.NodeVisitor;
+import java.util.Collections;
+import utils.backend.LabelGenerator;
 
-public class IntelInstructionGenerator implements NodeVisitor<Void> {
+public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruction> {
 
-  @Override
-  public Void visitStructElemNode(StructElemNode node) {
-    return null;
-  }
+  /* label generators for data section and branches */
+  private final LabelGenerator<Label> branchLabelGenerator;
+  private final LabelGenerator<Label> dataLabelGenerator;
 
-  @Override
-  public Void visitStructNode(StructNode node) {
-    return null;
-  }
-
-  @Override
-  public Void visitStructDeclareNode(StructDeclareNode node) {
-    return null;
+  public IntelInstructionGenerator() {
+    branchLabelGenerator = new LabelGenerator<>(".L", Label.class);
+    dataLabelGenerator = new LabelGenerator<>(".LC", Label.class);
   }
 
   @Override
@@ -193,6 +198,41 @@ public class IntelInstructionGenerator implements NodeVisitor<Void> {
 
   @Override
   public Void visitProgramNode(ProgramNode node) {
+    /* 1 translate all functions */
+    for (FuncNode func : node.getFunctions().values()) {
+      visitFuncNode(func);
+    }
+
+    /* 2 start of main */
+    Label mainLabel = new Label("main");
+    instructions.add(mainLabel);
+    /* 3 PUSH {lr} */
+    instructions.add(new Push(Collections.singletonList(LR)));
+
+    /* 4 main body */
+    visit(node.getBody());
+
+    /* 5 set exit value */
+//    instructions.add(new LDR(r0, new ImmedAddress(0)));
+
+    /* 6 POP {PC} .ltorg */
+//    instructions.add(new ));
+    instructions.add(new CFIEndProc());
+    return null;
+  }
+
+  @Override
+  public Void visitStructElemNode(StructElemNode node) {
+    return null;
+  }
+
+  @Override
+  public Void visitStructNode(StructNode node) {
+    return null;
+  }
+
+  @Override
+  public Void visitStructDeclareNode(StructDeclareNode node) {
     return null;
   }
 }

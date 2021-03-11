@@ -1,7 +1,8 @@
 package backend.arm;
 
-import backend.arm.directives.*;
+import backend.arm.segment.*;
 import backend.arm.instructions.ARMInstruction;
+import backend.common.Directive;
 import java.util.ArrayList;
 import java.util.List;
 

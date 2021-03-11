@@ -1,4 +1,4 @@
-package utils.backend.register;
+package utils.backend.register.arm;
 
 /* internal labeling of registers. ST stands for Stack Pointer,
    LR stands for Subroutine Link Register, PC stands for Program Counter,

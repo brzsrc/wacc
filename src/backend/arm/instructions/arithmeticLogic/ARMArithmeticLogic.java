@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import utils.backend.Cond;
-import utils.backend.register.ARMConcreteRegister;
-import utils.backend.register.ARMRegisterLabel;
+import utils.backend.register.arm.ARMConcreteRegister;
+import utils.backend.register.arm.ARMRegisterLabel;
 import utils.backend.register.Register;
 
 public abstract class ARMArithmeticLogic extends ArithmeticLogic implements ARMInstruction {
@@ -126,9 +126,6 @@ public abstract class ARMArithmeticLogic extends ArithmeticLogic implements ARMI
       new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, OrdAsm),
       new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm)
   );
-
-  protected Register Rd, Rn;
-  protected Operand2 operand2;
 
   protected ARMArithmeticLogic(Register rd, Register rn, Operand2 operand2) {
     super(rd, rn, operand2);

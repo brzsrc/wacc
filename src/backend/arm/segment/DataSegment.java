@@ -1,6 +1,7 @@
-package backend.arm.directives;
+package backend.arm.segment;
 
 import backend.arm.instructions.Label;
+import backend.common.Directive;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

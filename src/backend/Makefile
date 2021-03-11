@@ -12,7 +12,7 @@ BIN_FRONTEND_DIR    := $(ROOT_DIR)/bin/frontend
 
 # Tools
 FIND	:= find
-RM	    := rm -rf
+RM	  := rm -rf
 MKDIR	:= mkdir -p
 JAVA	:= java
 JAVAC	:= javac

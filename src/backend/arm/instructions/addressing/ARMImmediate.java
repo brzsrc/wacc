@@ -1,17 +1,25 @@
 package backend.arm.instructions.addressing;
 
+import backend.arm.instructions.Label;
 import backend.common.address.Immediate;
 
 public class ARMImmediate extends Immediate {
 
   private final BitNum bitNum;
+
   public ARMImmediate(int val, BitNum bitNum) {
-    this(val, bitNum, false);
+    super(val);
+    this.bitNum = bitNum;
   }
 
   public ARMImmediate(int val, BitNum bitNum, boolean isChar) {
     super(val, null, isChar, false);
     this.bitNum = bitNum;
+  }
+
+  public ARMImmediate(Label label) {
+    super(label);
+    this.bitNum = null;
   }
 
   public boolean isChar() {
