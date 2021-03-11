@@ -7,16 +7,20 @@ import frontend.node.StructDeclareNode;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
 import utils.NodeVisitor;
+import utils.frontend.symbolTable.Symbol;
 
 import javax.swing.text.html.parser.Entity;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static utils.Utils.*;
 
 public class ConstantPropagation implements NodeVisitor<Node> {
+  /* map an ident with its value exprNode */
+  private Map<Symbol, ExprNode> identValMap;
+
+  public ConstantPropagation() {
+    identValMap = new HashMap<>();
+  }
 
   @Override
   public Node visitArrayElemNode(ArrayElemNode node) {
@@ -76,6 +80,10 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitIdentNode(IdentNode node) {
+    if (identValMap.containsKey(node.getSymbol())) {
+      System.out.println("successfully found " + node.getSymbol());
+      return identValMap.get(node.getSymbol());
+    }
     return node;
   }
 
@@ -131,6 +139,13 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     ExprNode exprNode = visit(node.getRhs()).asExprNode();
     AssignNode resultNode = new AssignNode(node.getLhs(), exprNode);
     resultNode.setScope(node.getScope());
+
+    /* constant propagation:
+    *  add new entry into map */
+    if ((node.getLhs() instanceof IdentNode) && exprNode.isImmediate()) {
+      identValMap.remove(((IdentNode) node.getLhs()).getSymbol());
+      identValMap.put(((IdentNode) node.getLhs()).getSymbol(), exprNode);
+    }
     return resultNode;
   }
 
@@ -139,6 +154,13 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     ExprNode exprNode = visit(node.getRhs()).asExprNode();
     DeclareNode resultNode = new DeclareNode(node.getIdentifier(), exprNode);
     resultNode.setScope(node.getScope());
+
+    /* constant propagation:
+    *  add new entry in map */
+    if (exprNode.isImmediate()) {
+      identValMap.put(node.getScope().lookup(node.getIdentifier()), exprNode);
+      System.out.println(node.getIdentifier() + " has pointer " + node.getScope().lookup(node.getIdentifier()));
+    }
     return resultNode;
   }
 
@@ -159,11 +181,25 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitIfNode(IfNode node) {
-    ExprNode cond = visit(node.getCond()).asExprNode();
+    /* constant propagation algorithm:
+    *  go through if and else body, generate symbol and exprNode map for both,
+    *  merge two tables by taking intersection  */
 
+    /* 1 visit cond, record map before enter if body */
+    ExprNode cond = visit(node.getCond()).asExprNode();
+    Map<Symbol, ExprNode> oldMap = new HashMap<>(identValMap);
+
+    /* 2 visit if body */
     StatNode ifBody = visit(node.getIfBody()).asStatNode();
+    Map<Symbol, ExprNode> ifIdMap = identValMap;
+
+    /* 3 visit while body */
     StatNode elseBody = visit(node.getElseBody()).asStatNode();
 
+    /* 4 new idMap is intersection of both */
+    identValMap.keySet().retainAll(ifIdMap.keySet());
+
+    /* return new ifNode with propagated result */
     IfNode resultNode = new IfNode(cond, ifBody, elseBody);
     resultNode.setScope(node.getScope());
     return resultNode;
@@ -213,8 +249,21 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitWhileNode(WhileNode node) {
+    /* constant propagation algorithm:
+    *  visit body twice, get intersection with the first iterate */
+
+    /* 1 visit cond, record old idMap */
     ExprNode cond = visit(node.getCond()).asExprNode();
+    Map<Symbol, ExprNode> oldMap = new HashMap<>(identValMap);
+
+    /* 2 visit body once, get those idents that won't change after one visit
+    *    ignore body generated */
+    visit(node.getBody()).asStatNode();
+    identValMap.keySet().retainAll(oldMap.keySet());
+
+    /* 3 visit again using map after getting the intersection */
     StatNode body = visit(node.getBody()).asStatNode();
+
     WhileNode resultNode = new WhileNode(cond, body);
     resultNode.setScope(node.getScope());
     return resultNode;
@@ -236,7 +285,15 @@ public class ConstantPropagation implements NodeVisitor<Node> {
       functions.put(entry.getKey(), (FuncNode) visitFuncNode(entry.getValue()));
     }
     StatNode body = visit(node.getBody()).asStatNode();
+    showIdMap();
     return new ProgramNode(functions, body);
+  }
+
+  /* debug function, show content of idMap */
+  private void showIdMap() {
+    for (Map.Entry<Symbol, ExprNode> entry : identValMap.entrySet()) {
+      System.out.println(entry.getKey() + " casted as " + entry.getValue().getCastedVal());
+    }
   }
 
   /* helper function for simplify al list of expr

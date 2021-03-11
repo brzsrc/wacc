@@ -1,0 +1,16 @@
+begin
+  int a = 0;
+  char c = ' ';
+
+  # basic case: a is always 0, then b should always be 1
+  int b = a + 1;
+  # similar test for char
+  b = ord c;
+
+  # combine constant evaluation and propagation
+  int[] list = [1,2];
+  int l = len list;
+  b = l * 2
+
+end
+
