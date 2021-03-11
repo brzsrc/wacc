@@ -1,0 +1,27 @@
+begin
+  int a0 = 0;      # a0 left unchanged throughout, test in all 3 scope
+  int b0 = a0;     # b0 update in 1st while 
+  char c0 = ' ';   # c0 update in 2nd while
+  int d0 = ord c0; # d0 update in 2nd while but with same value
+
+  while true do 
+    b0 = 1;
+    
+    while true do 
+      c0 = 'a';
+      d0 = 32
+    done;
+
+    int d = a0 + 1; # propagate
+    d = b0;         # propagate
+    d = ord c0;     # no propagate
+    d = d0          # propagate
+    
+  done;
+
+  int d = a0 + 1; # propagate
+  d = b0 + 1;     # no propagate
+  d = ord c0;     # no propagate 
+  d = d0          # propagate
+  
+end

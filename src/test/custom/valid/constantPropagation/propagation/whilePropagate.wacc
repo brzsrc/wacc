@@ -1,0 +1,26 @@
+begin
+  int a = 0;
+  int n = 0;
+  int c = 0;
+
+  while true do 
+    a = 1;
+    c = 0;
+    
+    # base case in WHILE
+    int a = 0;
+    int b = a;
+
+    # should not optimise here, since n is a loop varient
+    b = n;
+    n = n + 1
+  done;
+
+  # if while's update is same as original value, still propagate
+  int b = c;
+
+  # should not optimise here, since a might be overwrite in while loop
+  b = a + 1
+
+end
+

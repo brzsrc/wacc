@@ -7,16 +7,29 @@ import frontend.node.StructDeclareNode;
 import frontend.node.expr.*;
 import frontend.node.stat.*;
 import utils.NodeVisitor;
+import utils.frontend.symbolTable.Symbol;
 
 import javax.swing.text.html.parser.Entity;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Array;
+import java.util.*;
 
 import static utils.Utils.*;
 
 public class ConstantPropagation implements NodeVisitor<Node> {
+  /* map an ident with its value exprNode
+  *  used for the current visit of ident node */
+  private Map<Symbol, ExprNode> identValMap;
+
+  /* list of ident map, which will be merged in the end of the CURRENT while, if, switch, for loop
+  *    loopStartMapList is maplist that can reach while condition check
+  *    breakMapList is all mapList copy of each time a BREAK is called */
+  private List<Map<Symbol, ExprNode>> loopStartMapList, breakMapList;
+
+  public ConstantPropagation() {
+    identValMap = new HashMap<>();
+    this.loopStartMapList = new ArrayList<>();
+    this.breakMapList = new ArrayList<>();
+  }
 
   @Override
   public Node visitArrayElemNode(ArrayElemNode node) {
@@ -76,6 +89,9 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitIdentNode(IdentNode node) {
+    if (identValMap.containsKey(node.getSymbol())) {
+      return identValMap.get(node.getSymbol());
+    }
     return node;
   }
 
@@ -112,15 +128,16 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitUnopNode(UnopNode node) {
-    if (!node.isImmediate()) {
-      return node;
-    }
 
     assert unopApplyMap.containsKey(node.getOperator());
 
     /* visit expr first, ensure child expr have already been simplified */
     ExprNode expr = visit(node.getExpr()).asExprNode();
+    if (!expr.isImmediate()) {
+      return new UnopNode(expr, node.getOperator());
+    }
     ExprNode simpChild = unopApplyMap.get(node.getOperator()).apply(expr);
+    /* return null when overflow */
     return simpChild == null ?
             new UnopNode(expr, node.getOperator()) :
             simpChild;
@@ -131,6 +148,13 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     ExprNode exprNode = visit(node.getRhs()).asExprNode();
     AssignNode resultNode = new AssignNode(node.getLhs(), exprNode);
     resultNode.setScope(node.getScope());
+
+    /* constant propagation:
+    *  add new entry into map */
+    if ((node.getLhs() instanceof IdentNode) && exprNode.isImmediate()) {
+      identValMap.remove(((IdentNode) node.getLhs()).getSymbol());
+      identValMap.put(((IdentNode) node.getLhs()).getSymbol(), exprNode);
+    }
     return resultNode;
   }
 
@@ -139,6 +163,12 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     ExprNode exprNode = visit(node.getRhs()).asExprNode();
     DeclareNode resultNode = new DeclareNode(node.getIdentifier(), exprNode);
     resultNode.setScope(node.getScope());
+
+    /* constant propagation:
+    *  add new entry in map */
+    if (exprNode.isImmediate()) {
+      identValMap.put(node.getScope().lookup(node.getIdentifier()), exprNode);
+    }
     return resultNode;
   }
 
@@ -159,11 +189,28 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitIfNode(IfNode node) {
-    ExprNode cond = visit(node.getCond()).asExprNode();
+    /* constant propagation algorithm:
+    *  go through if and else body, generate symbol and exprNode map for both,
+    *  merge two tables by taking intersection  */
 
+    /* 1 visit cond, record map before enter if body */
+    ExprNode cond = visit(node.getCond()).asExprNode();
+    Map<Symbol, ExprNode> oldMap = new HashMap<>(identValMap);
+
+    /* 2 visit if body */
     StatNode ifBody = visit(node.getIfBody()).asStatNode();
+    Map<Symbol, ExprNode> ifIdMap = new HashMap<>(identValMap);
+
+    /* 3 visit while body */
+    identValMap = oldMap;
     StatNode elseBody = visit(node.getElseBody()).asStatNode();
 
+    /* 4 new idMap is intersection of both */
+    List<Map<Symbol, ExprNode>> list = new ArrayList<>();
+    list.add(ifIdMap);
+    mergeIdMap(list);
+
+    /* return new ifNode with propagated result */
     IfNode resultNode = new IfNode(cond, ifBody, elseBody);
     resultNode.setScope(node.getScope());
     return resultNode;
@@ -185,8 +232,14 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitReadNode(ReadNode node) {
-    ReadNode resultNode = new ReadNode(visit(node.getInputExpr()).asExprNode());
+    ExprNode expr = visit(node.getInputExpr()).asExprNode();
+    ReadNode resultNode = new ReadNode(expr);
     resultNode.setScope(node.getScope());
+
+    /* delete expr in identMap, since cannot determine expr's value */
+    if (expr instanceof IdentNode) {
+      identValMap.remove(((IdentNode) expr).getSymbol());
+    }
     return resultNode;
   }
 
@@ -213,8 +266,41 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitWhileNode(WhileNode node) {
+    /* constant propagation algorithm:
+     *  visit body twice, get intersection with the first iterate */
+
+    /* 1 visit cond */
     ExprNode cond = visit(node.getCond()).asExprNode();
+
+    /* 1.2 record the mapList, which might contain maps from parent WHILE
+     *      current identMap is one map of parent block of while block */
+    List<Map<Symbol, ExprNode>>
+            oldLoopStartMapList = loopStartMapList,
+            oldBreakMapList = breakMapList;
+    loopStartMapList = new ArrayList<>();
+    breakMapList = new ArrayList<>();
+    loopStartMapList.add(new HashMap<>(identValMap));
+
+    /* 2 visit body once, get those idents that won't change after one visit
+     *    ignore body generated
+     *   loop start map is merged, result is map parent of loop body and block after loop
+     *   break is then merged, result is map before block after loop
+     *   merged start/end map are used to record map, prevent overwrite in second visit */
+    visit(node.getBody()).asStatNode();
+    mergeIdMap(loopStartMapList);
+    Map<Symbol, ExprNode> mergedStartMap = new HashMap<>(identValMap);
+    mergeIdMap(breakMapList);
+    Map<Symbol, ExprNode> mergedEndMap = new HashMap<>(identValMap);
+    identValMap = mergedStartMap;
+
+    /* 3 visit again using map after getting the intersection */
     StatNode body = visit(node.getBody()).asStatNode();
+    identValMap = mergedEndMap;
+
+    /* 4 restore mapList */
+    loopStartMapList = oldLoopStartMapList;
+    breakMapList = oldBreakMapList;
+
     WhileNode resultNode = new WhileNode(cond, body);
     resultNode.setScope(node.getScope());
     return resultNode;
@@ -239,6 +325,17 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     return new ProgramNode(functions, body);
   }
 
+  /* debug function, show content of idMap */
+  private void showIdMap() {
+    showIdMap(identValMap);
+  }
+
+  private void showIdMap(Map<Symbol, ExprNode> map) {
+    for (Map.Entry<Symbol, ExprNode> entry : map.entrySet()) {
+      System.out.println(entry.getKey() + " casted as " + entry.getValue().getCastedVal());
+    }
+  }
+
   /* helper function for simplify al list of expr
   *  can only be placed in optimise, since require visit function, which call THIS */
   private List<ExprNode> simplifyExprList(List<ExprNode> rawExprs) {
@@ -252,6 +349,28 @@ public class ConstantPropagation implements NodeVisitor<Node> {
       params.add(visit(param).asExprNode());
     }
     return params;
+  }
+
+  private void mergeMap(Map<Symbol, ExprNode> otherMap) {
+    Map<Symbol, ExprNode> result = new HashMap<>();
+    for (Map.Entry<Symbol, ExprNode> entry : identValMap.entrySet()) {
+      ExprNode expr2 = otherMap.get(entry.getKey());
+      if (expr2 != null
+              && expr2.isImmediate()
+              && entry.getValue().isImmediate()
+              && entry.getValue().getCastedVal() == expr2.getCastedVal()) {
+        result.put(entry.getKey(), entry.getValue());
+      }
+    }
+    identValMap = result;
+  }
+
+  /* get the list of ident map from mapList, return the result map */
+  private void mergeIdMap(List<Map<Symbol, ExprNode>> list) {
+    for (Map<Symbol, ExprNode> mapCase : list) {
+      mergeMap(mapCase);
+    }
+    list.clear();
   }
 
   @Override
@@ -274,19 +393,98 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitForNode(ForNode node) {
-    // TODO Auto-generated method stub
-    return null;
+    /* 1 visit init, view as part of block before loop */
+    StatNode initStat = visit(node.getInit()).asStatNode();
+
+    /* 2 visit cond, same as while, no special treat */
+    ExprNode cond = visit(node.getCond()).asExprNode();
+
+    /* 3 visit body and increment */
+    /*   (same as while) record the mapList, which might contain maps from parent WHILE
+     *      current identMap is one map of parent block of while block */
+    List<Map<Symbol, ExprNode>>
+            oldLoopStartMapList = loopStartMapList,
+            oldBreakMapList = breakMapList;
+    loopStartMapList = new ArrayList<>();
+    breakMapList = new ArrayList<>();
+    loopStartMapList.add(new HashMap<>(identValMap));
+
+    /* 2 visit body once, get those idents that won't change after one visit
+     *    ignore body generated
+     *   loop start map is merged, result is map parent of loop body and block after loop
+     *   break is then merged, result is map before block after loop
+     *   merged start/end map are used to record map, prevent overwrite in second visit */
+    visit(node.getBody()).asStatNode();
+    visit(node.getIncrement());
+    mergeIdMap(loopStartMapList);
+    Map<Symbol, ExprNode> mergedStartMap = new HashMap<>(identValMap);
+    mergeIdMap(breakMapList);
+    Map<Symbol, ExprNode> mergedEndMap = new HashMap<>(identValMap);
+    identValMap = mergedStartMap;
+
+    /* 3 visit again using map after getting the intersection */
+    StatNode body = visit(node.getBody()).asStatNode();
+    StatNode inc = visit(node.getIncrement()).asStatNode();
+    identValMap = mergedEndMap;
+
+    /* 4 restore mapList */
+    loopStartMapList = oldLoopStartMapList;
+    breakMapList = oldBreakMapList;
+
+    ForNode forNode = new ForNode(initStat, cond, inc, body);
+    forNode.setScope(node.getScope());
+    return forNode;
   }
 
   @Override
   public Node visitJumpNode(JumpNode node) {
-    // TODO Auto-generated method stub
-    return null;
+    switch (node.getJumpType()) {
+      case BREAK:
+        breakMapList.add(new HashMap<>(identValMap));
+        break;
+      case CONTINUE:
+        loopStartMapList.add(new HashMap<>(identValMap));
+        break;
+      default:
+        throw new IllegalArgumentException("unsupported jump node type " + node.getJumpType());
+    }
+    return node;
   }
 
   @Override
   public Node visitSwitchNode(SwitchNode node) {
-    // TODO Auto-generated method stub
-    return null;
+    /* constant evaluate switch expr */
+    ExprNode switchExpr = visit(node.getExpr()).asExprNode();
+
+    /* 1 create identmaplist for switch only use
+    *    record root identMap */
+    List<Map<Symbol, ExprNode>> switchMapList = new ArrayList<>();
+    Map<Symbol, ExprNode> rootIdentMap = identValMap;
+
+    List<SwitchNode.CaseStat> simplifiedCaseStats = new ArrayList<>();
+    /* 2 for each case expr, constant propagate */
+    for (SwitchNode.CaseStat caseStat : node.getCases()) {
+      /* 2.1 propagate using current identMap */
+      identValMap = new HashMap<>(rootIdentMap);
+      ExprNode evaledCaseExpr = visit(caseStat.getExpr()).asExprNode();
+      StatNode propedCaseStat = visit(caseStat.getBody()).asStatNode();
+
+      /* 2.2 add result identMap to list to be merged */
+      switchMapList.add(new HashMap<>(identValMap));
+
+      /* 2.3 record simplified expr and stat */
+      simplifiedCaseStats.add(new SwitchNode.CaseStat(evaledCaseExpr, propedCaseStat));
+    }
+
+    /* 3 same operation for default case */
+    identValMap = new HashMap<>(rootIdentMap);
+    StatNode propedDefaultStat = visit(node.getDefault()).asStatNode();
+    switchMapList.add(new HashMap<>(identValMap));
+
+    mergeIdMap(switchMapList);
+
+    StatNode result = new SwitchNode(switchExpr, simplifiedCaseStats, propedDefaultStat);
+    result.setScope(node.getScope());
+    return result;
   }
 }

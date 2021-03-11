@@ -1,0 +1,26 @@
+begin
+  int a = 0;
+
+  int b = 0;
+  if true then 
+    a = 0;
+    b = 0;
+
+    # base case in IF
+    int a = 0;
+    int b = a
+  else 
+    a = 0;
+    b = 1;
+
+    # base case in ELSE
+    int a = 0;
+    int b = a
+  fi;
+  # if both IF ELSE body have same effect on a public variable, record the effect
+  int c = a;
+
+  # if value depend on branch chose, no propagate
+  c = b
+end
+

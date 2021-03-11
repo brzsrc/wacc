@@ -246,11 +246,15 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     Type conditionType = condition.getType();
     semanticError |= typeCheck(ctx.expr(), BOOL_BASIC_TYPE, conditionType);
 
+    /* both branch are permitted to have/not have jump */
+    boolean permitJump = isJumpRepeated;
+
     /* create the StatNode for the if body and gegerate new child scope */
     currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode ifBody = visit(ctx.stat(0)).asStatNode();
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
+    isJumpRepeated = permitJump;
     /* create the StatNode for the else body and generate new child scope */
     currSymbolTable = new SymbolTable(currSymbolTable);
     StatNode elseBody = visit(ctx.stat(1)).asStatNode();
