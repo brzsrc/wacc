@@ -80,6 +80,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitIdentNode(IdentNode node) {
+    System.out.println("looking for " + node.getName() + " with " + node.getSymbol());
     if (identValMap.containsKey(node.getSymbol())) {
       System.out.println("successfully found " + node.getSymbol());
       return identValMap.get(node.getSymbol());
@@ -120,9 +121,6 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitUnopNode(UnopNode node) {
-    if (!node.isImmediate()) {
-      return node;
-    }
 
     assert unopApplyMap.containsKey(node.getOperator());
 
@@ -191,13 +189,15 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
     /* 2 visit if body */
     StatNode ifBody = visit(node.getIfBody()).asStatNode();
-    Map<Symbol, ExprNode> ifIdMap = identValMap;
+    Map<Symbol, ExprNode> ifIdMap = new HashMap<>(identValMap);
 
     /* 3 visit while body */
+    identValMap = oldMap;
     StatNode elseBody = visit(node.getElseBody()).asStatNode();
 
     /* 4 new idMap is intersection of both */
-    identValMap.keySet().retainAll(ifIdMap.keySet());
+//    identValMap.keySet().retainAll(ifIdMap.keySet());
+    mergeIdMap(identValMap, ifIdMap);
 
     /* return new ifNode with propagated result */
     IfNode resultNode = new IfNode(cond, ifBody, elseBody);
@@ -259,10 +259,14 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     /* 2 visit body once, get those idents that won't change after one visit
     *    ignore body generated */
     visit(node.getBody()).asStatNode();
-    identValMap.keySet().retainAll(oldMap.keySet());
+//    identValMap.keySet().retainAll(oldMap.keySet());
+    mergeIdMap(identValMap, oldMap);
+    oldMap = new HashMap<>(identValMap);
 
     /* 3 visit again using map after getting the intersection */
     StatNode body = visit(node.getBody()).asStatNode();
+    /* should set map back, prevent result from map influence the rest code's execution */
+    identValMap = oldMap;
 
     WhileNode resultNode = new WhileNode(cond, body);
     resultNode.setScope(node.getScope());
@@ -309,6 +313,10 @@ public class ConstantPropagation implements NodeVisitor<Node> {
       params.add(visit(param).asExprNode());
     }
     return params;
+  }
+
+  private void mergeIdMap(Map<Symbol, ExprNode> map1, Map<Symbol, ExprNode> map2) {
+    map1.entrySet().retainAll(map2.entrySet());
   }
 
   @Override

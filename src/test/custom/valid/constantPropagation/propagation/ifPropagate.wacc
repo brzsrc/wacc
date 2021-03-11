@@ -1,6 +1,7 @@
 begin
   int a = 0;
 
+  int b = 0;
   if true then 
     a = 0;
     b = 0;
