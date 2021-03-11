@@ -1,0 +1,18 @@
+# Output:
+# 1
+# 2
+# 1
+# 2
+
+# Program:
+
+begin
+  struct a is {int i, b b}
+  struct b is {int j, a a}
+  a a = new a {1, new b {2, empty}};
+  a.b.a = a;
+  println a.i;
+  println a.b.j;
+  println a.b.a.i;
+  println a.b.a.b.j
+end

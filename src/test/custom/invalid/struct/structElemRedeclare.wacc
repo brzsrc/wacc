@@ -1,0 +1,9 @@
+# Output:
+# #semantic error#
+
+# Program:
+
+begin
+  struct a is {int b, char b}
+  skip
+end

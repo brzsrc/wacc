@@ -1,0 +1,8 @@
+# Output:
+# #semantic error#
+
+# Program:
+
+begin
+  a x = new a {}
+end

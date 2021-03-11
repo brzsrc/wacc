@@ -1,0 +1,9 @@
+# Output:
+# #semantic error#
+
+# Program:
+
+begin
+  struct a is {int i}
+  a x = new a {'a'}
+end

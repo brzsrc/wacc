@@ -46,7 +46,7 @@ public class Utils {
   public static final Set<Type> readStatAllowedTypes = new HashSet<>(
       Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
   public static final Set<Type> freeStatAllowedTypes = new HashSet<>(
-      Arrays.asList(ARRAY_TYPE, PAIR_TYPE));
+      Arrays.asList(ARRAY_TYPE, PAIR_TYPE, STRUCT_TYPE));
   public static final Set<Type> cmpStatAllowedTypes = new HashSet<>(
       Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
 

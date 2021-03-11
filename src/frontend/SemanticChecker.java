@@ -6,6 +6,7 @@ import frontend.antlr.WACCParserBaseVisitor;
 import frontend.node.StructDeclareNode;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +23,7 @@ import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 
 import frontend.type.*;
+import java.util.Set;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import utils.frontend.symbolTable.Symbol;
 import utils.frontend.symbolTable.SymbolTable;
@@ -61,8 +63,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* record whether a skipable semantic error is found in visiting to support checking of multiple errors */
   private boolean semanticError;
 
-  /* record whether the 'null' is used to represent uninitialised struct or not */
-  private boolean isStruct = false;
   /* record the for-loop incrementer so that break and continue know what to do before jumping */
   private StatNode currForLoopIncrementBreak;
   private StatNode currForLoopIncrementContinue;
@@ -89,7 +89,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     for (StructContext s : ctx.struct()) {
       String structName = s.IDENT().getText();
 
-      if (globalFuncTable.containsKey(structName)) {
+      if (globalStructTable.containsKey(structName)) {
         symbolRedeclared(ctx, structName);
         semanticError = true;
       }
@@ -167,10 +167,18 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitStruct(StructContext ctx) {
     List<IdentNode> elements = new ArrayList<>();
+    Set<String> elemNameSet = new HashSet<>();
 
     for (ParamContext elem : ctx.param_list().param()) {
       Type elemType = visit(elem.type()).asTypeDeclareNode().getType();
-      IdentNode elemNode = new IdentNode(elemType, elem.IDENT().getText());
+      String elemName = elem.IDENT().getText();
+      /* do not allow multiple elements have the same name in the struct */
+      if (elemNameSet.contains(elemName)) {
+        symbolRedeclared(ctx, elemName);
+        semanticError = true;
+      }
+      elemNameSet.add(elemName);
+      IdentNode elemNode = new IdentNode(elemType, elemName);
       elements.add(elemNode);
     }
 
@@ -694,17 +702,30 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitStructExpr(StructExprContext ctx) {
     String name = ctx.new_struct().IDENT().getText();
     StructDeclareNode struct = globalStructTable.get(name);
+
+    /* check whether the struct existed or not */
     if (struct == null) {
       symbolNotFound(ctx, name);
     }
+
+    /* check the number of elements */
+    int expectedElemNum = struct.getElemCount();
+    if (expectedElemNum != 0) {
+      if (ctx.new_struct().arg_list() == null) {
+        invalidFuncArgCount(ctx, expectedElemNum, 0);
+      } else if (expectedElemNum != ctx.new_struct().arg_list().expr().size()) {
+        invalidFuncArgCount(ctx, expectedElemNum, ctx.new_struct().arg_list().expr().size());
+      }
+    }
+
     List<ExprContext> exprContexts = ctx.new_struct().arg_list().expr();
     List<ExprNode> elemNodes = new ArrayList<>();
 
+    /* visit each expr and add ExprNode into the list */
     for (int i = 0; i < exprContexts.size(); i++) {
-      boolean lastStatus = isStruct;
-      isStruct = struct.getElem(i).getType().equalToType(STRUCT_TYPE);
       ExprNode node = visit(exprContexts.get(i)).asExprNode();
-      isStruct = lastStatus;
+      /* check that the elem's type is correct */
+      semanticError |= typeCheck(ctx, struct.getElem(i).getType(), node.getType());
       elemNodes.add(node);
     }
 
@@ -721,31 +742,44 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     List<Integer> offsets = new ArrayList<>();
     /* this is just for printAST */
     List<String> elemNames = new ArrayList<>();
+    /* lookup the first identifier (variable name) from the symbol table */
     Symbol symbol = lookUpWithNotFoundException(ctx, currSymbolTable, identifiers.get(0).getText());
     Type type = symbol.getExprNode().getType();
 
     do {
-      semanticError |= typeCheck(ctx, STRUCT_TYPE, type);
+      /* check that the type is struct in the current position */
+      if (typeCheck(ctx, STRUCT_TYPE, type)) {
+        semanticError = true;
+        break;
+      }
+      /* get the actual struct name of the current type and lookup info from global struct table */
       String structName = ((StructType) type).getName();
       StructDeclareNode struct = globalStructTable.get(structName);
+      /* get the elemName behind dot */
       String elemName = identifiers.get(curPos + 1).getText();
       elemNames.add(elemName);
       IdentNode elemNode = struct.findElem(elemName);
+      /* check the elemName behind dot existed for the current struct */
       if (elemNode == null) {
         symbolNotFound(ctx, elemName);
       }
       offsets.add(struct.findOffset(elemName));
+      /* advance */
       type = elemNode.getType();
       curPos++;
     } while (curPos < identifiers.size() - 1);
 
-    StructElemNode node = new StructElemNode(offsets, identifiers.get(0).getText(), symbol, elemNames, type);
-    return node;
+    return new StructElemNode(offsets, identifiers.get(0).getText(), symbol, elemNames, type);
   }
 
   @Override
   public Node visitStructElemExpr(StructElemExprContext ctx) {
     return visitStruct_elem(ctx.struct_elem());
+  }
+
+  @Override
+  public Node visitEmptyStructExpr(EmptyStructExprContext ctx) {
+    return new StructNode();
   }
 
   @Override
@@ -792,10 +826,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new BoolNode(ctx.BOOL_LITER().getText().equals("true"));
   }
 
-  /* pairExpr is basically 'null', extend 'null' to represent uninitialised struct */
   @Override
   public Node visitPairExpr(PairExprContext ctx) {
-    return (isStruct)? new StructNode() : new PairNode();
+    return new PairNode();
   }
 
   @Override

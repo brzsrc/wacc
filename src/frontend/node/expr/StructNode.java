@@ -12,8 +12,7 @@ public class StructNode extends ExprNode {
   private int size;
   /* for printAST only */
   private String name;
-  /* for a struct which contains other struct, then it could be initialised as {a, b, null, c}
-   * the null means the inner struct element which is not initialised here */
+  /* if the struct variable is not = empty, then it is initialised */
   private final boolean isInitialised;
 
   public StructNode(List<ExprNode> elemValues, List<Integer> elemOffsets, int size, String name) {

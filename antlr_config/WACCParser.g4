@@ -4,7 +4,7 @@ options {
   tokenVocab=WACCLexer;
 }
 
-program     : BEGIN struct* func* stat END EOF;
+program     : BEGIN (struct | func)* stat END EOF;
 struct      : STRUCT IDENT IS OPEN_CURLY_BRACKET param_list? CLOSE_CURLY_BRACKET;
 func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat END;
 param_list  : param (COMMA param )* ;
@@ -115,6 +115,7 @@ expr : INT_LITER      #IntExpr
      | array_elem     #ArrayExpr
      | struct_elem    #StructElemExpr
      | new_struct     #StructExpr
+     | EMPTY          #EmptyStructExpr
      | uop=( '-' | '!' | 'len' | 'ord' | 'chr' ) expr #UnopExpr
      | expr bop=( '*' | '/' | '%' ) expr              #ArithmeticExpr
      | expr bop=( '+' | '-' ) expr                    #ArithmeticExpr

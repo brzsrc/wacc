@@ -1,0 +1,12 @@
+# Output:
+# #input#
+# #output#
+
+# Program:
+
+begin
+  struct a is {int i}
+  a x = new a {0};
+  read x.i;
+  println x.i
+end

@@ -34,6 +34,7 @@ NEWPAIR    : 'newpair' ;
 STRUCT     : 'struct' ;
 NEW        : 'new' ;
 DOT        : '.' ;
+EMPTY      : 'empty' ;
 
 // keywords
 BEGIN   : 'begin' ;

@@ -1,0 +1,10 @@
+# Output:
+# 1
+
+# Program:
+
+begin
+  struct a is {int value}
+  a x = new a{1};
+  println x.value
+end

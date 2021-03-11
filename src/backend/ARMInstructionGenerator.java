@@ -580,7 +580,8 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     armRegAllocator.free();
 
     Type type = node.getExpr().getType();
-    RoutineInstruction routine = type.equalToType(ARRAY_TYPE) ? FREE_ARRAY : FREE_PAIR;
+    /* free struct would be the same as free array */
+    RoutineInstruction routine = type.equalToType(PAIR_TYPE) ? FREE_PAIR : FREE_ARRAY;
 
     instructions.add(new BL(routine.toString()));
     checkAndAddRoutine(routine, msgLabelGenerator, dataSegmentMessages);

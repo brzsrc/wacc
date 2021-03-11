@@ -1,0 +1,16 @@
+# Output:
+# 1
+# 2
+
+# Program:
+
+begin
+  struct a is {int b}
+  a a(int b) is return new a{b} end
+  struct b is {int c}
+  b b(int c) is return new b{c} end
+  a x = call a(1);
+  println x.b;
+  b y = call b(2);
+  println y.c
+end

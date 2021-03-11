@@ -1,0 +1,10 @@
+# Output:
+# #empty#
+
+# Program:
+
+begin
+  struct a is {int i}
+  a x = new a {10};
+  free x;
+end
