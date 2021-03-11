@@ -8,9 +8,10 @@ import backend.arm.instructions.Mov;
 import backend.arm.instructions.Mov.ARMMovType;
 import backend.arm.instructions.addressing.AddressingMode2;
 import backend.arm.instructions.addressing.AddressingMode2.AddrMode2;
-import backend.arm.instructions.operand.Immediate;
-import backend.arm.instructions.operand.Immediate.BitNum;
-import backend.arm.instructions.operand.Operand2;
+import backend.arm.instructions.addressing.ARMImmediate;
+import backend.arm.instructions.addressing.ARMImmediate.BitNum;
+import backend.arm.instructions.addressing.Operand2;
+import backend.common.arithmeticLogic.ArithmeticLogic;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import java.util.AbstractMap;
@@ -22,7 +23,7 @@ import utils.backend.register.ARMConcreteRegister;
 import utils.backend.register.ARMRegisterLabel;
 import utils.backend.register.Register;
 
-public abstract class ArithmeticLogic extends ARMInstruction {
+public abstract class ARMArithmeticLogic extends ArithmeticLogic implements ARMInstruction {
 
   /* Instruction sets for binop and unop operations */
 
@@ -63,8 +64,8 @@ public abstract class ArithmeticLogic extends ARMInstruction {
   public static final BinopAssemble CmpAsm = (rd, rn, op2, b) -> {
     List<ARMInstruction> list = new ArrayList<>();
 
-    Operand2 one = new Operand2(new Immediate(1, BitNum.CONST8));
-    Operand2 zero = new Operand2(new Immediate(0, BitNum.CONST8));
+    Operand2 one = new Operand2(new ARMImmediate(1, BitNum.CONST8));
+    Operand2 zero = new Operand2(new ARMImmediate(0, BitNum.CONST8));
 
     list.add(new Cmp(rd, op2));
     /* default as false, set as true in following check */
@@ -98,13 +99,13 @@ public abstract class ArithmeticLogic extends ARMInstruction {
 
   public static UnopAssemble NegationAsm = (rd, rn) -> {
     List<ARMInstruction> list = new ArrayList<>();
-    list.add(new Rsb(rd, rn, new Operand2(new Immediate(0, BitNum.CONST8))));
+    list.add(new Rsb(rd, rn, new Operand2(new ARMImmediate(0, BitNum.CONST8))));
     return list;
   };
 
   public static UnopAssemble LogicNotAsm = (rd, rn) -> {
     List<ARMInstruction> list = new ArrayList<>();
-    list.add(new Xor(rd, rn, new Operand2(new Immediate(1, BitNum.CONST8))));
+    list.add(new Xor(rd, rn, new Operand2(new ARMImmediate(1, BitNum.CONST8))));
     return list;
   };
 
@@ -129,9 +130,7 @@ public abstract class ArithmeticLogic extends ARMInstruction {
   protected Register Rd, Rn;
   protected Operand2 operand2;
 
-  protected ArithmeticLogic(Register rd, Register rn, Operand2 operand2) {
-    Rd = rd;
-    Rn = rn;
-    this.operand2 = operand2;
+  protected ARMArithmeticLogic(Register rd, Register rn, Operand2 operand2) {
+    super(rd, rn, operand2);
   }
 }

@@ -1,32 +1,34 @@
-package backend.arm.instructions.operand;
+package backend.arm.instructions.addressing;
 
-import backend.arm.instructions.operand.Immediate.BitNum;
+import backend.arm.instructions.addressing.ARMImmediate;
+import backend.arm.instructions.addressing.ARMImmediate.BitNum;
+import backend.common.address.Address;
 import utils.backend.register.Register;
 
 /* operand specified as Table 1-14 in ARM spec */
-public class Operand2 {
+public class Operand2 extends Address {
 
-  private final Immediate immed;
+  private final ARMImmediate immed;
   private final Operand2Operator operator;
   private final Register Rm;
-  private Operand2(Register Rm, Operand2Operator operator, Immediate immed) {
+  private Operand2(Register Rm, Operand2Operator operator, ARMImmediate immed) {
     this.immed = immed;
     this.operator = operator;
     this.Rm = Rm;
   }
 
   public Operand2(Register Rm, Operand2Operator operator, int intVal) {
-    this.immed = new Immediate(intVal, BitNum.CONST5);
+    this.immed = new ARMImmediate(intVal, BitNum.CONST5);
     this.operator = operator;
     this.Rm = Rm;
   }
 
-  public Operand2(Immediate immed) {
+  public Operand2(ARMImmediate immed) {
     this(null, Operand2Operator.NONE, immed);
   }
 
   public Operand2(int intVal) {
-    this(null, Operand2Operator.NONE, new Immediate(intVal, BitNum.CONST8));
+    this(null, Operand2Operator.NONE, new ARMImmediate(intVal, BitNum.CONST8));
   }
 
   public Operand2(Register Rm) {

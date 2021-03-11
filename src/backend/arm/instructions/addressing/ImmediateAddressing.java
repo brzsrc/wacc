@@ -1,15 +1,15 @@
 package backend.arm.instructions.addressing;
 
-import backend.arm.instructions.operand.Immediate;
-import backend.arm.instructions.operand.Immediate.BitNum;
+import backend.arm.instructions.addressing.ARMImmediate.BitNum;
+import backend.common.address.Address;
 
-public class ImmediateAddressing extends Addressing {
+public class ImmediateAddressing extends Address {
 
   /* used in case like: ldr r0 =0 */
-  private final Immediate immed;
+  private final ARMImmediate immed;
 
   public ImmediateAddressing(int val) {
-    this.immed = new Immediate(val, BitNum.CONST16);
+    this.immed = new ARMImmediate(val, BitNum.CONST16);
   }
 
   @Override

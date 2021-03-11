@@ -1,10 +1,10 @@
 package backend.arm.instructions.addressing;
 
-import backend.arm.instructions.operand.Immediate;
-import backend.arm.instructions.operand.Immediate.BitNum;
+import backend.arm.instructions.addressing.ARMImmediate.BitNum;
+import backend.common.address.Address;
 import utils.backend.register.Register;
 
-public class AddressingMode2 extends Addressing {
+public class AddressingMode2 extends Address {
 
     /*
     addressing mode 2 pattern:
@@ -20,10 +20,10 @@ public class AddressingMode2 extends Addressing {
   private final Register Rn;
   private final Register Rm;
   private final AddrMode2Operator operator;
-  private final Immediate immed;
+  private final ARMImmediate immed;
 
   private AddressingMode2(AddrMode2 mode, Register Rn, Register Rm, AddrMode2Operator operator,
-      Immediate immed) {
+      ARMImmediate immed) {
     this.mode = mode;
     this.Rn = Rn;
     this.Rm = Rm;
@@ -33,7 +33,7 @@ public class AddressingMode2 extends Addressing {
 
   public AddressingMode2(AddrMode2 mode, Register Rn, Register Rm, AddrMode2Operator operator,
       int val) {
-    this(mode, Rn, Rm, operator, new Immediate(val, BitNum.CONST5));
+    this(mode, Rn, Rm, operator, new ARMImmediate(val, BitNum.CONST5));
   }
 
   public AddressingMode2(AddrMode2 mode, Register Rn, Register Rm, AddrMode2Operator operator) {
@@ -45,7 +45,7 @@ public class AddressingMode2 extends Addressing {
   }
 
   public AddressingMode2(AddrMode2 mode, Register Rn, int val) {
-    this(mode, Rn, null, null, new Immediate(val, BitNum.CONST12));
+    this(mode, Rn, null, null, new ARMImmediate(val, BitNum.CONST12));
   }
 
   public AddressingMode2(AddrMode2 mode, Register Rn) {

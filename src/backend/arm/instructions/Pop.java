@@ -1,17 +1,17 @@
-package backend.arm.instructions.memory;
+package backend.arm.instructions;
 
 import backend.arm.instructions.ARMInstruction;
+import backend.common.PopInstruction;
 import java.util.List;
 import utils.backend.register.Register;
 
-public class Pop extends ARMInstruction {
-
-  /* used for task3 optimisation */
-  private final List<Register> reglist;
+public class Pop extends PopInstruction implements ARMInstruction {
 
   public Pop(List<Register> reglist) {
-    this.reglist = reglist;
+    super(reglist);
   }
+
+  /* used for task3 optimisation */
 
   @Override
   public String assemble() {

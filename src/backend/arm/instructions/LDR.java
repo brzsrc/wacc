@@ -1,20 +1,20 @@
 package backend.arm.instructions;
 
-import backend.arm.instructions.addressing.Addressing;
+import backend.common.address.Address;
 import utils.backend.register.Register;
 
-public class LDR extends ARMInstruction {
+public class LDR implements ARMInstruction {
 
   private final Register register;
-  private final Addressing addr;
+  private final Address addr;
   private final LdrMode mode;
-  public LDR(Register register, Addressing addr, LdrMode mode) {
+  public LDR(Register register, Address addr, LdrMode mode) {
     this.register = register;
     this.addr = addr;
     this.mode = mode;
   }
 
-  public LDR(Register register, Addressing addr) {
+  public LDR(Register register, Address addr) {
     this(register, addr, LdrMode.LDR);
   }
 

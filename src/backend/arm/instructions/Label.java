@@ -1,13 +1,14 @@
 package backend.arm.instructions;
 
-public class Label extends ARMInstruction {
+import backend.common.LabelInstruction;
 
-  /* for example: msg_9: / f_createNewNode: / L0: */
-  private final String labelName;
+public class Label extends LabelInstruction implements ARMInstruction {
 
   public Label(String labelName) {
-    this.labelName = labelName;
+    super(labelName);
   }
+
+  /* for example: msg_9: / f_createNewNode: / L0: */
 
   @Override
   public String assemble() {

@@ -3,9 +3,9 @@ package backend.arm.instructions.memory;
 import backend.arm.instructions.BL;
 import backend.arm.instructions.ARMInstruction;
 import backend.arm.instructions.Mov;
-import backend.arm.instructions.operand.Immediate;
-import backend.arm.instructions.operand.Immediate.BitNum;
-import backend.arm.instructions.operand.Operand2;
+import backend.arm.instructions.addressing.ARMImmediate;
+import backend.arm.instructions.addressing.ARMImmediate.BitNum;
+import backend.arm.instructions.addressing.Operand2;
 import java.util.Arrays;
 import java.util.List;
 import utils.backend.register.Register;
@@ -27,7 +27,7 @@ public class ARMHeap implements Heap {
 
   @Override
   public List<ARMInstruction> allocate(Register reg, int size) {
-    Immediate sizeImmed = new Immediate(size, BitNum.SHIFT32);
+    ARMImmediate sizeImmed = new ARMImmediate(size, BitNum.SHIFT32);
     ARMInstruction mov = new Mov(reg, new Operand2(sizeImmed));
     ARMInstruction malloc = new BL("malloc");
     heapAddrCounter += size * 4;

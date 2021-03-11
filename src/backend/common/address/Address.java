@@ -1,7 +1,6 @@
-package backend.arm.instructions.addressing;
+package backend.common.address;
 
-public abstract class Addressing {
-
+public abstract class Address {
   @Override
   public String toString() {
     return "[need to override toString()!]";

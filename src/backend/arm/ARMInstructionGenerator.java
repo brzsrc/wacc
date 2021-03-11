@@ -3,9 +3,9 @@ package backend.arm;
 import static backend.arm.instructions.LDR.LdrMode.*;
 import static backend.arm.instructions.STR.StrMode.*;
 import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.*;
-import static backend.arm.instructions.arithmeticLogic.ArithmeticLogic.unopInstruction;
-import static backend.arm.instructions.operand.Immediate.BitNum.CONST8;
-import static backend.arm.instructions.operand.Operand2.Operand2Operator.*;
+import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.unopInstruction;
+import static backend.arm.instructions.addressing.ARMImmediate.BitNum.CONST8;
+import static backend.arm.instructions.addressing.Operand2.Operand2Operator.*;
 import static frontend.node.expr.UnopNode.Unop.MINUS;
 import static utils.Utils.RoutineInstruction;
 import static utils.Utils.RoutineInstruction.*;
@@ -20,9 +20,9 @@ import backend.arm.instructions.LDR.LdrMode;
 import backend.arm.instructions.STR.StrMode;
 import backend.arm.instructions.addressing.*;
 import backend.arm.instructions.arithmeticLogic.*;
-import backend.arm.instructions.memory.Pop;
-import backend.arm.instructions.memory.Push;
-import backend.arm.instructions.operand.*;
+import backend.arm.instructions.Pop;
+import backend.arm.instructions.Push;
+import backend.common.address.Address;
 import frontend.node.*;
 import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
@@ -281,7 +281,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Binop operator = node.getOperator();
     Operand2 op2 = new Operand2(e2reg);
 
-    List<ARMInstruction> insList = ArithmeticLogic.binopInstruction
+    List<ARMInstruction> insList = ARMArithmeticLogic.binopInstruction
         .get(operator)
         .binopAssemble(e1reg, e1reg, op2, operator);
     instructions.addAll(insList);
@@ -320,7 +320,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   @Override
   public Void visitCharNode(CharNode node) {
     ARMConcreteRegister reg = armRegAllocator.allocate();
-    Immediate immed = new Immediate(node.getAsciiValue(), CONST8, true);
+    ARMImmediate immed = new ARMImmediate(node.getAsciiValue(), CONST8, true);
     instructions.add(new Mov(reg, new Operand2(immed)));
     return null;
   }
@@ -500,7 +500,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* Add the instructions */
     ARMConcreteRegister reg = armRegAllocator.allocate();
 
-    Addressing strLabel = new LabelAddressing(msgLabel);
+    Address strLabel = new LabelAddressing(msgLabel);
     instructions.add(new LDR(reg, strLabel));
 
     return null;

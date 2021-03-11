@@ -1,6 +1,14 @@
 package backend.intel.instructions.arithmetic;
 
-public class Sub extends arithemeticLogic {
+import backend.arm.instructions.addressing.Operand2;
+import utils.backend.register.Register;
+
+public class Sub extends IntelArithmeticLogic {
+
+  protected Sub(Register rd,
+      Register rn, Operand2 operand2) {
+    super(rd, rn, operand2);
+  }
 
   @Override
   public String assemble() {

@@ -1,6 +1,10 @@
 package backend.intel.instructions;
 
-public class Call extends IntelInstruction {
+import backend.common.JmpInstruction;
+
+public class Call implements IntelInstruction {
+
+
 
   @Override
   public String assemble() {

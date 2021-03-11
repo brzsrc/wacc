@@ -1,7 +1,7 @@
 package backend.arm.instructions.arithmeticLogic;
 
 import backend.arm.instructions.ARMInstruction;
-import backend.arm.instructions.operand.Operand2;
+import backend.arm.instructions.addressing.Operand2;
 import frontend.node.expr.BinopNode.Binop;
 import java.util.List;
 import utils.backend.register.Register;

@@ -1,6 +1,6 @@
 package backend.arm.instructions;
 
-public class LTORG extends ARMInstruction {
+public class LTORG implements ARMInstruction {
 
   @Override
   public String assemble() {

@@ -1,21 +1,21 @@
 package backend.arm.instructions;
 
-import backend.arm.instructions.addressing.Addressing;
+import backend.common.address.Address;
 import utils.backend.register.Register;
 
-public class STR extends ARMInstruction {
+public class STR implements ARMInstruction {
 
   private final Register srcReg;
-  private final Addressing addr;
+  private final Address addr;
   private final StrMode mode;
 
-  public STR(Register srcReg, Addressing addr, StrMode mode) {
+  public STR(Register srcReg, Address addr, StrMode mode) {
     this.srcReg = srcReg;
     this.addr = addr;
     this.mode = mode;
   }
 
-  public STR(Register srcReg, Addressing addr) {
+  public STR(Register srcReg, Address addr) {
     this(srcReg, addr, StrMode.STR);
   }
 

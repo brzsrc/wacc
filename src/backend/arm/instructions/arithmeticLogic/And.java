@@ -1,9 +1,9 @@
 package backend.arm.instructions.arithmeticLogic;
 
-import backend.arm.instructions.operand.Operand2;
+import backend.arm.instructions.addressing.Operand2;
 import utils.backend.register.Register;
 
-public class And extends ArithmeticLogic {
+public class And extends ARMArithmeticLogic {
 
   /* AND{cond}{S} <Rd>, <Rn>, <operand2> */
   public And(Register rd, Register rn, Operand2 operand2) {

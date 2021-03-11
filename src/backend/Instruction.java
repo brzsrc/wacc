@@ -1,5 +1,5 @@
 package backend;
 
-public abstract class Instruction {
+public interface Instruction {
   public abstract String assemble();
 }

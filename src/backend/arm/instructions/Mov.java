@@ -7,12 +7,13 @@ import static frontend.node.expr.BinopNode.Binop.INEQUAL;
 import static frontend.node.expr.BinopNode.Binop.LESS;
 import static frontend.node.expr.BinopNode.Binop.LESS_EQUAL;
 
-import backend.arm.instructions.operand.Operand2;
+import backend.arm.instructions.addressing.Operand2;
+import backend.common.MovInstruction;
 import frontend.node.expr.BinopNode;
 import java.util.Map;
 import utils.backend.register.Register;
 
-public class Mov extends ARMInstruction {
+public class Mov extends MovInstruction implements ARMInstruction {
 
   public enum ARMMovType {
     MOV,
@@ -33,13 +34,10 @@ public class Mov extends ARMInstruction {
       EQUAL, ARMMovType.MOVEQ,
       INEQUAL, ARMMovType.MOVNE);
 
-  private final Register Rd;
-  private final Operand2 operand2;
   private final ARMMovType type;
 
   public Mov(Register Rd, Operand2 operand2, ARMMovType type) {
-    this.Rd = Rd;
-    this.operand2 = operand2;
+    super(Rd, operand2);
     this.type = type;
   }
 

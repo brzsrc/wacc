@@ -1,6 +1,17 @@
 package backend.intel.instructions;
 
-public class Jmp extends IntelInstruction {
+import backend.common.JmpInstruction;
+import utils.backend.Cond;
+
+public class Jmp extends JmpInstruction implements IntelInstruction {
+
+  public Jmp(String label) {
+    super(label);
+  }
+
+  public Jmp(Cond cond, String label) {
+    super(cond, label);
+  }
 
   @Override
   public String assemble() {

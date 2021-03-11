@@ -41,9 +41,9 @@ import backend.arm.instructions.Mov;
 import backend.arm.instructions.addressing.AddressingMode2;
 import backend.arm.instructions.addressing.LabelAddressing;
 import backend.arm.instructions.arithmeticLogic.Add;
-import backend.arm.instructions.memory.Pop;
-import backend.arm.instructions.memory.Push;
-import backend.arm.instructions.operand.Operand2;
+import backend.arm.instructions.Pop;
+import backend.arm.instructions.Push;
+import backend.arm.instructions.addressing.Operand2;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -140,7 +140,7 @@ public class ARMInstructionRoutines {
 
     Label msg = addMsg(PRINT_NULL_REF_MSG, dataSegment, labelGenerator);
 
-    List<ARMInstruction> instructions = new ArrayList<>(List.of(
+    List<ARMInstruction> instructions = new ArrayList<ARMInstruction>(List.of(
         /* add the helper function label */
         new Label(routine.toString()),
         new Push(Collections.singletonList(LR)),

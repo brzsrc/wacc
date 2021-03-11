@@ -1,6 +1,6 @@
 package backend.intel.instructions;
 
-public class Lea extends IntelInstruction {
+public class Lea implements IntelInstruction {
 
   @Override
   public String assemble() {

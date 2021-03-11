@@ -1,18 +1,17 @@
-package backend.arm.instructions.operand;
+package backend.arm.instructions.addressing;
 
-public class Immediate {
+import backend.common.address.Immediate;
 
-  private final int val;
+public class ARMImmediate extends Immediate {
+
   private final BitNum bitNum;
-  private final boolean isChar;
-  public Immediate(int val, BitNum bitNum) {
+  public ARMImmediate(int val, BitNum bitNum) {
     this(val, bitNum, false);
   }
 
-  public Immediate(int val, BitNum bitNum, boolean isChar) {
-    this.val = val;
+  public ARMImmediate(int val, BitNum bitNum, boolean isChar) {
+    super(val, null, isChar, false);
     this.bitNum = bitNum;
-    this.isChar = isChar;
   }
 
   public boolean isChar() {
@@ -29,6 +28,11 @@ public class Immediate {
 
   @Override
   public String toString() {
+    return assemble();
+  }
+
+  @Override
+  public String assemble() {
     if (isChar) {
       return "#'" + (char) val + "'";
     }

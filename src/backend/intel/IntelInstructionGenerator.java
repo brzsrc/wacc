@@ -2,6 +2,7 @@ package backend.intel;
 
 import frontend.node.FuncNode;
 import frontend.node.ProgramNode;
+import frontend.node.StructDeclareNode;
 import frontend.node.expr.ArrayElemNode;
 import frontend.node.expr.ArrayNode;
 import frontend.node.expr.BinopNode;
@@ -13,6 +14,8 @@ import frontend.node.expr.IntegerNode;
 import frontend.node.expr.PairElemNode;
 import frontend.node.expr.PairNode;
 import frontend.node.expr.StringNode;
+import frontend.node.expr.StructElemNode;
+import frontend.node.expr.StructNode;
 import frontend.node.expr.UnopNode;
 import frontend.node.stat.AssignNode;
 import frontend.node.stat.DeclareNode;
@@ -32,6 +35,21 @@ import frontend.node.stat.WhileNode;
 import utils.NodeVisitor;
 
 public class IntelInstructionGenerator implements NodeVisitor<Void> {
+
+  @Override
+  public Void visitStructElemNode(StructElemNode node) {
+    return null;
+  }
+
+  @Override
+  public Void visitStructNode(StructNode node) {
+    return null;
+  }
+
+  @Override
+  public Void visitStructDeclareNode(StructDeclareNode node) {
+    return null;
+  }
 
   @Override
   public Void visitArrayElemNode(ArrayElemNode node) {

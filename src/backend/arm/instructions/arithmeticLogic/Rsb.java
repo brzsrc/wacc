@@ -1,9 +1,9 @@
 package backend.arm.instructions.arithmeticLogic;
 
-import backend.arm.instructions.operand.Operand2;
+import backend.arm.instructions.addressing.Operand2;
 import utils.backend.register.Register;
 
-public class Rsb extends ArithmeticLogic {
+public class Rsb extends ARMArithmeticLogic {
 
   private final RsbMode mode;
 

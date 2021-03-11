@@ -1,10 +1,10 @@
 package backend.arm.instructions.arithmeticLogic;
 
-import backend.arm.instructions.operand.Operand2;
+import backend.arm.instructions.addressing.Operand2;
 import utils.backend.Cond;
 import utils.backend.register.Register;
 
-public class Add extends ArithmeticLogic {
+public class Add extends ARMArithmeticLogic {
 
   /* ADD{cond}{S} <Rd>, <Rn>, <operand2> */
   private final Cond cond;
