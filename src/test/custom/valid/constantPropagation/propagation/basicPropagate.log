@@ -1,0 +1,11 @@
+{scope 
+  INTEGER a = 0
+  CHAR c = <char:32>
+  INTEGER b = 1
+  b (9) = 32
+  INTEGER[] list = [1, 2, ]
+  INTEGER l = 2
+  b (9) = 4
+}
+Assembly file created!
+Assembly has been written to the file!

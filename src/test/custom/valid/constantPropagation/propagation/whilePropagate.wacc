@@ -5,6 +5,7 @@ begin
 
   while true do 
     a = 1;
+    c = 0;
     
     # base case in WHILE
     int a = 0;

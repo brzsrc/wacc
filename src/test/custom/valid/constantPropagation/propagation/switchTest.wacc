@@ -1,0 +1,22 @@
+
+begin
+  int a = 0;  # test if const eval work in branch
+  int b = 0;  # test if update in one branch does not propagate in later block
+  int c = 0;  # test if update default does not propagate later
+  int d = 0;  # test if same update propagate in later block 
+  switch 1 + 2 do
+    case a
+      b = 1
+    case a + 1
+      b = 0
+    case -a + 4
+      d = 0
+    default
+      c = 1
+  done;
+
+  int e = a + 1; # propagate
+  e = b + 1; # no propagate 
+  e = c + 1; # no propagate 
+  e = d + 1  # propagate
+end

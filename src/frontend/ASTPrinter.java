@@ -31,6 +31,7 @@ public class ASTPrinter implements NodeVisitor<Void> {
   public Void visitStructNode(StructNode node) {
     if (!node.isInitialised()) {
       System.out.print("null");
+      return null;
     }
 
     System.out.print("new " + node.getName() + " {");

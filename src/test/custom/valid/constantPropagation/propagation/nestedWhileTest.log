@@ -1,0 +1,25 @@
+{scope 
+  INTEGER a0 = 0
+  INTEGER b0 = 0
+  CHAR c0 = <char:32>
+  INTEGER d0 = 32
+  while true :
+    {scope 
+      b0 (8) = 1
+      while true :
+        {scope 
+          c0 (9) = <char:97>
+          d0 (13) = 32
+        }
+      INTEGER d = 1
+      d (4) = 1
+      d (4) = ORDc0 (9)
+      d (4) = 32
+    }
+  INTEGER d = 1
+  d (17) = b0 (8) PLUS 1
+  d (17) = ORDc0 (9)
+  d (17) = 32
+}
+Assembly file created!
+Assembly has been written to the file!

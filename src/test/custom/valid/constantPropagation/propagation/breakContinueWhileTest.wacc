@@ -1,0 +1,72 @@
+#    structure: 
+#          <block> 
+#             | 
+#           while
+#          <block> 
+#          /     \ 
+#         /       \ 
+#   <block>       <block> 
+#   continue;     /     \  
+#                /       \
+#            <block>    <block>
+#            break;     <end of loop>
+#              |
+#        <other blocks>
+
+
+
+begin
+
+  int a0 = 0; # unmodified
+  int a1 = 0; # update in while main body
+  int a2 = 0; # update in continue block
+  int a3 = 0; # update in inner if 
+  int a4 = 0; # update in break
+  int a5 = 0; # update in end of loop block
+
+  # update in same position as a, but with same value as init value
+  int b0 = 0; 
+  int b1 = 0;
+  int b2 = 0;
+  int b3 = 0;
+  int b4 = 0;
+  int b5 = 0;
+
+  while true do 
+    b1 = 0;
+    a1 = 1;
+
+    if true then 
+      b2 = 0;
+      a2 = 1;
+      continue
+    else 
+      b3 = 0;
+      a3 = 1;
+      if true then 
+        b4 = 0;
+        a4 = 1;
+        break
+      else 
+        b5 = 0;
+        a5 = 1
+      fi 
+    fi
+
+  done;
+
+  # a1-a5 should be unchanged, other should be propagated
+  int c = a0;
+  c = a1;
+  c = a2;
+  c = a3;
+  c = a4;
+  c = a5;
+  c = b0;
+  c = b1;
+  c = b2;
+  c = b3;
+  c = b4;
+  c = b5
+
+end
