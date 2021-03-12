@@ -54,6 +54,14 @@ public class StructNode extends ExprNode {
     return elemOffsets.get(index);
   }
 
+  public List<ExprNode> getAllElem() {
+    return elemValues;
+  }
+
+  public List<Integer> getAllOffsets() {
+    return elemOffsets;
+  }
+
   @Override
   public <T> T accept(NodeVisitor<T> visitor) {
     return visitor.visitStructNode(this);

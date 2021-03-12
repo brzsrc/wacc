@@ -375,20 +375,26 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitStructElemNode(StructElemNode node) {
-    // TODO Auto-generated method stub
-    return null;
+    // todo: support constant propagation on struct, same difficulty as array, pair
+    return node;
   }
 
   @Override
   public Node visitStructNode(StructNode node) {
-    // TODO Auto-generated method stub
-    return null;
+    // todo: support constant propagation on struct, same difficulty as array, pair
+
+    List<ExprNode> simplifiedInitVals = new ArrayList<>();
+    for (ExprNode elem : node.getAllElem()) {
+      simplifiedInitVals.add(visit(elem).asExprNode());
+    }
+    return new StructNode(simplifiedInitVals, node.getAllOffsets(), node.getSize(), node.getName());
   }
 
   @Override
   public Node visitStructDeclareNode(StructDeclareNode node) {
-    // TODO Auto-generated method stub
-    return null;
+    // todo: support constant propagation on struct, same difficulty as array, pair
+
+    return node;
   }
 
   @Override
