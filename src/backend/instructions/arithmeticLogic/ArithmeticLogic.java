@@ -32,7 +32,9 @@ public abstract class ArithmeticLogic extends Instruction {
         Binop.MINUS, new Sub(rd, rn, op2, Cond.S),
         Binop.MUL, new SMull(rd, rn, op2),
         Binop.AND, new And(rd, rn, op2),
-        Binop.OR, new Or(rd, rn, op2)
+        Binop.OR, new Or(rd, rn, op2),
+        Binop.BITAND, new And(rd, rn, op2),
+        Binop.BITOR, new Or(rd, rn, op2)
     );
     return List.of(m.get(b));
   };
@@ -118,12 +120,19 @@ public abstract class ArithmeticLogic extends Instruction {
     return list;
   };
 
+  public static UnopAssemble ComplementAsm = (rd, rn) -> {
+    List<Instruction> list = new ArrayList<>();
+    list.add(new Xor(rd, rn, new Operand2(new Immediate(-1, BitNum.CONST8))));
+    return list;
+  };
+
   public static final Map<Unop, UnopAssemble> unopInstruction = Map.ofEntries(
       new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.LEN, ArrayLenAsm),
       new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.MINUS, NegationAsm),
       new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, LogicNotAsm),
       new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, OrdAsm),
-      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm)
+      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, ChrAsm),
+      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.COMPLEMENT, ComplementAsm)
   );
 
   protected Register Rd, Rn;

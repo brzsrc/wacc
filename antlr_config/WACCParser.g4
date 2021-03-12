@@ -118,11 +118,13 @@ expr : INT_LITER      #IntExpr
      | array_elem     #ArrayExpr
      | struct_elem    #StructElemExpr
      | new_struct     #StructExpr
-     | uop=( '-' | '!' | 'len' | 'ord' | 'chr' ) expr #UnopExpr
+     | uop=( '-' | '!' | 'len' | 'ord' | 'chr' | '~') expr #UnopExpr
      | expr bop=( '*' | '/' | '%' ) expr              #ArithmeticExpr
      | expr bop=( '+' | '-' ) expr                    #ArithmeticExpr
      | expr bop=( '>' | '>=' | '<' | '<=' ) expr      #CmpExpr
      | expr bop=( '==' | '!=' ) expr                  #EqExpr
+     | expr '&' expr                                  #BitwiseAndExpr
+     | expr '|' expr                                  #BitwiseOrExpr
      | expr '&&' expr                                 #AndExpr
      | expr '||' expr                                 #OrExpr
      | OPEN_PARENTHESES expr CLOSE_PARENTHESES        #ParenExpr

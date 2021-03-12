@@ -16,7 +16,8 @@ public class BinopNode extends ExprNode {
    */
 
   public enum Binop {
-    PLUS, MINUS, MUL, DIV, MOD, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, EQUAL, INEQUAL, AND, OR
+    PLUS, MINUS, MUL, DIV, MOD, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, EQUAL,
+    INEQUAL, AND, OR, BITAND, BITOR,
   }
 
   private ExprNode expr1;
@@ -33,6 +34,8 @@ public class BinopNode extends ExprNode {
       case MUL:
       case DIV:
       case MOD:
+      case BITOR:
+      case BITAND:
         type = new BasicType(BasicTypeEnum.INTEGER);
         break;
       default:

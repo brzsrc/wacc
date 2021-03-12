@@ -640,6 +640,32 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   @Override
+  public Node visitBitwiseAndExpr(BitwiseAndExprContext ctx) {
+    ExprNode expr1 = visit(ctx.expr(0)).asExprNode();
+    Type expr1Type = expr1.getType();
+    ExprNode expr2 = visit(ctx.expr(1)).asExprNode();
+    Type expr2Type = expr2.getType();
+
+    semanticError |= typeCheck(ctx.expr(0), INT_BASIC_TYPE, expr1Type);
+    semanticError |= typeCheck(ctx.expr(1), INT_BASIC_TYPE, expr2Type);
+
+    return new BinopNode(expr1, expr2, Binop.BITAND);
+  }
+
+  @Override
+  public Node visitBitwiseOrExpr(BitwiseOrExprContext ctx) {
+    ExprNode expr1 = visit(ctx.expr(0)).asExprNode();
+    Type expr1Type = expr1.getType();
+    ExprNode expr2 = visit(ctx.expr(1)).asExprNode();
+    Type expr2Type = expr2.getType();
+
+    semanticError |= typeCheck(ctx.expr(0), INT_BASIC_TYPE, expr1Type);
+    semanticError |= typeCheck(ctx.expr(1), INT_BASIC_TYPE, expr2Type);
+
+    return new BinopNode(expr1, expr2, Binop.BITOR);
+  }
+
+  @Override
   public Node visitArray_liter(Array_literContext ctx) {
     int length = ctx.expr().size();
     if (length == 0) {

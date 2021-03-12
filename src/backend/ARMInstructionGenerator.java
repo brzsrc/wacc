@@ -521,7 +521,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
       instructions.add(new BL(VS, THROW_OVERFLOW_ERROR.toString()));
       checkAndAddRoutine(THROW_OVERFLOW_ERROR, msgLabelGenerator, dataSegmentMessages);
     }
-
     return null;
   }
 
