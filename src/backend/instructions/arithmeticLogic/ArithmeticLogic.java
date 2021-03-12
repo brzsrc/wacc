@@ -82,6 +82,8 @@ public abstract class ArithmeticLogic extends Instruction {
       new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MUL, BasicBinopAsm),
       new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.AND, BasicBinopAsm),
       new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.OR, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.BITAND, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.BITOR, BasicBinopAsm),
       new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.DIV, DivModAsm),
       new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MOD, DivModAsm),
       new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.GREATER, CmpAsm),
@@ -122,7 +124,7 @@ public abstract class ArithmeticLogic extends Instruction {
 
   public static UnopAssemble ComplementAsm = (rd, rn) -> {
     List<Instruction> list = new ArrayList<>();
-    list.add(new Xor(rd, rn, new Operand2(new Immediate(-1, BitNum.CONST8))));
+    list.add(new Mov(rd, new Operand2(rn), MovType.MVN));
     return list;
   };
 
