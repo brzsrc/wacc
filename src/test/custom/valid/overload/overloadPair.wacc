@@ -1,0 +1,17 @@
+# Output:
+# 1
+# 1
+
+# Program:
+
+begin
+  int foo(pair(int, int) a) is int x = fst a; return x end
+  int foo(pair(pair, pair) a) is pair(int,int) p = fst a; int x = fst p; return x end
+
+  pair(int, int) p1 = newpair(1,2);
+  pair(pair, pair) p2 = newpair(p1, null);
+  int x = foo(p1);
+  int y = foo(p2);
+  println x;
+  println y
+end

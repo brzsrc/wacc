@@ -1,6 +1,5 @@
 package utils;
 
-import frontend.node.Node;
 import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
@@ -31,8 +30,8 @@ public class Utils {
    */
 
   /* Type classes to represent BasicType, ArrayType, and PairType, used in type comparisons throughout the SemanticChecker */
-  public static final Type INT_BASIC_TYPE = new BasicType(BasicTypeEnum.INTEGER);
-  public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOLEAN);
+  public static final Type INT_BASIC_TYPE = new BasicType(BasicTypeEnum.INT);
+  public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOL);
   public static final Type CHAR_BASIC_TYPE = new BasicType(BasicTypeEnum.CHAR);
   public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING);
   public static final Type ARRAY_TYPE = new ArrayType();

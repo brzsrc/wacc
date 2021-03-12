@@ -15,7 +15,7 @@ public class BoolNode extends ExprNode {
 
   public BoolNode(boolean val) {
     this.val = val;
-    this.type = new BasicType(BasicTypeEnum.BOOLEAN);
+    this.type = new BasicType(BasicTypeEnum.BOOL);
     this.weight = 1;
   }
 

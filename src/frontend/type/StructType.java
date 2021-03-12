@@ -47,6 +47,6 @@ public class StructType implements Type {
 
   @Override
   public String toString() {
-    return "struct " + ((name != null) ? name : "\"name\"");
+    return (name != null) ? name : "empty";
   }
 }

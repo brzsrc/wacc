@@ -49,7 +49,7 @@ public class ArrayType implements Type {
 
   @Override
   public String toString() {
-    return "Array<" + contentType + ">";
+    return contentType + "[]";
   }
 
   @Override

@@ -33,10 +33,10 @@ public class BinopNode extends ExprNode {
       case MUL:
       case DIV:
       case MOD:
-        type = new BasicType(BasicTypeEnum.INTEGER);
+        type = new BasicType(BasicTypeEnum.INT);
         break;
       default:
-        type = new BasicType(BasicTypeEnum.BOOLEAN);
+        type = new BasicType(BasicTypeEnum.BOOL);
     }
     weight = expr1.getWeight() + expr2.getWeight() + 2;
   }

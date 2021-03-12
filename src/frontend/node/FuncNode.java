@@ -22,12 +22,15 @@ public class FuncNode implements Node {
   private final Type returnType;
   private final List<IdentNode> parameters;
   private StatNode functionBody;
+  /* for function overload */
+  private String overloadName;
 
   public FuncNode(String functionName, Type returnType, List<IdentNode> params) {
     this.returnType = returnType;
     this.functionBody = null;
     this.parameters = params;
     this.functionName = functionName;
+    this.overloadName = null;
   }
 
   public StatNode getFunctionBody() {
@@ -56,6 +59,14 @@ public class FuncNode implements Node {
 
   public String getFunctionName() {
     return functionName;
+  }
+
+  public void setOverloadName(String overloadName) {
+    this.overloadName = overloadName;
+  }
+
+  public String getOverloadName() {
+    return overloadName;
   }
 
   @Override

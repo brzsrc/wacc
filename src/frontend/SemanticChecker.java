@@ -67,6 +67,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   private StatNode currForLoopIncrementBreak;
   private StatNode currForLoopIncrementContinue;
 
+  /* for function overload */
+  Set<String> overloadFuncNames = new HashSet<>();
+
   /* constructor of SemanticChecker */
   public SemanticChecker() {
     currSymbolTable = null;
@@ -104,9 +107,24 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       globalStructTable.replace(s.IDENT().getText(), node);
     }
 
+    /* check function overload */
+    Set<String> tempStore = new HashSet<>();
+    for (FuncContext f : ctx.func()) {
+      String funcName = f.IDENT().getText();
+      if (tempStore.contains(funcName)) {
+        overloadFuncNames.add(funcName);
+      }
+      tempStore.add(funcName);
+    }
+
     /* add the identifiers and parameter list of functions in the globalFuncTable first */
     for (FuncContext f : ctx.func()) {
       String funcName = f.IDENT().getText();
+
+      /* if the func name is overloading, append the types of all param */
+      if (overloadFuncNames.contains(funcName)) {
+        funcName = findOverloadFuncName(f);
+      }
 
       /* check if the function is defined already */
       if (globalFuncTable.containsKey(funcName)) {
@@ -127,12 +145,23 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         }
       }
 
-      globalFuncTable.put(funcName, new FuncNode(funcName, returnType, param_list));
+      /* store the text func name because ASTPrinter need to use it */
+      FuncNode node = new FuncNode(f.IDENT().getText(), returnType, param_list);
+
+      /* store the overload func name as well if necessary */
+      if (!funcName.equals(f.IDENT().getText())) {
+        node.setOverloadName(funcName);
+      }
+
+      globalFuncTable.put(funcName, node);
     }
 
     /* then iterate through a list of function declarations to visit the function body */
     for (FuncContext f : ctx.func()) {
       String funcName = f.IDENT().getText();
+      if (overloadFuncNames.contains(funcName)) {
+        funcName = findOverloadFuncName(f);
+      }
 
       StatNode functionBody = visitFunc(f).asStatNode();
 
@@ -185,10 +214,30 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new StructDeclareNode(elements, ctx.IDENT().getText());
   }
 
+  /* helper function: append the type texts of all params to the func name */
+  private String findOverloadFuncName(FuncContext ctx) {
+    String overloadName = ctx.IDENT().getText();
+    if (ctx.param_list() != null) {
+      for (ParamContext p : ctx.param_list().param()) {
+        overloadName += ("_" + p.type().getText());
+      }
+    }
+    return formatFuncName(overloadName);
+  }
+
+  /* helper function: replace all invalid func name char with the underline */
+  private String formatFuncName(String funcName) {
+    return funcName.replace(" ", "")
+        .replace("[]", "_array").replaceAll("[(),]", "_");
+  }
+
   @Override
   public Node visitFunc(FuncContext ctx) {
-
-    FuncNode funcNode = globalFuncTable.get(ctx.IDENT().getText());
+    String funcName = ctx.IDENT().getText();
+    if (overloadFuncNames.contains(funcName)) {
+      funcName = findOverloadFuncName(ctx);
+    }
+    FuncNode funcNode = globalFuncTable.get(funcName);
 
     /* visit the function body */
     expectedFunctionReturn = funcNode.getReturnType();
@@ -789,10 +838,23 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitFunctionCall(FunctionCallContext ctx) {
     String funcName = ctx.IDENT().getText();
+
+    if (overloadFuncNames.contains(funcName)) {
+      if (ctx.arg_list() != null) {
+        for (ExprContext e : ctx.arg_list().expr()) {
+          funcName += ("_" + visit(e).asExprNode().getType().toString());
+        }
+      }
+      funcName = formatFuncName(funcName);
+    }
+
     FuncNode function = globalFuncTable.get(funcName);
-    if (function == null) {
+    if (function == null && (funcName.contains("null")) || funcName.contains("empty")) {
+      /* null or empty could break function overload */
+    } else if (function == null) {
       symbolNotFound(ctx, funcName);
     }
+
     List<ExprNode> params = new ArrayList<>();
 
     /* check whether function has same number of parameter */

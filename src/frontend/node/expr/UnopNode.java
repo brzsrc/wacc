@@ -23,12 +23,12 @@ public class UnopNode extends ExprNode {
     this.operator = operator;
     switch (operator) {
       case NOT:
-        type = new BasicType(BasicTypeEnum.BOOLEAN);
+        type = new BasicType(BasicTypeEnum.BOOL);
         break;
       case LEN:
       case MINUS:
       case ORD:
-        type = new BasicType(BasicTypeEnum.INTEGER);
+        type = new BasicType(BasicTypeEnum.INT);
         break;
       case CHR:
         type = new BasicType(BasicTypeEnum.CHAR);
