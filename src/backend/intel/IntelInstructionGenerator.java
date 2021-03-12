@@ -1,14 +1,24 @@
 package backend.intel;
 
-import static utils.Utils.MAIN_BODY_NAME;
-import static utils.backend.register.arm.ARMConcreteRegister.LR;
-import static utils.backend.register.arm.ARMConcreteRegister.PC;
-import static utils.backend.register.arm.ARMConcreteRegister.r0;
 
 import backend.InstructionGenerator;
+import backend.arm.instructions.BL;
+import backend.arm.instructions.LDR;
+import backend.arm.instructions.STR;
+import backend.arm.instructions.STR.StrMode;
+import backend.arm.instructions.addressing.AddressingMode2;
+import backend.arm.instructions.addressing.ImmedAddress;
+import backend.arm.instructions.addressing.Operand2;
+import backend.intel.instructions.Call;
 import backend.intel.instructions.IntelInstruction;
 import backend.intel.instructions.Label;
+import backend.intel.instructions.Mov;
+import backend.intel.instructions.Pop;
 import backend.intel.instructions.Push;
+import backend.intel.instructions.Ret;
+import backend.intel.instructions.address.IntelAddress;
+import backend.intel.instructions.address.IntelImmediate;
+import backend.intel.instructions.arithmetic.Add;
 import backend.intel.instructions.directives.CFIEndProc;
 import frontend.node.FuncNode;
 import frontend.node.ProgramNode;
@@ -44,6 +54,18 @@ import frontend.node.stat.SwitchNode;
 import frontend.node.stat.WhileNode;
 import java.util.Collections;
 import utils.backend.LabelGenerator;
+import utils.backend.register.Register;
+import utils.backend.register.intel.IntelConcreteRegister;
+import utils.backend.register.intel.IntelConcreteRegisterAllocator;
+
+import static backend.arm.instructions.STR.StrMode.STR;
+import static backend.arm.instructions.STR.StrMode.STRB;
+import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
+import static utils.Utils.POINTER_SIZE;
+import static utils.Utils.SystemCallInstruction.MALLOC;
+import static utils.Utils.WORD_SIZE;
+import static utils.backend.register.arm.ARMConcreteRegister.r0;
+import static utils.backend.register.intel.IntelConcreteRegister.*;
 
 public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruction> {
 
@@ -51,9 +73,13 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   private final LabelGenerator<Label> branchLabelGenerator;
   private final LabelGenerator<Label> dataLabelGenerator;
 
+  /* intel regsiter allocator */
+  private final IntelConcreteRegisterAllocator intelRegAllocator;
+
   public IntelInstructionGenerator() {
     branchLabelGenerator = new LabelGenerator<>(".L", Label.class);
     dataLabelGenerator = new LabelGenerator<>(".LC", Label.class);
+    intelRegAllocator = new IntelConcreteRegisterAllocator();
   }
 
   @Override
@@ -63,6 +89,27 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitArrayNode(ArrayNode node) {
+    /* get the total number of bytes needed to allocate enough space for the array */
+    int size = node.getType() == null ? 0 : node.getContentSize() * node.getLength();
+
+    /* load edi with the number of bytes needed and malloc */
+    instructions.add(new Mov(new IntelAddress(size), rdi.withSize(IntelInstructionSize.L)));
+    instructions.add(new Call("malloc@PLT"));
+
+    /* then MOV the result pointer to another register */
+    IntelConcreteRegister addrReg = intelRegAllocator.allocate();
+    instructions.add(new Mov(rax, addrReg));
+
+    for (int i = 0; i < node.getLength(); i++) {
+      visit(node.getElem(i));
+      int indexOffset = i * node.getContentSize();
+      instructions.add(new Mov(intelRegAllocator.curr(), new IntelAddress(addrReg)));
+      instructions.add(new Add(new IntelImmediate(indexOffset), addrReg));
+      intelRegAllocator.free();
+    }
+
+    intelRegAllocator.free();
+
     return null;
   }
 
@@ -206,18 +253,18 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     /* 2 start of main */
     Label mainLabel = new Label("main");
     instructions.add(mainLabel);
-    /* 3 PUSH {lr} */
-    instructions.add(new Push(Collections.singletonList(LR)));
+    /* 3 PUSH rsp and MOV rsp to rbp */
+    instructions.add(new Push(Collections.singletonList(rbp)));
+    instructions.add(new Mov(rsp, rbp));
 
     /* 4 main body */
     visit(node.getBody());
 
-    /* 5 set exit value */
-//    instructions.add(new LDR(r0, new ImmedAddress(0)));
-
-    /* 6 POP {PC} .ltorg */
-//    instructions.add(new ));
+    /* 5 set return value and return */
+    instructions.add(new Mov(new IntelAddress(0), rax.withSize(IntelInstructionSize.L)));
+    instructions.add(new Pop(rbp));
     instructions.add(new CFIEndProc());
+    instructions.add(new Ret());
     return null;
   }
 

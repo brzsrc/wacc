@@ -1,7 +1,13 @@
 package utils.backend.register.intel;
 
-public class IntelConcreteRegister {
+import utils.backend.register.Register;
+
+public class IntelConcreteRegister extends Register {
   public static final int MAX_INTEL_REGISTER = 16;
+
+  public enum IntelInstructionSize {
+    Q, L, W, B
+  }
 
   public static final IntelConcreteRegister rax = new IntelConcreteRegister(IntelRegisterLabel.RAX);
   public static final IntelConcreteRegister rbx = new IntelConcreteRegister(IntelRegisterLabel.RBX);
@@ -22,9 +28,19 @@ public class IntelConcreteRegister {
   public static final IntelConcreteRegister rip = new IntelConcreteRegister(IntelRegisterLabel.RIP);
 
   private final IntelRegisterLabel label;
+  private IntelInstructionSize size;
+
+  private IntelConcreteRegister(IntelRegisterLabel label, IntelInstructionSize size) {
+    this.label = label;
+    this.size = size;
+  }
 
   public IntelConcreteRegister(IntelRegisterLabel label) {
-    this.label = label;
+    this(label, IntelInstructionSize.Q);
+  }
+
+  public IntelConcreteRegister withSize(IntelInstructionSize size) {
+    return new IntelConcreteRegister(label, size);
   }
 
   @Override

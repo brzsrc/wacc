@@ -5,7 +5,7 @@ import static utils.backend.register.arm.ARMConcreteRegister.MAX_ARM_REGISTER;
 import java.util.List;
 import utils.backend.register.arm.ARMConcreteRegister;
 
-public abstract class RegisterAllocator<T> {
+public abstract class RegisterAllocator<T extends Register> {
 
   private final int generalRegStart;
   private final int generalRegEnd;

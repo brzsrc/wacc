@@ -1,7 +1,6 @@
 package utils.backend;
 
 import backend.common.LabelInstruction;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 public class LabelGenerator<T extends LabelInstruction> {
