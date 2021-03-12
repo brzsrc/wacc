@@ -94,7 +94,7 @@ OR            : '||' ;
 INT_LITER         : DIGIT+ ;
 BINARY_LITER      : '0b' BINARY+ ;
 OCTAL_LITER      : '0o' OCTAL+ ;
-HEX_LITER      : '0x' OCTAL+ ;
+HEX_LITER      : '0x' HEX+ ;
 
 fragment HEX    : [0-9] | [A-F] ;
 fragment OCTAL    : [0-7] ;
