@@ -85,6 +85,10 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitProgram(ProgramContext ctx) {
 
+    /* todo: add all import file's struct and function into  */
+
+    // todo: change visitProgram's struct and func into helpfunction, share with visit library
+
     /* add the struct name in order to have recursive data struct */
     for (StructContext s : ctx.struct()) {
       String structName = s.IDENT().getText();
@@ -162,6 +166,18 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     }
 
     return new ProgramNode(globalFuncTable, body);
+  }
+
+  @Override
+  public Node visitImport_file(Import_fileContext ctx) {
+    // todo: get library's struct and functions, put in current program's struct and func list
+    return super.visitImport_file(ctx);
+  }
+
+  @Override
+  public Node visitDeclarition(DeclaritionContext ctx) {
+    // todo: visit library, halt on circular import
+    return super.visitDeclarition(ctx);
   }
 
   @Override

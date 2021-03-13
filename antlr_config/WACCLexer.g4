@@ -64,6 +64,7 @@ DEFAULT   : 'default';
 CALL      : 'call' ;
 SEMICOLON : ';';
 COMMA     : ',';
+IMPORT    : 'import';
 
 // brackets
 OPEN_PARENTHESES     : '(' ;
@@ -106,7 +107,8 @@ fragment BINARY   : [0-1] ;
 fragment DIGIT    : [0-9] ;
 // fragment INT_SIGN : MINUS | PLUS ;
 
-
+// import file path
+FILE_NAME : (CHARACTER+ '/')* CHARACTER+ '.hwacc';
 
 // identifier rule
 IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;

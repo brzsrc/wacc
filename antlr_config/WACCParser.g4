@@ -4,7 +4,9 @@ options {
   tokenVocab=WACCLexer;
 }
 
-program     : BEGIN (struct | func)* stat END EOF;
+import_file : IMPORT FILE_NAME;
+declarition : import_file* (struct | func)*;
+program     : import_file* BEGIN (struct | func)* stat END EOF;
 struct      : STRUCT IDENT IS OPEN_CURLY_BRACKET param_list? CLOSE_CURLY_BRACKET;
 func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat END;
 param_list  : param (COMMA param )* ;
