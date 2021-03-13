@@ -1,0 +1,7 @@
+# imported by collision2, collision1
+# will be detected as a collision in import, but should not cause error 
+
+int f3() is 
+  return 0
+end
+

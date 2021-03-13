@@ -4,13 +4,18 @@ options {
   tokenVocab=WACCLexer;
 }
 
-import_file : IMPORT FILE_NAME;
-declarition : import_file* (struct | func)*;
-program     : import_file* BEGIN (struct | func)* stat END EOF;
+program     : import_file* BEGIN declaration stat END EOF;
+library     : import_file* declaration;  // content of library
+declaration : (struct | func)*;   // group of struct function declarations
 struct      : STRUCT IDENT IS OPEN_CURLY_BRACKET param_list? CLOSE_CURLY_BRACKET;
 func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat END;
 param_list  : param (COMMA param )* ;
 param       : type IDENT;
+
+import_file : IMPORT FILE_NAME         # ImportUserDefine // import example.hwacc
+            | IMPORT '<' FILE_NAME '>' # ImportSTDFile// import <FILE_FROM_LIB.hwacc>
+            ;
+
 
 stat : skp                            #StatSkipStat    // This visitor will be replaced by #SkipStat
      | declare                        #StatDeclareStat // This visitor will be replaced by #DeclareStat

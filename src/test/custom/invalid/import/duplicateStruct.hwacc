@@ -1,0 +1,6 @@
+# test together with duplicateStruct.wacc 
+
+# struct a has same name but different content, still not allow
+struct a is {
+  int i
+}

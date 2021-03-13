@@ -1,0 +1,8 @@
+# directly been import by importCollision
+# import the same file as  collision2.hwacc 
+
+import collision3.hwacc 
+
+int f() is 
+  return 0
+end

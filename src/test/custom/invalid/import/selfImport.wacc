@@ -1,0 +1,7 @@
+# import a .hwacc which import itself
+
+import selfImport.hwacc 
+
+begin 
+  skip 
+end 

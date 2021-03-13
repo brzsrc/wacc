@@ -13,10 +13,16 @@ public class ProgramNode implements Node {
 
   private final Map<String, FuncNode> functions;
   private final StatNode body;
+  private final Map<String, StructDeclareNode> structTable;
 
-  public ProgramNode(Map<String, FuncNode> functions, StatNode body) {
-    this.functions = functions;
+  public ProgramNode(Map<String, FuncNode> globalFuncTable, Map<String, StructDeclareNode> globalStructTable, StatNode body) {
+    this.functions = globalFuncTable;
+    this.structTable = globalStructTable;
     this.body = body;
+  }
+
+  public Map<String, StructDeclareNode> getStructTable() {
+    return structTable;
   }
 
   public Map<String, FuncNode> getFunctions() {

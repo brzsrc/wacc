@@ -1,0 +1,13 @@
+# contain duplicate struct define with its import
+
+import duplicateStruct.hwacc
+
+begin
+  struct a is {
+    int i,
+    int j
+  }
+
+  skip
+  
+end

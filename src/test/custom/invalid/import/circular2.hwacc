@@ -1,0 +1,5 @@
+import circular1.hwacc 
+
+int f2() is 
+  return 2 
+end

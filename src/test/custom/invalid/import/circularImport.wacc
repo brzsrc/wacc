@@ -1,0 +1,10 @@
+# form a circular import from 2 of its imported file
+
+import circular1.hwacc 
+import circular2.hwacc
+
+begin
+
+  int a = call f()
+  
+end

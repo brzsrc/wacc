@@ -1,0 +1,7 @@
+# import itself
+
+import selfImport.hwacc 
+
+int f() is 
+  return 0
+end

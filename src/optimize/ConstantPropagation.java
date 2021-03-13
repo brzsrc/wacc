@@ -322,7 +322,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
       functions.put(entry.getKey(), (FuncNode) visitFuncNode(entry.getValue()));
     }
     StatNode body = visit(node.getBody()).asStatNode();
-    return new ProgramNode(functions, body);
+    return new ProgramNode(functions, node.getStructTable(), body);
   }
 
   /* debug function, show content of idMap */

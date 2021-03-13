@@ -1,0 +1,10 @@
+# import 2 files that import the same third file
+
+import collision1.hwacc 
+import collision2.hwacc
+
+begin
+
+  skip
+  
+end

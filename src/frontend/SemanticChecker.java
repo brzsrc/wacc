@@ -1,9 +1,16 @@
 package frontend;
 
+import frontend.antlr.WACCLexer;
+import frontend.antlr.WACCParser;
 import frontend.antlr.WACCParser.*;
 import frontend.antlr.WACCParserBaseVisitor;
 
 import frontend.node.StructDeclareNode;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +31,14 @@ import frontend.node.expr.UnopNode.Unop;
 
 import frontend.type.*;
 import java.util.Set;
+
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import utils.NodeVisitor;
+import utils.frontend.ParserErrorHandler;
 import utils.frontend.symbolTable.Symbol;
 import utils.frontend.symbolTable.SymbolTable;
 
@@ -38,6 +52,10 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
    * an internal representation of the program using ExprNode and StatNode. This will aid the
    * process of code generation in the backend
    */
+
+  /* where the compiling file lives, used for determine include file */
+  private String path;
+  private final String STD_PATH = "lib/waccLib/";
 
   /* recording the current SymbolTable during parser tree visits */
   private SymbolTable currSymbolTable;
@@ -67,8 +85,14 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   private StatNode currForLoopIncrementBreak;
   private StatNode currForLoopIncrementContinue;
 
+  /* record which file have already been included, IN the current import chain */
+  private Set<String> libraryCollection;
+
+  /* record all files that have been imported */
+  private Set<String> allImportCollection = new HashSet<>();
+
   /* constructor of SemanticChecker */
-  public SemanticChecker() {
+  public SemanticChecker(Set<String> libraryCollection) {
     currSymbolTable = null;
     globalStructTable = new HashMap<>();
     globalFuncTable = new HashMap<>();
@@ -80,14 +104,45 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     expectedFunctionReturn = null;
     currForLoopIncrementBreak = null;
     currForLoopIncrementContinue = null;
+    this.libraryCollection = libraryCollection;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
   }
 
   @Override
   public Node visitProgram(ProgramContext ctx) {
 
-    /* todo: add all import file's struct and function into  */
+    /* add all import file's struct and function into this program's struct and function */
+    for (Import_fileContext importFile : ctx.import_file()) {
+      visit(importFile);
+    }
 
-    // todo: change visitProgram's struct and func into helpfunction, share with visit library
+    visitDeclaration(ctx.declaration());
+
+    /* visit the body of the program and create the root SymbolTable here */
+    isMainFunction = true;
+    currSymbolTable = new SymbolTable(currSymbolTable);
+    StatNode body = visit(ctx.stat()).asStatNode();
+    if (!(body instanceof ScopeNode)) {
+      body = new ScopeNode(body);
+      if (body.getScope() == null) {
+        body.setScope(currSymbolTable);
+      }
+    }
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    if (semanticError) {
+      System.out.println("error found");
+      System.exit(SEMANTIC_ERROR_CODE);
+    }
+
+    return new ProgramNode(globalFuncTable, globalStructTable, body);
+  }
+
+  @Override
+  public Node visitDeclaration(DeclarationContext ctx) {
 
     /* add the struct name in order to have recursive data struct */
     for (StructContext s : ctx.struct()) {
@@ -148,36 +203,97 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       globalFuncTable.get(funcName).setFunctionBody(functionBody);
     }
 
-    /* visit the body of the program and create the root SymbolTable here */
-    isMainFunction = true;
-    currSymbolTable = new SymbolTable(currSymbolTable);
-    StatNode body = visit(ctx.stat()).asStatNode();
-    if (!(body instanceof ScopeNode)) {
-      body = new ScopeNode(body);
-      if (body.getScope() == null) {
-        body.setScope(currSymbolTable);
+    /* same as visit import, all information in map */
+    return null;
+  }
+
+  @Override
+  public Node visitImportUserDefine(ImportUserDefineContext ctx) {
+    visitImport(ctx, path + ctx.FILE_NAME().getText());
+    return null;
+  }
+
+  @Override
+  public Node visitImportSTDFile(ImportSTDFileContext ctx) {
+    visitImport(ctx, STD_PATH + ctx.FILE_NAME().getText());
+    return null;
+  }
+
+  public void visitImport(ParserRuleContext ctx, String importFile) {
+    /* detect circular import */
+    if (libraryCollection.contains(importFile)) {
+      importFileErrorException(ctx, "circular import of " + importFile);
+      return ;
+    }
+    libraryCollection.add(importFile);
+
+    /* do not import file that has already been import */
+    if (allImportCollection.contains(importFile)) {
+      return ;
+    }
+    allImportCollection.add(importFile);
+
+    /* get library's struct and functions, put in current program's struct and func list */
+    File file = new File(importFile);
+
+    try (FileInputStream fis = new FileInputStream(file)) {
+      // Input stream of the file
+      CharStream input = CharStreams.fromStream(fis);
+      // Pass the input stream of the file to WACC lexer
+      WACCLexer lexer = new WACCLexer(input);
+      // Obtain the internal tokens from the lexer
+      CommonTokenStream tokens = new CommonTokenStream(lexer);
+      // Parse the tokens into a syntax tree
+      WACCParser parser = new WACCParser(tokens);
+      parser.setErrorHandler(new ParserErrorHandler());
+      // Start parsing using the `library` rule defined in antlr_config/WACCParser.g4
+      LibraryContext tree = parser.library();
+
+      SemanticChecker semanticChecker = new SemanticChecker(libraryCollection);
+      semanticChecker.setPath(file.getParent() + "/");
+      ProgramNode libraryContent = (ProgramNode) semanticChecker.visitLibrary(tree);
+
+      /* add struct into current program's struct list */
+      addAllContent(ctx, libraryContent.getStructTable(), globalStructTable);
+
+      /* add struct into current program's struct list */
+      addAllContent(ctx, libraryContent.getFunctions(), globalFuncTable);
+
+    } catch (FileNotFoundException e) {
+      importFileErrorException(ctx, "import file '" + importFile + "' is not found.");
+    } catch (IOException e) {
+      importFileErrorException(ctx, "IOException has been raised in visitImport");
+    }
+
+    /* remove this import file from dfs import set
+    *  meaning allowing import collision, 2 .hwacc file import the third same .hwacc file */
+    libraryCollection.remove(importFile);
+  }
+
+  /* add all content in given struct/func list into the given current program's list */
+  private <T> void addAllContent(ParserRuleContext ctx, Map<String, T> map, Map<String, T> target) {
+    for (Map.Entry<String, T> structEntry : map.entrySet()) {
+      /* do not allow multiple elements have the same name */
+      String structName = structEntry.getKey();
+      if (globalStructTable.containsKey(structName)) {
+        symbolRedeclared(ctx, structName);
+        semanticError = true;
       }
+      target.put(structName, structEntry.getValue());
     }
-    currSymbolTable = currSymbolTable.getParentSymbolTable();
-
-    if (semanticError) {
-      System.out.println("error found");
-      System.exit(SEMANTIC_ERROR_CODE);
-    }
-
-    return new ProgramNode(globalFuncTable, body);
   }
 
   @Override
-  public Node visitImport_file(Import_fileContext ctx) {
-    // todo: get library's struct and functions, put in current program's struct and func list
-    return super.visitImport_file(ctx);
-  }
+  public Node visitLibrary(LibraryContext ctx) {
+    for (Import_fileContext importFile : ctx.import_file()) {
+      visit(importFile);
+    }
 
-  @Override
-  public Node visitDeclarition(DeclaritionContext ctx) {
-    // todo: visit library, halt on circular import
-    return super.visitDeclarition(ctx);
+    visitDeclaration(ctx.declaration());
+
+    /* program node is used for return func and struct table, no body returned,
+     * scope set as null will not be visit by any visitor */
+    return new ProgramNode(globalFuncTable, globalStructTable, new SkipNode(null));
   }
 
   @Override

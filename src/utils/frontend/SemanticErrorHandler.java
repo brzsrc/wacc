@@ -135,6 +135,11 @@ public class SemanticErrorHandler {
     System.exit(SEMANTIC_ERROR_CODE);
   }
 
+  public static void importFileErrorException(ParserRuleContext ctx, String errorMessage) {
+    errorHandler(ctx, errorMessage);
+    System.exit(SEMANTIC_ERROR_CODE);
+  }
+
   /* private common handler of all types of errors */
   private static void errorHandler(ParserRuleContext ctx, String msg) {
     int lineNum;

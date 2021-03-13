@@ -14,10 +14,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import optimize.ConstantPropagation;
 import org.antlr.v4.runtime.CharStream;
@@ -61,20 +58,25 @@ public class Compiler {
       Node program;
       // If the `--parse_only` flag is specified, then we do not run semantic analysis
       if (!cmd_ops.contains("--parse_only")) {
-        SemanticChecker semanticChecker = new SemanticChecker();
+        SemanticChecker semanticChecker = new SemanticChecker(new HashSet<>());
+        semanticChecker.setPath(file.getParent() + "/");
         program = semanticChecker.visitProgram(tree);
 
         int optimise_cmd_index = cmd_ops.indexOf("--optimise");
-        String optimise_level = cmd_ops.get(optimise_cmd_index + 1);
-        switch (optimise_level) {
-          case "0":
-            break;
-          case "1":
-            NodeVisitor<Node> constPropOptimiser = new ConstantPropagation();
-            program = constPropOptimiser.visit(program);
-            break;
-          default:
-            System.out.println("unsupported optimisation level: " + optimise_level);
+
+        /* if not found optimise flag, no optimise */
+        if (optimise_cmd_index == 0) {
+          String optimise_level = cmd_ops.get(optimise_cmd_index + 1);
+          switch (optimise_level) {
+            case "0":
+              break;
+            case "1":
+              NodeVisitor<Node> constPropOptimiser = new ConstantPropagation();
+              program = constPropOptimiser.visit(program);
+              break;
+            default:
+              System.out.println("unsupported optimisation level: " + optimise_level);
+          }
         }
 
         /* print optimised ast tree */

@@ -17,7 +17,6 @@ BOOL   : 'bool' ;
 CHAR   : 'char' ;
 STRING : 'string' ;
 
-
 // the literals of different types
 BOOL_LITER        : 'true' | 'false' ;
 CHAR_LITER        : '\'' CHARACTER '\'' ;
@@ -108,7 +107,7 @@ fragment DIGIT    : [0-9] ;
 // fragment INT_SIGN : MINUS | PLUS ;
 
 // import file path
-FILE_NAME : (CHARACTER+ '/')* CHARACTER+ '.hwacc';
+FILE_NAME : (IDENT '/')* IDENT+ '.hwacc';
 
 // identifier rule
 IDENT : ('_' | [a-z] | [A-Z])('_' | [a-z] | [A-Z] | DIGIT)* ;
