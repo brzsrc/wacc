@@ -107,6 +107,9 @@ struct_type : IDENT ;
 
 expr : INT_LITER      #IntExpr
      | PLUS INT_LITER #IntExpr
+     | BINARY_LITER   #BinaryExpr
+     | OCTAL_LITER    #OctalExpr
+     | HEX_LITER      #HexExpr
      | BOOL_LITER     #BoolExpr
      | CHAR_LITER     #CharExpr
      | STR_LITER      #StrExpr
@@ -116,11 +119,13 @@ expr : INT_LITER      #IntExpr
      | struct_elem    #StructElemExpr
      | new_struct     #StructExpr
      | EMPTY          #EmptyStructExpr
-     | uop=( '-' | '!' | 'len' | 'ord' | 'chr' ) expr #UnopExpr
+     | uop=( '-' | '!' | 'len' | 'ord' | 'chr' | '~') expr #UnopExpr
      | expr bop=( '*' | '/' | '%' ) expr              #ArithmeticExpr
      | expr bop=( '+' | '-' ) expr                    #ArithmeticExpr
      | expr bop=( '>' | '>=' | '<' | '<=' ) expr      #CmpExpr
      | expr bop=( '==' | '!=' ) expr                  #EqExpr
+     | expr '&' expr                                  #BitwiseAndExpr
+     | expr '|' expr                                  #BitwiseOrExpr
      | expr '&&' expr                                 #AndExpr
      | expr '||' expr                                 #OrExpr
      | OPEN_PARENTHESES expr CLOSE_PARENTHESES        #ParenExpr
@@ -128,3 +133,4 @@ expr : INT_LITER      #IntExpr
 
 array_elem  : IDENT (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
 array_liter : OPEN_SQUARE_BRACKET (expr (COMMA expr)*)? CLOSE_SQUARE_BRACKET ;
+

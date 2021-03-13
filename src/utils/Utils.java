@@ -56,14 +56,16 @@ public class Utils {
       "chr", Unop.CHR,
       "!", Unop.NOT,
       "len", Unop.LEN,
-      "ord", Unop.ORD
+      "ord", Unop.ORD,
+      "~", Unop.COMPLEMENT
   );
   public static final Map<String, Type> unopTypeMapping = Map.of(
       "-", INT_BASIC_TYPE,
       "chr", INT_BASIC_TYPE,
       "!", BOOL_BASIC_TYPE,
       "len", ARRAY_TYPE,
-      "ord", CHAR_BASIC_TYPE
+      "ord", CHAR_BASIC_TYPE,
+      "~", INT_BASIC_TYPE
   );
   public static final Map<String, Binop> binopEnumMapping = Map.of(
       "+", Binop.PLUS,

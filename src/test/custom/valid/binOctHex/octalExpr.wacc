@@ -1,0 +1,13 @@
+# Output:
+# Correct
+
+# Program:
+
+begin
+  int a = 0o123;
+  if a == 83 then
+    println "Correct"
+  else
+    println "Wrong"
+  fi
+end
