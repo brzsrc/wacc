@@ -2,6 +2,7 @@ package backend.arm.instructions;
 
 import backend.arm.instructions.addressing.Operand2;
 import backend.common.CmpInstruction;
+import backend.common.address.Address;
 import utils.backend.register.Register;
 
 public class Cmp extends CmpInstruction implements ARMInstruction {

@@ -9,7 +9,7 @@ public class Lea implements IntelInstruction {
   private final IntelConcreteRegister rd;
   private final IntelAddress addr;
 
-  public Lea(IntelConcreteRegister rd, IntelAddress addr) {
+  public Lea(IntelAddress addr, IntelConcreteRegister rd) {
     this.rd = rd;
     this.addr = addr;
   }

@@ -3,15 +3,10 @@ package backend.intel;
 
 import backend.Instruction;
 import backend.InstructionGenerator;
-import backend.arm.instructions.ARMInstruction;
-import backend.arm.instructions.BL;
-import backend.arm.instructions.STR;
-import backend.arm.instructions.STR.StrMode;
-import backend.arm.instructions.addressing.AddressingMode2;
-import backend.arm.instructions.addressing.Operand2;
-import backend.common.address.Address;
 import backend.intel.instructions.Call;
+import backend.intel.instructions.Cmp;
 import backend.intel.instructions.IntelInstruction;
+import backend.intel.instructions.Jmp;
 import backend.intel.instructions.Label;
 import backend.intel.instructions.Lea;
 import backend.intel.instructions.Mov;
@@ -59,11 +54,13 @@ import frontend.node.stat.ScopeNode;
 import frontend.node.stat.SkipNode;
 import frontend.node.stat.SwitchNode;
 import frontend.node.stat.WhileNode;
+import frontend.type.Type;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import utils.Utils.RoutineInstruction;
 import utils.backend.LabelGenerator;
 import utils.backend.register.Register;
 import utils.backend.register.arm.ARMConcreteRegister;
@@ -74,9 +71,17 @@ import static backend.arm.instructions.STR.StrMode.STR;
 import static backend.arm.instructions.STR.StrMode.STRB;
 import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
 import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.armUnopAsm;
+import static utils.Utils.CHAR_BASIC_TYPE;
 import static utils.Utils.FALSE;
+import static utils.Utils.INT_BASIC_TYPE;
+import static utils.Utils.RoutineInstruction.PRINT_LN;
+import static utils.Utils.RoutineInstruction.READ_CHAR;
+import static utils.Utils.RoutineInstruction.READ_INT;
 import static utils.Utils.SystemCallInstruction.EXIT;
 import static utils.Utils.TRUE;
+import static utils.backend.Cond.EQ;
+import static utils.backend.Cond.NE;
+import static utils.backend.Cond.NULL;
 import static utils.backend.register.arm.ARMConcreteRegister.SP;
 import static utils.backend.register.arm.ARMConcreteRegister.r0;
 import static utils.backend.register.arm.ARMConcreteRegister.r4;
@@ -266,10 +271,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     Label msgLabel = dataLabelGenerator.getLabel().asIntelLabel();
     dataSection.put(msgLabel, str);
 
-    /* Add the instructions */
-    IntelConcreteRegister reg = intelRegAllocator.allocate();
-
-    instructions.add(new Lea(reg, new IntelAddress(msgLabel)));
+    instructions.add(new Lea(new IntelAddress(rip, msgLabel), intelRegAllocator.curr()));
     return null;
   }
 
@@ -344,21 +346,75 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitIfNode(IfNode node) {
+    Label elseIfLabel = branchLabelGenerator.getLabel().asIntelLabel();
+    Label exitLabel = branchLabelGenerator.getLabel().asIntelLabel();
+
+    /* 1 condition check, branch */
+    visit(node.getCond());
+    Register cond = intelRegAllocator.curr();
+    instructions.add(new Cmp(cond, new IntelAddress(1)));
+    instructions.add(new Jmp(NE, elseIfLabel.assemble()));
+    intelRegAllocator.free();
+
+    /* translate if body */
+    visit(node.getIfBody());
+    instructions.add(new Jmp(exitLabel.assemble()));
+
+    /* 3 end of if statement */
+    instructions.add(exitLabel);
+
     return null;
   }
 
   @Override
   public Void visitPrintlnNode(PrintlnNode node) {
+    /* print content same as printNode */
+    visitPrintNode(new PrintNode(node.getExpr()));
+
+    Label newLineLabel = dataLabelGenerator.getLabel();
+    dataSection.put(newLineLabel, "\n");
+    instructions.add(new Lea(new IntelAddress(rip, newLineLabel), rdi));
+    instructions.add(new Mov(new IntelAddress(0), rax));
+    instructions.add(new Call("printf@PLT"));
+
     return null;
   }
 
   @Override
   public Void visitPrintNode(PrintNode node) {
+    visit(node.getExpr());
+
+    instructions.add(new Mov(new IntelAddress(0), rax));
+    instructions.add(new Call("printf@PLT"));
+
     return null;
   }
 
   @Override
   public Void visitReadNode(ReadNode node) {
+    /* visit the expr first, treat it as left-hand side expr so that we get its address instead of value */
+    isLhs = true;
+    visit(node.getInputExpr());
+    isLhs = false;
+
+    /* get the type of expr to determine whether we need to read an int or a char */
+    Type type = node.getInputExpr().getType();
+
+    Label l = dataLabelGenerator.getLabel();
+    if (type.equalToType(INT_BASIC_TYPE)) {
+      dataSection.put(l, "%d");
+    } else if (type.equalToType(CHAR_BASIC_TYPE)) {
+      dataSection.put(l, "%c");
+    }
+
+    instructions.add(new Mov(intelRegAllocator.curr(), rsi));
+    instructions.add(new Lea(new IntelAddress(rip, l), rdi));
+    /* choose between read_int and read_char */
+    instructions.add(new Mov(new IntelAddress(0), rax));
+    instructions.add(new Call("__isoc99_scanf@PLT"));
+
+    intelRegAllocator.free();
+
     return null;
   }
 
@@ -379,6 +435,43 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitWhileNode(WhileNode node) {
+    /* 1 unconditional jump to end of loop, where conditional branch exists */
+    /* if we encountere a do-while loop, then do not add the conditional jump */
+    Label testLabel = branchLabelGenerator.getLabel().asIntelLabel();
+    if (!node.isDoWhile()) {
+      instructions.add(new Jmp(NULL, testLabel.assemble()));
+    }
+
+    /* 2 get a label, mark the start of the loop */
+    Label startLabel = branchLabelGenerator.getLabel().asIntelLabel();
+    Label nextLabel = branchLabelGenerator.getLabel().asIntelLabel();
+
+    /* restore the last jump-to label after visiting the while-loop body */
+    Label lastBreakJumpToLabel = currBreakJumpToLabel.asIntelLabel();
+    Label lastContinueJumpToLabel = currContinueJumpToLabel.asIntelLabel();
+    currBreakJumpToLabel = nextLabel;
+    currContinueJumpToLabel = testLabel;
+
+    instructions.add(startLabel);
+
+    /* 3 loop body */
+    visit(node.getBody());
+
+    currBreakJumpToLabel = lastBreakJumpToLabel;
+    currContinueJumpToLabel = lastContinueJumpToLabel;
+
+    /* 4 start of condition test */
+    instructions.add(testLabel);
+    /* translate cond expr */
+    visit(node.getCond());
+    instructions.add(new Cmp(intelRegAllocator.curr(), new IntelAddress(1)));
+
+    /* 5 conditional branch jump to the start of loop */
+    instructions.add(new Jmp(EQ, startLabel.assemble()));
+
+    instructions.add(nextLabel);
+
+    intelRegAllocator.free();
     return null;
   }
 

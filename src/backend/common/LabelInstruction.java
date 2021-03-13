@@ -19,8 +19,12 @@ public abstract class LabelInstruction implements Instruction {
     return (backend.intel.instructions.Label) this;
   }
 
+  public String getName() {
+    return labelName;
+  }
+
   @Override
   public String assemble() {
-    return null;
+    return labelName + ":";
   }
 }

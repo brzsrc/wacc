@@ -10,6 +10,10 @@ public class Cmp extends CmpInstruction implements IntelInstruction {
     super(rs, rd);
   }
 
+  public Cmp(Register rs, Address addr) {
+    super(rs, addr);
+  }
+
   @Override
   public String assemble() {
     return null;

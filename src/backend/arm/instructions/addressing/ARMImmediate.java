@@ -26,8 +26,12 @@ public class ARMImmediate extends Immediate {
     return isChar;
   }
 
-  public int getVal() {
-    return val;
+  public String getVal() {
+    if (label != null) {
+      return label.getName();
+    } else {
+      return Integer.toString(val);
+    }
   }
 
   public BitNum getBitNum() {

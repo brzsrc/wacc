@@ -1,6 +1,6 @@
 package backend;
 
-import backend.arm.instructions.Label;
+import backend.common.LabelInstruction;
 import java.util.ArrayList;
 import java.util.List;
 import utils.NodeVisitor;
@@ -24,8 +24,8 @@ public abstract class InstructionGenerator<T extends Instruction> implements Nod
   protected int funcStackSize;
 
   /* recording the jump-to label for branching statement, i.e. break, continue */
-  protected Label currBreakJumpToLabel;
-  protected Label currContinueJumpToLabel;
+  protected LabelInstruction currBreakJumpToLabel;
+  protected LabelInstruction currContinueJumpToLabel;
 
   public InstructionGenerator() {
     instructions = new ArrayList<>();
