@@ -12,6 +12,6 @@ public class Mul extends IntelArithmeticLogic {
 
   @Override
   public String assemble() {
-    return null;
+    return assembleArithmeticLogic("imul");
   }
 }

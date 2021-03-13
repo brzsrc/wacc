@@ -13,6 +13,6 @@ public class SMull extends ARMArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "SMULL " + Rd + ", " + operand2 + ", " + Rd + ", " + operand2;
+    return "SMULL " + rd + ", " + addr + ", " + rd + ", " + addr;
   }
 }

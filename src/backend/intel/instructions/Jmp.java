@@ -15,6 +15,6 @@ public class Jmp extends JmpInstruction implements IntelInstruction {
 
   @Override
   public String assemble() {
-    return null;
+    return "j" + (cond.equals(Cond.NULL) ? "mp" : cond.name().toLowerCase()) + " " + label.getName();
   }
 }

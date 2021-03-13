@@ -1,6 +1,5 @@
 package utils;
 
-import frontend.node.Node;
 import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
@@ -148,6 +147,10 @@ public class Utils {
   public static String FUNC_HEADER = "f_";
   public static String MAIN_BODY_NAME = "main";
 
+  public enum IntelInstructionSize {
+    Q, L, W, B
+  }
+
   /* adding a private constructor to override the default public constructor in order to
      indicate Utils class cannot be instantiated */
   private Utils() {
@@ -232,6 +235,29 @@ public class Utils {
       }
       return "p_" + name().toLowerCase();
     }
+  }
+
+  /* TODO: better code quality here */
+  public static final Map<IntelInstructionSize, Integer> m = Map.of(
+      IntelInstructionSize.Q, 8,
+      IntelInstructionSize.L, 4,
+      IntelInstructionSize.W, 2,
+      IntelInstructionSize.B, 1
+  );
+
+  public static final Map<Integer, IntelInstructionSize> m2 = Map.of(
+      8, IntelInstructionSize.Q,
+      4, IntelInstructionSize.L,
+      2, IntelInstructionSize.W,
+      1, IntelInstructionSize.B
+  );
+
+  public static String calculateSize(IntelInstructionSize size1, IntelInstructionSize size2) {
+    return m2.get(Math.max(m.get(size1), m.get(size2))).toString().toLowerCase();
+  }
+
+  public static String calculateSize(IntelInstructionSize size) {
+    return m2.get(m.get(size)).toString().toLowerCase();
   }
 
   /**

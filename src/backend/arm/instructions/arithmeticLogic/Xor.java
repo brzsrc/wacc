@@ -12,6 +12,6 @@ public class Xor extends ARMArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "EOR " + Rd + ", " + Rn + ", " + operand2;
+    return "EOR " + rd + ", " + rn + ", " + addr;
   }
 }

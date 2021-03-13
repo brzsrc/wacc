@@ -5,7 +5,7 @@ import backend.common.address.Immediate;
 
 public class ARMImmediate extends Immediate {
 
-  private final BitNum bitNum;
+  protected final BitNum bitNum;
 
   public ARMImmediate(int val, BitNum bitNum) {
     super(val);

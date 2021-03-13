@@ -18,6 +18,7 @@ import backend.intel.instructions.address.IntelImmediate;
 import backend.intel.instructions.arithmetic.Add;
 import backend.intel.instructions.arithmetic.IntelArithmeticLogic;
 import backend.intel.instructions.arithmetic.Sal;
+import backend.intel.instructions.arithmetic.Sub;
 import backend.intel.instructions.directives.CFIEndProc;
 import frontend.node.FuncNode;
 import frontend.node.ProgramNode;
@@ -52,39 +53,38 @@ import frontend.node.stat.ReadNode;
 import frontend.node.stat.ReturnNode;
 import frontend.node.stat.ScopeNode;
 import frontend.node.stat.SkipNode;
+import frontend.node.stat.StatNode;
 import frontend.node.stat.SwitchNode;
 import frontend.node.stat.WhileNode;
 import frontend.type.Type;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import utils.Utils.RoutineInstruction;
+import utils.Utils.IntelInstructionSize;
 import utils.backend.LabelGenerator;
 import utils.backend.register.Register;
-import utils.backend.register.arm.ARMConcreteRegister;
 import utils.backend.register.intel.IntelConcreteRegister;
 import utils.backend.register.intel.IntelConcreteRegisterAllocator;
 
-import static backend.arm.instructions.STR.StrMode.STR;
-import static backend.arm.instructions.STR.StrMode.STRB;
-import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
 import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.armUnopAsm;
+import static utils.Utils.BOOL_BASIC_TYPE;
+import static utils.Utils.CHAR_ARRAY_TYPE;
 import static utils.Utils.CHAR_BASIC_TYPE;
 import static utils.Utils.FALSE;
+import static utils.Utils.FUNC_HEADER;
 import static utils.Utils.INT_BASIC_TYPE;
-import static utils.Utils.RoutineInstruction.PRINT_LN;
-import static utils.Utils.RoutineInstruction.READ_CHAR;
-import static utils.Utils.RoutineInstruction.READ_INT;
-import static utils.Utils.SystemCallInstruction.EXIT;
+import static utils.Utils.RoutineInstruction.PRINT_BOOL;
+import static utils.Utils.RoutineInstruction.PRINT_CHAR;
+import static utils.Utils.RoutineInstruction.PRINT_INT;
+import static utils.Utils.RoutineInstruction.PRINT_STRING;
+import static utils.Utils.STRING_BASIC_TYPE;
 import static utils.Utils.TRUE;
 import static utils.backend.Cond.EQ;
 import static utils.backend.Cond.NE;
 import static utils.backend.Cond.NULL;
-import static utils.backend.register.arm.ARMConcreteRegister.SP;
-import static utils.backend.register.arm.ARMConcreteRegister.r0;
-import static utils.backend.register.arm.ARMConcreteRegister.r4;
 import static utils.backend.register.intel.IntelConcreteRegister.*;
 
 public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruction> {
@@ -131,7 +131,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       }
 
       int elemSize = i < node.getDepth() - 1 ? 2 : node.getType().getSize() / 2;
-      instructions.add(new Sal(new IntelImmediate(elemSize), indexReg));
+      instructions.add(new Sal(elemSize, indexReg));
       instructions.add(new Add(addrReg, indexReg));
 
       /* free indexReg to make it available for the indexing of the next depth */
@@ -157,7 +157,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       visit(node.getElem(i));
       int indexOffset = i * node.getContentSize();
       instructions.add(new Mov(intelRegAllocator.curr(), new IntelAddress(addrReg)));
-      instructions.add(new Add(new IntelImmediate(indexOffset), addrReg));
+      instructions.add(new Add(indexOffset, addrReg));
       intelRegAllocator.free();
     }
 
@@ -351,7 +351,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* 1 condition check, branch */
     visit(node.getCond());
-    Register cond = intelRegAllocator.curr();
+    IntelConcreteRegister cond = intelRegAllocator.curr();
     instructions.add(new Cmp(cond, new IntelAddress(1)));
     instructions.add(new Jmp(NE, elseIfLabel.assemble()));
     intelRegAllocator.free();
@@ -371,8 +371,12 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     /* print content same as printNode */
     visitPrintNode(new PrintNode(node.getExpr()));
 
-    Label newLineLabel = dataLabelGenerator.getLabel();
-    dataSection.put(newLineLabel, "\n");
+    Label newLineLabel = null;
+    if (!alreadyExist("\n")) {
+      newLineLabel = dataLabelGenerator.getLabel();
+      dataSection.put(newLineLabel, "\n");
+    }
+
     instructions.add(new Lea(new IntelAddress(rip, newLineLabel), rdi));
     instructions.add(new Mov(new IntelAddress(0), rax));
     instructions.add(new Call("printf@PLT"));
@@ -380,9 +384,49 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     return null;
   }
 
+  private boolean alreadyExist(String str) {
+    return dataSection.values().contains(str);
+  }
+
+  private final Map<Type, String> printTypeStringMap = Map.of(
+      INT_BASIC_TYPE,    "%d",
+      CHAR_BASIC_TYPE,   "%c",
+      STRING_BASIC_TYPE, "%s",
+      CHAR_ARRAY_TYPE,   "%s"
+  );
+
   @Override
   public Void visitPrintNode(PrintNode node) {
     visit(node.getExpr());
+
+    Type type = node.getExpr().getType();
+
+    String printTypeString = printTypeStringMap.get(type);
+
+    Label printLabel = dataLabelGenerator.getLabel();
+    if (type.equals(BOOL_BASIC_TYPE)) {
+      if (!alreadyExist("true")) {
+        Label trueMsgLabel = dataLabelGenerator.getLabel();
+        Label falseMsgLabel = dataLabelGenerator.getLabel();
+        dataSection.put(trueMsgLabel, "true");
+        dataSection.put(falseMsgLabel, "false");
+
+        Label trueLabel = dataLabelGenerator.getLabel();
+        Label falseLabel = dataLabelGenerator.getLabel();
+        instructions.add(new Cmp(intelRegAllocator.curr(), new IntelAddress(1)));
+        instructions.add(new Jmp(EQ, trueLabel.getName()));
+        instructions.add(new Jmp(NULL, falseLabel.getName()));
+        instructions.add(trueLabel);
+        instructions.add(new Lea(new IntelAddress(rip, trueMsgLabel), rdi));
+        instructions.add(falseLabel);
+        instructions.add(new Lea(new IntelAddress(rip, falseMsgLabel), rdi));
+      }
+    } else {
+      if (!alreadyExist(printTypeString)) {
+        dataSection.put(printLabel, printTypeString);
+        instructions.add(new Lea(new IntelAddress(rip, printLabel), rdi));
+      }
+    }
 
     instructions.add(new Mov(new IntelAddress(0), rax));
     instructions.add(new Call("printf@PLT"));
@@ -425,6 +469,39 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitScopeNode(ScopeNode node) {
+    List<StatNode> list = node.getBody();
+
+    /* 1 leave space for variables in stack */
+    int stackSize = node.getStackSize();
+    int temp = stackSize;
+    while (temp > 0) {
+      int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
+      instructions.add(new Sub(realStackSize, rsp));
+      temp = temp - realStackSize;
+    }
+
+    /* accumulate function stack size, in case this scope is a function scope and contain return */
+    funcStackSize += stackSize;
+
+    /* 2 visit statements
+     *   set currentSymbolTable here, eliminate all other set symbol table in other statNode */
+    currSymbolTable = node.getScope();
+    for (StatNode elem : list) {
+      visit(elem);
+    }
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    /* decrease function stack size, as from this point stack is freed by the scope, not by return */
+    funcStackSize -= stackSize;
+
+    /* 3 restore stack */
+    temp = stackSize;
+    while (temp > 0) {
+      int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
+      instructions.add(new Add(realStackSize, rsp));
+      temp = temp - realStackSize;
+    }
+
     return null;
   }
 
@@ -492,6 +569,34 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitFuncNode(FuncNode node) {
+    /* cannot call get stack size on function body, as that will return 0
+     * public field used here, so that on visit return statement, return can add stack back */
+    funcStackSize = node.getFunctionBody().getScope().getSize();
+    funcStackSize -= node.paramListStackSize();
+
+    /* 1 add function label,
+     *   PUSH {lr}
+     */
+    instructions.add(new Label(FUNC_HEADER + node.getFunctionName()));
+    instructions.add(new Push(Collections.singletonList(rbp)));
+    instructions.add(new Mov(rsp, rbp));
+
+//    /* 2 decrease stack, leave space for variable in function body
+//     *   DOES NOT include parameters' stack area */
+//    if (funcStackSize != 0) {
+//      instructions.add(new Sub(f));
+//      instructions.add(new Sub(SP, SP,
+//          new Operand2(funcStackSize)));
+//    }
+//
+//    /* 3 visit function,
+//     *   RETURN are responsible for adding stack back
+//     */
+//    visit(node.getFunctionBody());
+//
+//    /* function always add pop and ltorg at the end of function body */
+//    instructions.add(new backend.arm.instructions.Pop(Collections.singletonList(PC)));
+//    instructions.add(new LTORG());
     return null;
   }
 
@@ -533,5 +638,13 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   @Override
   public Void visitStructDeclareNode(StructDeclareNode node) {
     return null;
+  }
+
+  public List<IntelInstruction> getInstructions() {
+    return instructions;
+  }
+
+  public Map<Label, String> getDataSection() {
+    return dataSection;
   }
 }

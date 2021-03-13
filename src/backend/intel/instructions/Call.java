@@ -5,7 +5,7 @@ import backend.intel.instructions.address.IntelAddress;
 
 public class Call implements IntelInstruction {
 
-  private String name;
+  private final String name;
 
   public Call(String name) {
     this.name = name;

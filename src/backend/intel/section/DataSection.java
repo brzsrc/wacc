@@ -14,14 +14,8 @@ public class DataSection implements Directive {
   private LabelGenerator<Label> labelGenerator;
   private Map<Label, String> data;
 
-  public DataSection() {
-    this.data = new LinkedHashMap<>();
-    this.labelGenerator = new LabelGenerator<Label>(".LC", Label.class);
-  }
-
-  public void addData(String str) {
-    Label label = labelGenerator.getLabel().asIntelLabel();
-    data.put(label, str);
+  public DataSection(Map<Label, String> data) {
+    this.data = data;
   }
 
   @Override

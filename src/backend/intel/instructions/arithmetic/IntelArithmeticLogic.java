@@ -17,29 +17,31 @@ import backend.intel.instructions.address.IntelAddress;
 import frontend.node.expr.ArrayNode;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import utils.Utils;
 import utils.backend.register.Register;
 
 public abstract class IntelArithmeticLogic extends ArithmeticLogic implements IntelInstruction {
 
   public static final BinopAssemble intelBinopAsm = (rd, rn, notUsed, b) -> {
-    Map<Binop, List<Instruction>> m = Map.of(
+    Map<Binop, List<Instruction>> m = new HashMap<>(Map.of(
         Binop.PLUS, List.of(new Add(rn, rd)),
         Binop.MINUS, List.of(new Sub(rn, rd)),
         Binop.MUL, List.of(new Mul(rn, rd)),
         Binop.AND, List.of(new And(rn, rd)),
         Binop.OR, List.of(new Or(rn, rd)),
         Binop.DIV, List.of(new Cltd(), new Div(rd)),
-        Binop.MOD, List.of(),
-        Binop.EQUAL, List.of(new Cmp(rn, rd), new Set(rd, IntelSetType.E)),
-        Binop.INEQUAL, List.of(new Cmp(rn, rd), new Set(rd, IntelSetType.NE)),
-        Binop.GREATER, List.of(new Cmp(rn, rd), new Set(rd, IntelSetType.G))
-    );
+        Binop.MOD, List.of(new Cltd(), new Div(rd)),
+        Binop.EQUAL, List.of(new Cmp(rn.asIntelRegister(), rd.asIntelRegister()), new Set(rd, IntelSetType.E)),
+        Binop.INEQUAL, List.of(new Cmp(rn.asIntelRegister(), rd.asIntelRegister()), new Set(rd, IntelSetType.NE)),
+        Binop.GREATER, List.of(new Cmp(rn.asIntelRegister(), rd.asIntelRegister()), new Set(rd, IntelSetType.G))
+    ));
 
-    m.put(Binop.LESS, List.of(new Cmp(rn, rd), new Set(rd, IntelSetType.L)));
-    m.put(Binop.GREATER_EQUAL, List.of(new Cmp(rn, rd), new Set(rd, IntelSetType.GE)));
-    m.put(Binop.LESS_EQUAL, List.of(new Cmp(rn, rd), new Set(rd, IntelSetType.LE)));
+    m.put(Binop.LESS, List.of(new Cmp(rn.asIntelRegister(), rd.asIntelRegister()), new Set(rd, IntelSetType.L)));
+    m.put(Binop.GREATER_EQUAL, List.of(new Cmp(rn.asIntelRegister(), rd.asIntelRegister()), new Set(rd, IntelSetType.GE)));
+    m.put(Binop.LESS_EQUAL, List.of(new Cmp(rn.asIntelRegister(), rd.asIntelRegister()), new Set(rd, IntelSetType.LE)));
 
     return m.get(b);
   };
@@ -66,7 +68,22 @@ public abstract class IntelArithmeticLogic extends ArithmeticLogic implements In
     super(rd, rn);
   }
 
-  protected IntelArithmeticLogic(Immediate immed, Register rd) {
-    super(immed, rd);
+  protected IntelArithmeticLogic(int val, Register rd) {
+    super(val, rd);
+  }
+
+  protected String assembleArithmeticLogic(String s) {
+    StringBuilder str = new StringBuilder();
+
+    String size = "";
+
+    if (immed != null) {
+      size = Utils.calculateSize(immed.asIntelImmediate().getSize());
+    } else {
+      size = Utils.calculateSize(rn.asIntelRegister().getSize());
+    }
+
+    str.append(s).append(size).append(" ").append(immed == null ? rn : immed.assemble()).append(", ").append(rd);
+    return str.toString();
   }
 }

@@ -1,8 +1,15 @@
+import backend.InstructionGenerator;
+import backend.InstructionPrinter;
 import backend.arm.ARMInstructionGenerator;
 import backend.arm.ARMInstructionPrinter;
 import backend.arm.segment.CodeSegment;
 import backend.arm.segment.DataSegment;
 import backend.arm.segment.TextSegment;
+import backend.intel.IntelInstructionGenerator;
+import backend.intel.IntelInstructionPrinter;
+import backend.intel.section.CodeSection;
+import backend.intel.section.DataSection;
+import backend.intel.section.IntelAsmHeader;
 import frontend.ASTPrinter;
 import frontend.SemanticChecker;
 import frontend.antlr.WACCLexer;
@@ -84,13 +91,24 @@ public class Compiler {
         }
 
         if (cmd_ops.contains("--assembly")) {
-          ARMInstructionGenerator generator = new ARMInstructionGenerator();
-          generator.visit(program);
-          DataSegment data = new DataSegment(generator.getDataSegmentMessages());
-          TextSegment text = new TextSegment();
-          CodeSegment code = new CodeSegment(generator.getInstructions());
-          ARMInstructionPrinter printer = new ARMInstructionPrinter(data, text, code,
+          InstructionGenerator generator = null;
+          InstructionPrinter printer = null;
+          if (cmd_ops.contains("--intel")) {
+            generator = new IntelInstructionGenerator();
+            generator.visit(program);
+            IntelAsmHeader header = new IntelAsmHeader("main");
+            DataSection data = new DataSection(((IntelInstructionGenerator) generator).getDataSection());
+            CodeSection code = new CodeSection(((IntelInstructionGenerator) generator).getInstructions());
+            printer = new IntelInstructionPrinter(header, data, code);
+          } else {
+            generator = new ARMInstructionGenerator();
+            generator.visit(program);
+            DataSegment data = new DataSegment(((ARMInstructionGenerator) generator).getDataSegmentMessages());
+            TextSegment text = new TextSegment();
+            CodeSegment code = new CodeSegment(((ARMInstructionGenerator) generator).getInstructions());
+            printer = new ARMInstructionPrinter(data, text, code,
               ARMInstructionPrinter.OptimizationLevel.NONE);
+          }
 
           File asmFile = new File(file.getName().replaceFirst("[.][^.]+$", "") + ".s");
 

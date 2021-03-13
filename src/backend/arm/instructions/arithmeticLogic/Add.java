@@ -24,7 +24,7 @@ public class Add extends ARMArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "ADD" + cond + " " + Rd + ", " + Rn + ", " + operand2;
+    return "ADD" + cond + " " + rd + ", " + rn + ", " + addr;
   }
 
 }

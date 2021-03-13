@@ -327,8 +327,8 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
 
     for (int i = paramNum - 1; i >= 0; i--) {
       ExprNode expr = params.get(i);
-      Register reg = armRegAllocator.next();
       visit(expr);
+      Register reg = armRegAllocator.curr();
       int size = expr.getType().getSize();
       StrMode mode = size > 1 ? STR : STRB;
       instructions.add(new STR(reg, new AddressingMode2(PREINDEX, SP, -size), mode));

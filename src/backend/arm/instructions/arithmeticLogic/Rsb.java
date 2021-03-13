@@ -14,7 +14,7 @@ public class Rsb extends ARMArithmeticLogic {
 
   @Override
   public String assemble() {
-    return mode + " " + Rd + ", " + Rn + ", " + operand2;
+    return mode + " " + rd + ", " + rn + ", " + addr;
   }
 
   /* RSB{cond}{S} <Rd>, <Rn>, <operand2> */

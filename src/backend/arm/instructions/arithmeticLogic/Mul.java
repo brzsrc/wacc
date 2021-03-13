@@ -13,6 +13,6 @@ public class Mul extends ARMArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "MUL " + Rd + ", " + Rn + ", " + operand2;
+    return "MUL " + rd + ", " + rn + ", " + addr;
   }
 }

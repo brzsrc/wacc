@@ -1,6 +1,11 @@
 package backend.intel.section;
 
-public class IntelAsmHeader {
+import java.util.List;
+
+import backend.common.Directive;
+import java.util.stream.Collectors;
+
+public class IntelAsmHeader implements Directive {
 
   /**
    * the information below is optional
@@ -30,7 +35,13 @@ public class IntelAsmHeader {
   }
 
   @Override
-  public String toString() {
-    return "[need to be implemented!]";
+  public List<String> toStringList() {
+    List<String> str = List.of(".globl" + "\t" + globl);
+    return str;
+  }
+
+  @Override
+  public int getIndentationLevel() {
+    return 0;
   }
 }

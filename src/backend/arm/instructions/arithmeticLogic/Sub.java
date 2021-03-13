@@ -23,6 +23,6 @@ public class Sub extends ARMArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "SUB" + cond + " " + Rd + ", " + Rn + ", " + operand2;
+    return "SUB" + cond + " " + rd + ", " + rn + ", " + addr;
   }
 }

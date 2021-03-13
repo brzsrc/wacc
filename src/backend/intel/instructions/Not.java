@@ -1,5 +1,6 @@
 package backend.intel.instructions;
 
+import utils.Utils;
 import utils.backend.register.Register;
 import utils.backend.register.intel.IntelConcreteRegister;
 
@@ -13,6 +14,6 @@ public class Not implements IntelInstruction{
 
   @Override
   public String assemble() {
-    return null;
+    return "not" + Utils.calculateSize(reg.asIntelRegister().getSize()) + " " + reg;
   }
 }

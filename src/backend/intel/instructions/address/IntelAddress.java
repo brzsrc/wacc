@@ -8,15 +8,15 @@ import utils.backend.register.intel.IntelConcreteRegister;
 public class IntelAddress extends Address {
 
   /* represent the immediate addresesing, i.e. movl $7, %eax */
-  private IntelImmediate immed;
+  private final IntelImmediate immed;
   /* the base register in every form of addressing */
-  private IntelConcreteRegister Rb;
+  private final IntelConcreteRegister Rb;
   /* the constant displacement in front of Rb, i.e. movl 0x100(%rbp), %eax */
-  private IntelImmediate displacement;
+  private final IntelImmediate displacement;
   /* the index register used in index addressing */
-  private IntelConcreteRegister Ri;
+  private final IntelConcreteRegister Ri;
   /* scale used in index addressing */
-  private int scale;
+  private final int scale;
 
   /* base constructor of this class */
   private IntelAddress(IntelImmediate immed, IntelConcreteRegister rb, IntelImmediate displacement,
@@ -52,4 +52,21 @@ public class IntelAddress extends Address {
       IntelConcreteRegister ri, int scale) {
     this(null, rb, new IntelImmediate(displacement), ri, scale);
   }
+
+  @Override
+  public String toString() {
+    if (immed != null) {
+      return immed.assemble();
+    }
+
+    StringBuilder str = new StringBuilder();
+    str.append(displacement == null ? "" : displacement.assemble());
+    str.append("(")
+        .append(Rb == null ? "" : Rb)
+        .append(Ri == null ? "" : ", " + Ri)
+        .append(scale == 0 ? "" : ", " + scale)
+        .append(")");
+    return str.toString();
+  }
+
 }

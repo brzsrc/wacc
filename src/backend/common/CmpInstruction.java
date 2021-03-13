@@ -8,13 +8,13 @@ public abstract class CmpInstruction implements Instruction {
 
   /* represent the genetic compare instruction */
 
-  protected final Register Rd;
-  protected final Register Rs;
+  protected final Register rd;
+  protected final Register rs;
   protected final Address operand2;
 
   private CmpInstruction(Register rd, Register rs, Address operand2) {
-    Rd = rd;
-    Rs = rs;
+    this.rd = rd;
+    this.rs = rs;
     this.operand2 = operand2;
   }
 
@@ -23,6 +23,6 @@ public abstract class CmpInstruction implements Instruction {
   }
 
   public CmpInstruction(Register rd, Register rs) {
-    this(rd, rd, null);
+    this(rd, rs, null);
   }
 }

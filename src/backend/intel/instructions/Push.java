@@ -2,7 +2,9 @@ package backend.intel.instructions;
 
 import backend.common.PushInstruction;
 import java.util.List;
+import utils.Utils;
 import utils.backend.register.Register;
+import utils.backend.register.intel.IntelConcreteRegister;
 
 public class Push extends PushInstruction implements IntelInstruction {
 
@@ -12,6 +14,7 @@ public class Push extends PushInstruction implements IntelInstruction {
 
   @Override
   public String assemble() {
-    return null;
+    IntelConcreteRegister reg = reglist.get(0).asIntelRegister();
+    return "push" + Utils.calculateSize(reg.getSize()) + " " + reg;
   }
 }

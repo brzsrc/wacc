@@ -47,6 +47,6 @@ public class Mov extends MovInstruction implements ARMInstruction {
 
   @Override
   public String assemble() {
-    return type + " " + Rd + ", " + operand2;
+    return type + " " + rd + ", " + operand2;
   }
 }

@@ -1,6 +1,7 @@
 package backend.intel.instructions;
 
 import backend.intel.instructions.address.IntelAddress;
+import utils.Utils;
 import utils.backend.register.Register;
 import utils.backend.register.intel.IntelConcreteRegister;
 
@@ -16,6 +17,6 @@ public class Lea implements IntelInstruction {
 
   @Override
   public String assemble() {
-    return null;
+    return "lea" + rd.getSize().name().toLowerCase() + " " + addr.toString() + ", " + rd;
   }
 }

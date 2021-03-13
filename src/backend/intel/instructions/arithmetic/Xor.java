@@ -12,6 +12,6 @@ public class Xor extends IntelArithmeticLogic {
 
   @Override
   public String assemble() {
-    return null;
+    return assembleArithmeticLogic("xor");
   }
 }

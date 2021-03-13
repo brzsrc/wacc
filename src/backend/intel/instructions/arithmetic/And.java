@@ -1,6 +1,7 @@
 package backend.intel.instructions.arithmetic;
 
 import backend.intel.instructions.IntelInstruction;
+import utils.Utils;
 import utils.backend.register.Register;
 
 public class And extends IntelArithmeticLogic {
@@ -12,6 +13,6 @@ public class And extends IntelArithmeticLogic {
 
   @Override
   public String assemble() {
-    return null;
+    return assembleArithmeticLogic("and");
   }
 }

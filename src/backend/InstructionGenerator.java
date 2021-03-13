@@ -1,6 +1,11 @@
 package backend;
 
+import backend.arm.ARMInstructionGenerator;
+import backend.arm.instructions.ARMInstruction;
 import backend.common.LabelInstruction;
+import backend.intel.IntelInstructionGenerator;
+import backend.intel.instructions.IntelInstruction;
+
 import java.util.ArrayList;
 import java.util.List;
 import utils.NodeVisitor;

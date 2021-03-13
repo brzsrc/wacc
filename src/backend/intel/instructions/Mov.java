@@ -2,6 +2,7 @@ package backend.intel.instructions;
 
 import backend.common.MovInstruction;
 import backend.common.address.Address;
+import utils.Utils;
 import utils.backend.register.Register;
 import utils.backend.register.intel.IntelConcreteRegister;
 
@@ -25,6 +26,24 @@ public class Mov extends MovInstruction implements IntelInstruction {
 
   @Override
   public String assemble() {
-    return null;
+    StringBuilder str = new StringBuilder();
+
+    str.append("mov");
+
+    String size = "";
+    StringBuilder everythingAfter = new StringBuilder();
+
+    if (operand2 == null) {
+      size = Utils.calculateSize(rs.asIntelRegister().getSize());
+      everythingAfter.append(rs).append(", ").append(rd);
+    } else if (rs == null) {
+      size = Utils.calculateSize(rd.asIntelRegister().getSize());
+      everythingAfter.append(operand2).append(", ").append(rd);
+    } else if (rd == null) {
+      size = Utils.calculateSize(rs.asIntelRegister().getSize());
+      everythingAfter.append(rs).append(", ").append(operand2);
+    }
+
+    return str.append(size).append(" ").append(everythingAfter.toString()).toString();
   }
 }

@@ -5,12 +5,12 @@ import utils.backend.register.intel.IntelConcreteRegister;
 
 public class Sal extends IntelArithmeticLogic {
 
-  public Sal(IntelImmediate immed, IntelConcreteRegister rd) {
-    super(immed, rd);
+  public Sal(int i, IntelConcreteRegister rd) {
+    super(i, rd);
   }
 
   @Override
   public String assemble() {
-    return null;
+    return assembleArithmeticLogic("sal");
   }
 }

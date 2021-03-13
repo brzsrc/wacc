@@ -1,6 +1,7 @@
 package backend.intel.instructions.arithmetic;
 
 import backend.common.address.Immediate;
+import utils.Utils;
 import utils.backend.register.Register;
 
 public class Div extends IntelArithmeticLogic {
@@ -11,6 +12,6 @@ public class Div extends IntelArithmeticLogic {
 
   @Override
   public String assemble() {
-    return null;
+    return "idiv" + Utils.calculateSize(rd.asIntelRegister().getSize()) + " " + rd;
   }
 }

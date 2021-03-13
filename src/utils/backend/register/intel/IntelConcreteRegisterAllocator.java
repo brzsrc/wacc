@@ -1,6 +1,7 @@
 package utils.backend.register.intel;
 
 import java.util.List;
+import utils.Utils.IntelInstructionSize;
 import utils.backend.register.RegisterAllocator;
 
 import static utils.backend.register.intel.IntelConcreteRegister.*;

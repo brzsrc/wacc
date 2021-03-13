@@ -1,13 +1,12 @@
 package utils.backend.register.intel;
 
+import java.util.Map;
+import java.util.Set;
+import utils.Utils.IntelInstructionSize;
 import utils.backend.register.Register;
 
 public class IntelConcreteRegister extends Register {
   public static final int MAX_INTEL_REGISTER = 16;
-
-  public enum IntelInstructionSize {
-    Q, L, W, B
-  }
 
   public static final IntelConcreteRegister rax = new IntelConcreteRegister(IntelRegisterLabel.RAX);
   public static final IntelConcreteRegister rbx = new IntelConcreteRegister(IntelRegisterLabel.RBX);
@@ -45,6 +44,38 @@ public class IntelConcreteRegister extends Register {
 
   @Override
   public String toString() {
-    return "%" + label.name().toLowerCase();
+    Set<IntelRegisterLabel> s = Set.of(IntelRegisterLabel.RAX,
+        IntelRegisterLabel.RBX, IntelRegisterLabel.RCX, IntelRegisterLabel.RDX,
+        IntelRegisterLabel.RSI, IntelRegisterLabel.RDI, IntelRegisterLabel.RBP);
+
+    if (s.contains(this.label)) {
+      switch (size) {
+        case Q:
+          return "%r" + label.name().toLowerCase().substring(1);
+        case L:
+          return "%e" + label.name().toLowerCase().substring(1);
+        case W:
+          return label.name().toLowerCase().substring(1);
+        case B:
+          return label.name().toLowerCase().substring(1) + "l";
+      }
+    } else {
+      switch (size) {
+        case Q:
+          return label.name().toLowerCase();
+        case L:
+          return label.name().toLowerCase() + "d";
+        case W:
+          return label.name().toLowerCase() + "w";
+        case B:
+          return label.name().toLowerCase() + "b";
+      }
+    }
+
+    return "";
+  }
+
+  public IntelInstructionSize getSize() {
+    return this.size;
   }
 }

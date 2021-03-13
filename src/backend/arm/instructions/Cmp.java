@@ -15,6 +15,6 @@ public class Cmp extends CmpInstruction implements ARMInstruction {
 
   @Override
   public String assemble() {
-    return "CMP " + this.Rd + ", " + this.operand2;
+    return "CMP " + this.rd + ", " + this.operand2;
   }
 }

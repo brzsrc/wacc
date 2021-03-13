@@ -1,12 +1,13 @@
 package backend.arm;
 
 import backend.arm.segment.*;
+import backend.InstructionPrinter;
 import backend.arm.instructions.ARMInstruction;
 import backend.common.Directive;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ARMInstructionPrinter {
+public class ARMInstructionPrinter extends InstructionPrinter {
 
   private final List<Directive> directives;
   private final OptimizationLevel optimizationLevel;
@@ -16,6 +17,7 @@ public class ARMInstructionPrinter {
     this.optimizationLevel = optimizationLevel;
   }
 
+  @Override
   public String translate() {
     StringBuilder program = new StringBuilder();
     List<String> list = new ArrayList<>();

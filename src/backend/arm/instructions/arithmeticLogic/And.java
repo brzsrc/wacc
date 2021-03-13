@@ -13,6 +13,6 @@ public class And extends ARMArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "AND " + Rd + ", " + Rn + ", " + operand2;
+    return "AND " + rd + ", " + rn + ", " + addr;
   }
 }

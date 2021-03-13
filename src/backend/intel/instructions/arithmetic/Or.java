@@ -12,6 +12,6 @@ public class Or extends IntelArithmeticLogic {
 
   @Override
   public String assemble() {
-    return null;
+    return assembleArithmeticLogic("or");
   }
 }

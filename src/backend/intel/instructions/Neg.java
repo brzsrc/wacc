@@ -1,8 +1,9 @@
 package backend.intel.instructions;
 
+import utils.Utils;
 import utils.backend.register.Register;
 
-public class Neg implements IntelInstruction{
+public class Neg implements IntelInstruction {
 
   Register reg;
 
@@ -12,6 +13,6 @@ public class Neg implements IntelInstruction{
 
   @Override
   public String assemble() {
-    return null;
+    return "neg" + Utils.calculateSize(reg.asIntelRegister().getSize()) + " " + reg;
   }
 }

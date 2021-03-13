@@ -13,6 +13,6 @@ public class Or extends ARMArithmeticLogic {
 
   @Override
   public String assemble() {
-    return "ORR " + Rd + ", " + Rn + ", " + operand2;
+    return "ORR " + rd + ", " + rn + ", " + addr;
   }
 }
