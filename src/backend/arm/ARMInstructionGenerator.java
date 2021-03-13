@@ -3,7 +3,7 @@ package backend.arm;
 import static backend.arm.instructions.LDR.LdrMode.*;
 import static backend.arm.instructions.STR.StrMode.*;
 import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.*;
-import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.unopInstruction;
+import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.armUnopAsm;
 import static backend.arm.instructions.addressing.ARMImmediate.BitNum.CONST8;
 import static backend.arm.instructions.addressing.Operand2.Operand2Operator.*;
 import static frontend.node.expr.UnopNode.Unop.MINUS;
@@ -41,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import utils.NodeVisitor;
 import utils.backend.LabelGenerator;
 import utils.backend.register.arm.ARMConcreteRegister;
@@ -262,10 +263,10 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     Binop operator = node.getOperator();
     Operand2 op2 = new Operand2(e2reg);
 
-    List<ARMInstruction> insList = ARMArithmeticLogic.binopInstruction
+    List<Instruction> insList = ARMArithmeticLogic.binopInstruction
         .get(operator)
         .binopAssemble(e1reg, e1reg, op2, operator);
-    instructions.addAll(insList);
+    instructions.addAll(insList.stream().map(i -> (ARMInstruction) i).collect(Collectors.toList()));
     if (operator == Binop.DIV || operator == Binop.MOD) {
       checkAndAddRoutine(CHECK_DIVIDE_BY_ZERO, msgLabelGenerator, dataSegmentMessages);
     }
@@ -493,10 +494,9 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     Register reg = armRegAllocator.curr();
     Unop operator = node.getOperator();
 
-    List<ARMInstruction> insList = unopInstruction
-        .get(operator)
-        .unopAssemble(reg, reg);
-    instructions.addAll(insList);
+    List<Instruction> insList = armUnopAsm
+        .unopAssemble(reg, reg, operator, null);
+    instructions.addAll(insList.stream().map(i -> (ARMInstruction) i).collect(Collectors.toList()));
 
     if (operator == MINUS) {
       instructions.add(new BL(VS, THROW_OVERFLOW_ERROR.toString()));

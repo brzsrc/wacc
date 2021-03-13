@@ -6,8 +6,8 @@ import utils.backend.register.Register;
 
 public class Cmp extends CmpInstruction implements IntelInstruction {
 
-  public Cmp(Register Rd, Address operand2) {
-    super(Rd, operand2);
+  public Cmp(Register rs, Register rd) {
+    super(rs, rd);
   }
 
   @Override

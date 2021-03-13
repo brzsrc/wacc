@@ -1,6 +1,7 @@
 package backend.intel.instructions.address;
 
 import backend.common.address.Address;
+import backend.intel.instructions.Label;
 import utils.backend.register.intel.IntelConcreteRegister;
 
 public class IntelAddress extends Address {
@@ -24,6 +25,10 @@ public class IntelAddress extends Address {
     this.displacement = displacement;
     Ri = ri;
     this.scale = scale;
+  }
+
+  public IntelAddress(Label label) {
+    this(new IntelImmediate(label), null, 0, null, 0);
   }
 
   /* This represents the Immediate int value addressing, i.e. movl $7, %eax */

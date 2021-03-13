@@ -1,6 +1,7 @@
 package backend.arm.instructions.arithmeticLogic;
 
 import backend.arm.instructions.addressing.Operand2;
+import backend.common.address.Address;
 import utils.backend.Cond;
 import utils.backend.register.Register;
 
@@ -10,13 +11,13 @@ public class Add extends ARMArithmeticLogic {
   private final Cond cond;
 
   public Add(Register rd, Register rn,
-      Operand2 operand2) {
+      Address operand2) {
     super(rd, rn, operand2);
     cond = Cond.NULL;
   }
 
   public Add(Register rd, Register rn,
-      Operand2 operand2, Cond cond) {
+      Address operand2, Cond cond) {
     super(rd, rn, operand2);
     this.cond = cond;
   }
