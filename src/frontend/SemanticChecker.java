@@ -104,8 +104,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     isJumpRepeated.push(false);
 
     expectedFunctionReturn = null;
-    currForLoopIncrementBreak = null;
-    currForLoopIncrementContinue = null;
+    currForLoopIncrementBreak = new Stack<>();
+    currForLoopIncrementContinue = new Stack<>();
     this.libraryCollection = libraryCollection;
   }
 
@@ -345,11 +345,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     if (functionBody instanceof ScopeNode) {
-      ((ScopeNode) functionBody).setFuncBody();
+      ((ScopeNode) functionBody).setAvoidSubStack();
       return functionBody;
     }
     ScopeNode enclosedBody = new ScopeNode(functionBody);
-    enclosedBody.setFuncBody();
+    enclosedBody.setAvoidSubStack();
     return enclosedBody;
   }
 
@@ -491,6 +491,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     ExprNode cond = visit(ctx.expr()).asExprNode();
     StatNode increment = visit(ctx.for_stat(1)).asStatNode();
 
+    currSymbolTable = new SymbolTable(currSymbolTable);
+
     /* set break/continue context */
     isJumpRepeated.push(false);    // on entry to for body, no JUMP instruction executed
     isBreakAllowed.push(true);     // FOR allow break
@@ -508,9 +510,16 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     jumpContext.pop();
     currForLoopIncrementContinue.pop();
 
-    StatNode _init = init instanceof ScopeNode ? init : new ScopeNode(init);
-    StatNode _increment = increment instanceof ScopeNode ? increment : new ScopeNode(increment);
     StatNode _body = body instanceof ScopeNode ? body : new ScopeNode(body);
+    body.setScope(currSymbolTable);
+
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+
+    ScopeNode _init = init instanceof ScopeNode ? (ScopeNode) init : new ScopeNode(init);
+    _init.setAvoidSubStack();
+    ScopeNode _increment = increment instanceof ScopeNode ? (ScopeNode) increment : new ScopeNode(increment);
+    _increment.setAvoidSubStack();
+    // StatNode _body = body instanceof ScopeNode ? body : new ScopeNode(body);
 
     StatNode forNode = new ForNode(_init, cond, _increment, _body);
 
@@ -540,7 +549,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (!isBreakAllowed.peek()) {
       branchStatementPositionError(ctx, JumpType.BREAK);
     }
-    StatNode breakNode = new JumpNode(JumpType.BREAK, currForLoopIncrementBreak.peek(), jumpContext.peek());
+    
+    // break does not involve any instruction after exit a loop
+    StatNode breakNode = new JumpNode(JumpType.BREAK, null, jumpContext.peek());  
     breakNode.setScope(currSymbolTable);
     isJumpRepeated.pop();
     isJumpRepeated.push(true);
@@ -570,10 +581,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     List<CaseStat> cases = new ArrayList<>();
     SymbolTable switchSymbolTable = new SymbolTable(currSymbolTable);
 
-    /* switch allow break, allow continue same as scope switch is in */
+    /* switch allow break, allow continue if switch is in for */
     isBreakAllowed.push(true);
-    jumpContext.push(JumpContext.SWITCH);
     isJumpRepeated.push(false);
+
+    jumpContext.push(JumpContext.SWITCH);
 
     StatNode defaultCase = visit(ctx.stat(numOfCases - 1)).asStatNode();
     

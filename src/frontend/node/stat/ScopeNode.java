@@ -14,7 +14,7 @@ public class ScopeNode extends StatNode {
    */
 
   private final List<StatNode> body;
-  private boolean isFuncBody = false;
+  private boolean avoidSubStack = false;
   private boolean isBeginEnd = false;
   private boolean isForStat  = false;
 
@@ -42,7 +42,7 @@ public class ScopeNode extends StatNode {
   public ScopeNode(ScopeNode cloneSrc, List<StatNode> body) {
     this.body = body;
     this.isBeginEnd = cloneSrc.isBeginEnd;
-    this.isFuncBody = cloneSrc.isFuncBody;
+    this.avoidSubStack = cloneSrc.avoidSubStack;
     this.scope = cloneSrc.scope;
   }
 
@@ -68,8 +68,8 @@ public class ScopeNode extends StatNode {
     return visitor.visitScopeNode(this);
   }
 
-  public void setFuncBody() {
-    isFuncBody = true;
+  public void setAvoidSubStack() {
+    avoidSubStack = true;
   }
 
   public void setForStat() {
@@ -77,7 +77,7 @@ public class ScopeNode extends StatNode {
   }
 
   public int getStackSize() {
-    if (isFuncBody) {
+    if (avoidSubStack) {
       return 0;
     }
     return scope.getSize();
