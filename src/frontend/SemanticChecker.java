@@ -560,8 +560,10 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       ExprNode caseExpr = visit(ctx.expr(i)).asExprNode();
 
       currSymbolTable = switchSymbolTable;
+      boolean permitJump = isJumpRepeated;
       StatNode caseNode = visit(ctx.stat(i - 1)).asStatNode();
       caseNode.setScope(currSymbolTable);
+      isJumpRepeated = permitJump;
       currSymbolTable = currSymbolTable.getParentSymbolTable();
 
       CaseStat caseStat = new CaseStat(caseExpr, caseNode);

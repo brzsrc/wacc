@@ -1,7 +1,14 @@
 #!/bin/bash
 
 VALID_EXAMPLES=(
-                 "/import"
+                 "/binOctHex"
+                 "/bitwiseOperation"
+                 "/do-while"
+                 "/for"
+                 "/import"  # OK
+                 "/jump"    # OK
+                 "/struct"
+                 "/switch"
                 )
 
 VALID_EXAMPLES_SRC_DIR="./src/test/custom/valid"
@@ -37,11 +44,16 @@ for folder in ${VALID_EXAMPLES[@]}; do
     ret2=$?
     echo "execution exit status" $ret2
 
-    if $ret1 == $ret2; then 
-      diff "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${EXECUTABLE_FILE_NAME}.log"
+    ## altomatically generate output .log file
+    mv "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
+
+    if [ "$ret1" -eq 0 ] && [ "$ret2" -eq 0 ]; then 
+    ## test if output is same as .log file
+    #   diff "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
+      (( COUNTER += 1 ))
     fi 
 
-    (( COUNTER += 1 ))
+    
     echo "$COUNTER / $(($TOTAL_COUNT)) files have been executed"
   done
 

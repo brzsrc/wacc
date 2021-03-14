@@ -1,0 +1,17 @@
+matrix multiplication result:
+1 0 0 
+0 1 0 
+0 0 1 
+k and i + j are equal now: k = 1, i + j = 1
+k and i + j are equal now: k = 2, i + j = 2
+k and i + j are equal now: k = 3, i + j = 3
+k and i + j are equal now: k = 3, i + j = 3
+k and i + j are equal now: k = 4, i + j = 4
+k and i + j are equal now: k = 5, i + j = 5
+k and i + j are equal now: k = 4, i + j = 4
+k and i + j are equal now: k = 5, i + j = 5
+k and i + j are equal now: k = 6, i + j = 6
+k and i + j are equal now: k = 7, i + j = 7
+The average is 31
+The mode is 41
+badab  
