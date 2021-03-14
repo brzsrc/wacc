@@ -1,0 +1,11 @@
+include List<int>
+
+begin
+  List<int> list = new List<int>();
+  int out = call add(list, 1);
+  out = call add(list, 2);
+  int first = call get(list, 0);
+  int second = call get(list, 1);
+  println first;
+  println second
+end

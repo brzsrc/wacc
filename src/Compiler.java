@@ -27,7 +27,7 @@ public class Compiler {
 
   private static Object OptimizationLevel;
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     // Processing command line input
     if (args.length < 1) {
       System.out.println("No file/path has been supplied! Please specifiy a wacc file to compile!");
@@ -38,7 +38,8 @@ public class Compiler {
     Collections.addAll(cmd_ops, Arrays.copyOf(args, args.length));
 
     // Creating the file instance for the .wacc file
-    File file = new File(args[0]);
+    String sourceFile = args[0];
+    File file = PreCompiler.preCompile(sourceFile);
 
     // System.out.println(file.getName());
     // try-with-resources so that fis can be closed properly even when error occurs
@@ -94,7 +95,7 @@ public class Compiler {
           ARMInstructionPrinter printer = new ARMInstructionPrinter(data, text, code,
               ARMInstructionPrinter.OptimizationLevel.NONE);
 
-          File asmFile = new File(file.getName().replaceFirst("[.][^.]+$", "") + ".s");
+          File asmFile = new File(sourceFile.replaceFirst("[.][^.]+$", "") + ".s");
 
           System.out.println("Assembly file created!");
           try (FileWriter asmWriter = new FileWriter(asmFile)) {
@@ -110,6 +111,8 @@ public class Compiler {
       System.out.println("ERROR in Compile.java: the given file '" + args[0] + "' is not found.");
     } catch (IOException e) {
       System.out.println("ERROR in Compile.java: IOException has been raised in Compile.java");
+    } finally {
+      file.delete();
     }
   }
 }
