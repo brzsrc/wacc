@@ -1,6 +1,7 @@
 package utils;
 
-import frontend.node.Node;
+import frontend.antlr.WACCParser.FuncContext;
+import frontend.antlr.WACCParser.ParamContext;
 import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
@@ -14,6 +15,7 @@ import frontend.type.Type;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -31,8 +33,8 @@ public class Utils {
    */
 
   /* Type classes to represent BasicType, ArrayType, and PairType, used in type comparisons throughout the SemanticChecker */
-  public static final Type INT_BASIC_TYPE = new BasicType(BasicTypeEnum.INTEGER);
-  public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOLEAN);
+  public static final Type INT_BASIC_TYPE = new BasicType(BasicTypeEnum.INT);
+  public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOL);
   public static final Type CHAR_BASIC_TYPE = new BasicType(BasicTypeEnum.CHAR);
   public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING);
   public static final Type ARRAY_TYPE = new ArrayType();
@@ -150,6 +152,9 @@ public class Utils {
   public static String FUNC_HEADER = "f_";
   public static String MAIN_BODY_NAME = "main";
 
+  /* for function overload, to avoid name collision with user defined func name */
+  public static String overloadSeparator = "_" + new Random().nextInt(100) + "_";
+
   /* adding a private constructor to override the default public constructor in order to
      indicate Utils class cannot be instantiated */
   private Utils() {
@@ -209,6 +214,23 @@ public class Utils {
 
   public static boolean isCharInRange(int intVal) {
     return intVal >= 0 && intVal < 128;
+  }
+
+  /* helper function for function overload: append the type texts of all params to the func name */
+  public static String findOverloadFuncName(FuncContext ctx) {
+    String overloadName = ctx.IDENT().getText();
+    if (ctx.param_list() != null) {
+      for (ParamContext p : ctx.param_list().param()) {
+        overloadName += (overloadSeparator + p.type().getText());
+      }
+    }
+    return formatFuncName(overloadName);
+  }
+
+  /* helper function for function overload: replace all invalid func name char with the underline */
+  public static String formatFuncName(String funcName) {
+    return funcName.replace(" ", "")
+        .replace("[]", overloadSeparator + "array").replaceAll("[(),]", overloadSeparator);
   }
 
   /* system call instruction */

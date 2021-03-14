@@ -358,7 +358,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     stackOffset = 0;
 
     /* 2 call function with B instruction */
-    instructions.add(new BL(FUNC_HEADER + node.getFunction().getFunctionName()));
+    String overloadName = node.getFunction().getOverloadName();
+    String actualFuncName = (overloadName != null) ? overloadName : node.getFunction().getFunctionName();
+    instructions.add(new BL(FUNC_HEADER + actualFuncName));
 
     /* 3 add back stack pointer */
     if (paramSize > 0) {
@@ -773,7 +775,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     /* 1 add function label,
      *   PUSH {lr}
      */
-    instructions.add(new Label(FUNC_HEADER + node.getFunctionName()));
+    String overloadName = node.getOverloadName();
+    String actualFuncName = (overloadName != null) ? overloadName : node.getFunctionName();
+    instructions.add(new Label(FUNC_HEADER + actualFuncName));
     instructions.add(new Push(Collections.singletonList(LR)));
 
     /* 2 decrease stack, leave space for variable in function body

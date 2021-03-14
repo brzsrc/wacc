@@ -30,7 +30,7 @@ public class BasicType implements Type {
 
   @Override
   public String toString() {
-    return basicTypeEnum.toString();
+    return basicTypeEnum.toString().toLowerCase();
   }
 
   @Override
@@ -42,9 +42,9 @@ public class BasicType implements Type {
   public int getSize() {
     switch (basicTypeEnum) {
       case CHAR:
-      case BOOLEAN:
+      case BOOL:
         return BYTE_SIZE;
-      case INTEGER:
+      case INT:
         return WORD_SIZE;
       case STRING:
         return POINTER_SIZE;

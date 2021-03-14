@@ -1,10 +1,6 @@
 package frontend.type;
 
-import frontend.node.expr.ExprNode;
-
-import static utils.Utils.*;
-
-import java.util.Objects;
+import static utils.Utils.POINTER_SIZE;
 
 public class PairType implements Type {
 
@@ -64,7 +60,12 @@ public class PairType implements Type {
 
   @Override
   public String toString() {
-    return "Pair<" + fstType + ", " + sndType + ">";
+    if (fstType == null || sndType == null) {
+      return "null";
+    }
+    String fst = (fstType instanceof PairType) ? "pair" : fstType.toString();
+    String snd = (sndType instanceof PairType) ? "pair" : sndType.toString();
+    return "pair(" + fst + ", " + snd + ")";
   }
 
   @Override

@@ -37,8 +37,8 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import utils.NodeVisitor;
 import utils.frontend.ParserErrorHandler;
+
 import utils.frontend.symbolTable.Symbol;
 import utils.frontend.symbolTable.SymbolTable;
 
@@ -90,6 +90,10 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   /* record all files that have been imported */
   private Set<String> allImportCollection = new HashSet<>();
+
+  /* for function overload */
+  private Set<String> overloadFuncNames = new HashSet<>();
+
 
   /* constructor of SemanticChecker */
   public SemanticChecker(Set<String> libraryCollection) {
@@ -163,9 +167,24 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       globalStructTable.replace(s.IDENT().getText(), node);
     }
 
+    /* check function overload */
+    Set<String> tempStore = new HashSet<>();
+    for (FuncContext f : ctx.func()) {
+      String funcName = f.IDENT().getText();
+      if (tempStore.contains(funcName)) {
+        overloadFuncNames.add(funcName);
+      }
+      tempStore.add(funcName);
+    }
+
     /* add the identifiers and parameter list of functions in the globalFuncTable first */
     for (FuncContext f : ctx.func()) {
       String funcName = f.IDENT().getText();
+
+      /* if the func name is overloading, append the types of all param */
+      if (overloadFuncNames.contains(funcName)) {
+        funcName = findOverloadFuncName(f);
+      }
 
       /* check if the function is defined already */
       if (globalFuncTable.containsKey(funcName)) {
@@ -186,12 +205,23 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
         }
       }
 
-      globalFuncTable.put(funcName, new FuncNode(funcName, returnType, param_list));
+      /* store the text func name because ASTPrinter need to use it */
+      FuncNode node = new FuncNode(f.IDENT().getText(), returnType, param_list);
+
+      /* store the overload func name as well if necessary */
+      if (!funcName.equals(f.IDENT().getText())) {
+        node.setOverloadName(funcName);
+      }
+
+      globalFuncTable.put(funcName, node);
     }
 
     /* then iterate through a list of function declarations to visit the function body */
     for (FuncContext f : ctx.func()) {
       String funcName = f.IDENT().getText();
+      if (overloadFuncNames.contains(funcName)) {
+        funcName = findOverloadFuncName(f);
+      }
 
       StatNode functionBody = visitFunc(f).asStatNode();
 
@@ -319,8 +349,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitFunc(FuncContext ctx) {
-
-    FuncNode funcNode = globalFuncTable.get(ctx.IDENT().getText());
+    String funcName = ctx.IDENT().getText();
+    if (overloadFuncNames.contains(funcName)) {
+      funcName = findOverloadFuncName(ctx);
+    }
+    FuncNode funcNode = globalFuncTable.get(funcName);
 
     /* visit the function body */
     expectedFunctionReturn = funcNode.getReturnType();
@@ -949,10 +982,23 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   @Override
   public Node visitFunctionCall(FunctionCallContext ctx) {
     String funcName = ctx.IDENT().getText();
+
+    if (overloadFuncNames.contains(funcName)) {
+      if (ctx.arg_list() != null) {
+        for (ExprContext e : ctx.arg_list().expr()) {
+          funcName += (overloadSeparator + visit(e).asExprNode().getType().toString());
+        }
+      }
+      funcName = formatFuncName(funcName);
+    }
+
     FuncNode function = globalFuncTable.get(funcName);
-    if (function == null) {
+    if (function == null && (funcName.contains("null")) || funcName.contains("empty")) {
+      overloadUnclearTypeError(ctx);
+    } else if (function == null) {
       symbolNotFound(ctx, funcName);
     }
+
     List<ExprNode> params = new ArrayList<>();
 
     /* check whether function has same number of parameter */

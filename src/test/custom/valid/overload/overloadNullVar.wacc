@@ -1,0 +1,13 @@
+# Output:
+# 1
+
+# Program:
+
+begin
+  int foo(pair(bool, bool) b) is return 1 end
+  int foo(pair(int, int) a) is return 1 end
+
+  pair(int, int) x = null;
+  int y = call foo(x);
+  println y
+end
