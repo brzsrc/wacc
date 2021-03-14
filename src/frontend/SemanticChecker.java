@@ -215,23 +215,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     return new StructDeclareNode(elements, ctx.IDENT().getText());
   }
 
-  /* helper function: append the type texts of all params to the func name */
-  private String findOverloadFuncName(FuncContext ctx) {
-    String overloadName = ctx.IDENT().getText();
-    if (ctx.param_list() != null) {
-      for (ParamContext p : ctx.param_list().param()) {
-        overloadName += (overloadSeparator + p.type().getText());
-      }
-    }
-    return formatFuncName(overloadName);
-  }
-
-  /* helper function: replace all invalid func name char with the underline */
-  private String formatFuncName(String funcName) {
-    return funcName.replace(" ", "")
-        .replace("[]", overloadSeparator + "array").replaceAll("[(),]", overloadSeparator);
-  }
-
   @Override
   public Node visitFunc(FuncContext ctx) {
     String funcName = ctx.IDENT().getText();

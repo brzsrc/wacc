@@ -1,5 +1,7 @@
 package utils;
 
+import frontend.antlr.WACCParser.FuncContext;
+import frontend.antlr.WACCParser.ParamContext;
 import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
@@ -210,6 +212,23 @@ public class Utils {
 
   public static boolean isCharInRange(int intVal) {
     return intVal >= 0 && intVal < 128;
+  }
+
+  /* helper function for function overload: append the type texts of all params to the func name */
+  public static String findOverloadFuncName(FuncContext ctx) {
+    String overloadName = ctx.IDENT().getText();
+    if (ctx.param_list() != null) {
+      for (ParamContext p : ctx.param_list().param()) {
+        overloadName += (overloadSeparator + p.type().getText());
+      }
+    }
+    return formatFuncName(overloadName);
+  }
+
+  /* helper function for function overload: replace all invalid func name char with the underline */
+  public static String formatFuncName(String funcName) {
+    return funcName.replace(" ", "")
+        .replace("[]", overloadSeparator + "array").replaceAll("[(),]", overloadSeparator);
   }
 
   /* system call instruction */
