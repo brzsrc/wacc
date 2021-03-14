@@ -135,6 +135,12 @@ public class SemanticErrorHandler {
     System.exit(SEMANTIC_ERROR_CODE);
   }
 
+  public static void overloadUnclearTypeError(ParserRuleContext ctx) {
+    String msg = "null or empty could break function overload";
+    errorHandler(ctx, msg);
+    System.exit(SEMANTIC_ERROR_CODE);
+  }
+
   /* private common handler of all types of errors */
   private static void errorHandler(ParserRuleContext ctx, String msg) {
     int lineNum;

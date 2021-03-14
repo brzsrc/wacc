@@ -1,0 +1,11 @@
+# Output:
+# #semantic error#
+
+# Program:
+
+begin
+  int foo(pair(bool, bool) b) is return 1 end
+  int foo(pair(int, int) a) is return 1 end
+
+  int x = call foo(null)
+end

@@ -13,6 +13,7 @@ import frontend.type.Type;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -146,6 +147,9 @@ public class Utils {
   public static String MSG_HEADER = "msg_";
   public static String FUNC_HEADER = "f_";
   public static String MAIN_BODY_NAME = "main";
+
+  /* for function overload, to avoid name collision with user defined func name */
+  public static String overloadSeparator = "_" + new Random().nextInt(100) + "_";
 
   /* adding a private constructor to override the default public constructor in order to
      indicate Utils class cannot be instantiated */

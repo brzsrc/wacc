@@ -60,7 +60,12 @@ public class PairType implements Type {
 
   @Override
   public String toString() {
-    return "pair(" + fstType + ", " + sndType + ")";
+    if (fstType == null || sndType == null) {
+      return "null";
+    }
+    String fst = (fstType instanceof PairType) ? "pair" : fstType.toString();
+    String snd = (sndType instanceof PairType) ? "pair" : sndType.toString();
+    return "pair(" + fst + ", " + snd + ")";
   }
 
   @Override

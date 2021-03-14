@@ -25,6 +25,7 @@ import frontend.node.expr.UnopNode.Unop;
 import frontend.type.*;
 import java.util.Set;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import utils.Utils;
 import utils.frontend.symbolTable.Symbol;
 import utils.frontend.symbolTable.SymbolTable;
 
@@ -68,7 +69,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   private StatNode currForLoopIncrementContinue;
 
   /* for function overload */
-  Set<String> overloadFuncNames = new HashSet<>();
+  private Set<String> overloadFuncNames = new HashSet<>();
 
   /* constructor of SemanticChecker */
   public SemanticChecker() {
@@ -219,7 +220,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     String overloadName = ctx.IDENT().getText();
     if (ctx.param_list() != null) {
       for (ParamContext p : ctx.param_list().param()) {
-        overloadName += ("_" + p.type().getText());
+        overloadName += (overloadSeparator + p.type().getText());
       }
     }
     return formatFuncName(overloadName);
@@ -228,7 +229,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* helper function: replace all invalid func name char with the underline */
   private String formatFuncName(String funcName) {
     return funcName.replace(" ", "")
-        .replace("[]", "_array").replaceAll("[(),]", "_");
+        .replace("[]", overloadSeparator + "array").replaceAll("[(),]", overloadSeparator);
   }
 
   @Override
@@ -842,7 +843,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (overloadFuncNames.contains(funcName)) {
       if (ctx.arg_list() != null) {
         for (ExprContext e : ctx.arg_list().expr()) {
-          funcName += ("_" + visit(e).asExprNode().getType().toString());
+          funcName += (overloadSeparator + visit(e).asExprNode().getType().toString());
         }
       }
       funcName = formatFuncName(funcName);
@@ -850,7 +851,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     FuncNode function = globalFuncTable.get(funcName);
     if (function == null && (funcName.contains("null")) || funcName.contains("empty")) {
-      /* null or empty could break function overload */
+      overloadUnclearTypeError(ctx);
     } else if (function == null) {
       symbolNotFound(ctx, funcName);
     }

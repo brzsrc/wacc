@@ -10,8 +10,8 @@ begin
 
   pair(int, int) p1 = newpair(1,2);
   pair(pair, pair) p2 = newpair(p1, null);
-  int x = foo(p1);
-  int y = foo(p2);
+  int x = call foo(p1);
+  int y = call foo(p2);
   println x;
   println y
 end
