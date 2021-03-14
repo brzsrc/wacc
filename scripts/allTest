@@ -8,3 +8,5 @@
 ./scripts/semanticCheckerSemanticErr
 ./scripts/assembleTest.sh
 ./scripts/executeTest.sh
+./scripts/constantPropagation.sh 
+./scripts/extensionValidTest.sh

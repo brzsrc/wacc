@@ -328,12 +328,13 @@ public class ASTPrinter implements NodeVisitor<Void> {
       /* body */
       leadingSpace += INDENT_SIZE;
       visit(node.getBody());
+      leadingSpace -= INDENT_SIZE;
 
+      appendLeadingSpace();
       System.out.print("while ");
       visit(node.getCond());
       System.out.println(" :");
 
-      leadingSpace -= INDENT_SIZE;
     } else {
       System.out.print("while ");
       visit(node.getCond());
@@ -384,10 +385,16 @@ public class ASTPrinter implements NodeVisitor<Void> {
     /* for 3 expressions : */
     appendLeadingSpace();
     System.out.print("for ");
+
+    leadingSpace += INDENT_SIZE;
     visit(node.getInit());
+    appendLeadingSpace();
     visit(node.getCond());
     visit(node.getIncrement());
-    System.out.println(" :");
+    leadingSpace -= INDENT_SIZE;
+
+    appendLeadingSpace();
+    System.out.println(":");
 
     /* body */
     leadingSpace += INDENT_SIZE;
@@ -406,15 +413,18 @@ public class ASTPrinter implements NodeVisitor<Void> {
   public Void visitSwitchNode(SwitchNode node) {
     /* switch statement */
     appendLeadingSpace();
-    System.out.println("switch ");
-    System.out.println(node.getExpr());
+    System.out.print("switch ");
+    visit(node.getExpr());
+    System.out.println();
 
     /* switch body */
     leadingSpace += INDENT_SIZE;
 
     for (CaseStat c : node.getCases()) {
-      System.out.println("case ");
+      appendLeadingSpace();
+      System.out.print("case ");
       visit(c.getExpr());
+      System.out.println();
 
       /* case body */
       leadingSpace += INDENT_SIZE;
@@ -422,9 +432,12 @@ public class ASTPrinter implements NodeVisitor<Void> {
       leadingSpace -= INDENT_SIZE;
     }
 
+    appendLeadingSpace();
+    System.out.println("default");
+    leadingSpace += INDENT_SIZE;
     visit(node.getDefault());
 
-    leadingSpace -= INDENT_SIZE;
+    leadingSpace -= 2 * INDENT_SIZE;
 
     return null;
   }

@@ -684,13 +684,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 1 leave space for variables in stack */
     int stackSize = node.getStackSize();
-    int temp = stackSize;
-    while (temp > 0) {
-      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
-      instructions.add(new Sub(SP, SP,
-          new Operand2(realStackSize)));
-      temp = temp - realStackSize;
-    }
+    decStack(stackSize);
 
     /* accumulate function stack size, in case this scope is a function scope and contain return */
     funcStackSize += stackSize;
@@ -709,13 +703,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     loopStackSize -= stackSize;
 
     /* 3 restore stack */
-    temp = stackSize;
-    while (temp > 0) {
-      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
-      instructions.add(new Add(SP, SP,
-          new Operand2(realStackSize)));
-      temp = temp - realStackSize;
-    }
+    incStack(stackSize);
 
     return null;
   }
@@ -872,15 +860,9 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
   public Void visitForNode(ForNode node) {
     /* 1 translate the initiator of the for-loop */
     currSymbolTable = node.getIncrement().getScope();
-    /* TODO: better code quality here */
     int stackSize = currSymbolTable.getSize();
-    int temp = stackSize;
-    while (temp > 0) {
-      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
-      instructions.add(new Sub(SP, SP,
-          new Operand2(realStackSize)));
-      temp = temp - realStackSize;
-    }
+    decStack(stackSize);
+
     visit(node.getInit());
 
     /* 2 create labels and translate for for-loop body */
@@ -888,11 +870,6 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     Label condLabel = branchLabelGenerator.getLabel();
     Label nextLabel = branchLabelGenerator.getLabel();
     Label incrementLabel = branchLabelGenerator.getLabel();
-
-    System.out.println("bodyLabel: " + bodyLabel.assemble());
-    System.out.println("condLabel: " + condLabel.assemble());
-    System.out.println("nextLabel: " + nextLabel.assemble());
-    System.out.println("incrementLabel: " + incrementLabel.assemble());
 
     /* restore the last jump-to label after visiting the for-loop body */
     Label lastBreakJumpToLabel = currBreakJumpToLabel;
@@ -923,16 +900,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
 
     /* 3 add label for condition checking */
     instructions.add(condLabel);
-    // currSymbolTable = node.getIncrement().getScope();
-    // /* TODO: better code quality here */
-    // int stackSize = currSymbolTable.getSize();
-    // int temp = stackSize;
-    // while (temp > 0) {
-    //   int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
-    //   instructions.add(new Sub(SP, SP,
-    //       new Operand2(realStackSize)));
-    //   temp = temp - realStackSize;
-    // }
+
     currSymbolTable = node.getIncrement().getScope();
     visit(node.getCond());
 
@@ -947,14 +915,7 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     
     /* loop varient's stack clearing should be after next label, 
        so that BREAK can add back stack used by varients */
-    temp = stackSize;
-    while (temp > 0) {
-      int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
-      instructions.add(new Add(SP, SP,
-          new Operand2(realStackSize)));
-      temp = temp - realStackSize;
-    }
-
+    incStack(stackSize);
 
     return null;
   }
@@ -964,25 +925,12 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     List<Instruction> addStack = new ArrayList<>();
     /* this snippet is to deal with for-loop stack difference */
     if (!node.getJumpType().equals(JumpType.BREAK) || !node.getJumpContext().equals(JumpContext.SWITCH)) {
-      int temp = loopStackSize;
-      while (temp > 0) {
-        int realStackSize = temp / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : temp;
-        addStack.add(new Add(SP, SP,
-            new Operand2(realStackSize)));
-        temp = temp - realStackSize;
-      }
+      incStack(loopStackSize);
     }
 
-    instructions.addAll(addStack);
-    
     if (node.getJumpType().equals(JumpType.BREAK)) {
-      // if (addStack != null) instructions.addAll(addStack);
       instructions.add(new B(NULL, currBreakJumpToLabel.getName()));
     } else if (node.getJumpType().equals(JumpType.CONTINUE)) {
-      /* this snippet is to deal with the for-loop increment */
-      // StatNode increment = node.getForIncrement();
-      // if (increment != null) visit(increment);
-      // if (addStack != null) instructions.addAll(addStack);
       instructions.add(new B(NULL, currContinueJumpToLabel.getName()));
     }
 
@@ -1026,6 +974,24 @@ public class ARMInstructionGenerator implements NodeVisitor<Void> {
     instructions.add(afterLabel);
 
     return null;
+  }
+
+  private void incStack(int stackSize) {
+    while (stackSize > 0) {
+      int realStackSize = stackSize / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : stackSize;
+      instructions.add(new Add(SP, SP,
+              new Operand2(realStackSize)));
+      stackSize = stackSize - realStackSize;
+    }
+  }
+
+  private void decStack(int stackSize) {
+    while (stackSize > 0) {
+      int realStackSize = stackSize / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : stackSize;
+      instructions.add(new Sub(SP, SP,
+              new Operand2(realStackSize)));
+      stackSize = stackSize - realStackSize;
+    }
   }
 
 }

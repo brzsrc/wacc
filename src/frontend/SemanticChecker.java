@@ -566,7 +566,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (!isContinueAllowed.peek()) {
       branchStatementPositionError(ctx, JumpType.CONTINUE);
     }
-    StatNode continueNode = new JumpNode(JumpType.CONTINUE, currForLoopIncrementContinue.peek(), jumpContext.peek());
+    StatNode continueNode = new JumpNode(JumpType.CONTINUE, null, jumpContext.peek());
     continueNode.setScope(currSymbolTable);
     isJumpRepeated.pop();
     isJumpRepeated.push(true);
