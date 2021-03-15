@@ -38,8 +38,8 @@ public class Compiler {
     Collections.addAll(cmd_ops, Arrays.copyOf(args, args.length));
 
     // Creating the file instance for the .wacc file
-    String sourceFile = args[0];
-    File file = PreCompiler.preCompile(sourceFile);
+    File sourceFile = new File(args[0]);
+    File file = PreCompiler.preCompile(args[0]);
 
     // System.out.println(file.getName());
     // try-with-resources so that fis can be closed properly even when error occurs
@@ -95,7 +95,8 @@ public class Compiler {
           ARMInstructionPrinter printer = new ARMInstructionPrinter(data, text, code,
               ARMInstructionPrinter.OptimizationLevel.NONE);
 
-          File asmFile = new File(sourceFile.replaceFirst("[.][^.]+$", "") + ".s");
+          
+          File asmFile = new File(sourceFile.getName().replaceFirst("[.][^.]+$", "") + ".s");
 
           System.out.println("Assembly file created!");
           try (FileWriter asmWriter = new FileWriter(asmFile)) {
