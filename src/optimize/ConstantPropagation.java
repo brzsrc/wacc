@@ -348,9 +348,6 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     StatNode body = visit(node.getBody()).asStatNode();
     identValMap = mergedEndMap;
 
-    System.out.print("end of while loop"); 
-    showIdMap();
-
     /* 4 restore mapList */
     loopStartMapList = oldLoopStartMapList;
     breakMapList = oldBreakMapList;
