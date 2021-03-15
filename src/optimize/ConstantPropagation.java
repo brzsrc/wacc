@@ -288,11 +288,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitScopeNode(ScopeNode node) {
-    List<StatNode> body = new ArrayList<>();
-    for (StatNode statNode : node.getBody()) {
-      body.add(visit(statNode).asStatNode());
-    }
-    return new ScopeNode(node, body);
+    return node;
   }
 
   @Override
@@ -416,18 +412,12 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   @Override
   public Node visitStructNode(StructNode node) {
     // todo: support constant propagation on struct, same difficulty as array, pair
-
-    List<ExprNode> simplifiedInitVals = new ArrayList<>();
-    for (ExprNode elem : node.getAllElem()) {
-      simplifiedInitVals.add(visit(elem).asExprNode());
-    }
-    return new StructNode(simplifiedInitVals, node.getAllOffsets(), node.getSize(), node.getName());
+    return node;
   }
 
   @Override
   public Node visitStructDeclareNode(StructDeclareNode node) {
     // todo: support constant propagation on struct, same difficulty as array, pair
-
     return node;
   }
 
