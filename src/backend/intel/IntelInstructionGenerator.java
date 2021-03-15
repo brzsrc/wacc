@@ -111,9 +111,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   public Void visitArrayElemNode(ArrayElemNode node) {
     /* get the address of this array and store it in an available register */
     IntelConcreteRegister addrReg = intelRegAllocator.allocate();
-    int offset = currSymbolTable.getSize()
-        - currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
-        + stackOffset;
+    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) - stackOffset + currSymbolTable.getSize();
     instructions.add(new Mov(new IntelAddress(rbp, -offset), addrReg));
 
     IntelConcreteRegister indexReg;
@@ -193,15 +191,12 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       visit(expr1);
       e2reg = intelRegAllocator.last();
       e1reg = intelRegAllocator.curr();
-      Register temp = intelRegAllocator.allocate();
-      instructions.add(new Mov(e1reg, temp));
-      instructions.add(new Mov(e2reg, e1reg));
-      instructions.add(new Mov(temp, e2reg));
-      intelRegAllocator.free();
+
       instructions.addAll(IntelArithmeticLogic.intelBinopAsm
-          .binopAssemble(e2reg.asIntelRegister().withSize(size),
-              e1reg.asIntelRegister().withSize(size), null, operator)
+          .binopAssemble(e1reg.asIntelRegister().withSize(size),
+              e2reg.asIntelRegister().withSize(size), null, operator)
           .stream().map(i -> (IntelInstruction) i).collect(Collectors.toList()));
+      instructions.add(new Mov(e1reg, e2reg));
     }
 
     if (operator.equals(Binop.DIV)) {
@@ -211,7 +206,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     }
 
     if (expr1.getWeight() < expr2.getWeight()) {
-      instructions.add(new Mov(e2reg, e1reg));
+      instructions.add(new Mov(e1reg, e2reg));
     }
     intelRegAllocator.free();
 
@@ -244,15 +239,13 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int identTypeSize = node.getType().getSize();
 
     /* put pointer that point to ident's value in stack to next available register */
-    int offset = currSymbolTable.getSize()
-        - currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
-        + stackOffset;
+    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) - stackOffset + currSymbolTable.getSize();
 
     /* TODO: add Intel move type */
 
     /* if is lhs, then only put address in register */
     if (isLhs) {
-      instructions.add(new Lea(new IntelAddress(-offset), intelRegAllocator.allocate()));
+      instructions.add(new Lea(new IntelAddress(rbp, -offset), intelRegAllocator.allocate()));
     } else {
       /* otherwise, put value in register */
       instructions.add(new Mov(new IntelAddress(rbp, -offset), intelRegAllocator.allocate()));
@@ -286,7 +279,9 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     dataSection.put(msgLabel, str);
     biDataSection.put(str, msgLabel);
 
-    instructions.add(new Lea(new IntelAddress(rip, msgLabel), intelRegAllocator.curr()));
+    IntelConcreteRegister reg = intelRegAllocator.allocate();
+
+    instructions.add(new Lea(new IntelAddress(rip, msgLabel), reg));
     return null;
   }
 
@@ -314,9 +309,11 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     visit(node.getLhs());
     isLhs = false;
 
+    int size = node.getLhs().getType().getSize();
+
     IntelConcreteRegister reg = intelRegAllocator.last();
     /* TODO: add intel mov type here */
-    instructions.add(new Mov(reg, new IntelAddress(intelRegAllocator.curr())));
+    instructions.add(new Mov(reg.withSize(intToIntelSize.get(size)), new IntelAddress(intelRegAllocator.curr())));
     intelRegAllocator.free();
     intelRegAllocator.free();
     return null;
@@ -328,10 +325,9 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int identTypeSize = node.getRhs().getType().getSize();
     /* TODO: add intel move type here */
 
-    int offset = currSymbolTable.getSize() -
-        node.getScope().lookup(node.getIdentifier()).getStackOffset();
+    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset() + currSymbolTable.getSize();
 
-    instructions.add(new Mov(intelRegAllocator.curr(), new IntelAddress(rbp, -offset)));
+    instructions.add(new Mov(intelRegAllocator.curr().withSize(intToIntelSize.get(identTypeSize)), new IntelAddress(rbp, -offset)));
     intelRegAllocator.free();
     return null;
   }
