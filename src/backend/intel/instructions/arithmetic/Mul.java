@@ -5,9 +5,9 @@ import utils.backend.register.Register;
 
 public class Mul extends IntelArithmeticLogic {
 
-  protected Mul(Register rd,
-      Register rn) {
-    super(rd, rn);
+  protected Mul(Register rn,
+      Register rd) {
+    super(rn, rd);
   }
 
   @Override

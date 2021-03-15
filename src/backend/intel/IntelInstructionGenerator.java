@@ -173,27 +173,36 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     ExprNode expr2 = node.getExpr2();
     Register e1reg, e2reg;
 
+    Binop operator = node.getOperator();
+    Type type = expr1.getType();
+    IntelInstructionSize size = intToIntelSize.get(type.getSize());
+
     /* potential optimise here */
     if (expr1.getWeight() >= expr2.getWeight()) {
       visit(expr1);
       visit(expr2);
       e2reg = intelRegAllocator.curr();
       e1reg = intelRegAllocator.last();
+
+      instructions.addAll(IntelArithmeticLogic.intelBinopAsm
+          .binopAssemble(e1reg.asIntelRegister().withSize(size),
+              e2reg.asIntelRegister().withSize(size), null, operator)
+          .stream().map(i -> (IntelInstruction) i).collect(Collectors.toList()));
     } else {
       visit(expr2);
       visit(expr1);
       e2reg = intelRegAllocator.last();
       e1reg = intelRegAllocator.curr();
+      Register temp = intelRegAllocator.allocate();
+      instructions.add(new Mov(e1reg, temp));
+      instructions.add(new Mov(e2reg, e1reg));
+      instructions.add(new Mov(temp, e2reg));
+      intelRegAllocator.free();
+      instructions.addAll(IntelArithmeticLogic.intelBinopAsm
+          .binopAssemble(e2reg.asIntelRegister().withSize(size),
+              e1reg.asIntelRegister().withSize(size), null, operator)
+          .stream().map(i -> (IntelInstruction) i).collect(Collectors.toList()));
     }
-
-    Binop operator = node.getOperator();
-    Type type = expr1.getType();
-    IntelInstructionSize size = intToIntelSize.get(type.getSize());
-
-    instructions.addAll(IntelArithmeticLogic.intelBinopAsm
-         .binopAssemble(e2reg.asIntelRegister().withSize(size),
-                        e1reg.asIntelRegister().withSize(size), null, operator)
-         .stream().map(i -> (IntelInstruction) i).collect(Collectors.toList()));
 
     if (operator.equals(Binop.DIV)) {
       instructions.add(new Mov(rax.withSize(IntelInstructionSize.L), e1reg.asIntelRegister().withSize(IntelInstructionSize.L)));

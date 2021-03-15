@@ -11,8 +11,8 @@ import utils.backend.register.intel.IntelConcreteRegisterAllocator;
 
 public class Add extends IntelArithmeticLogic {
 
-  public Add(Register rd, Register rn) {
-    super(rd, rn);
+  public Add(Register rn, Register rd) {
+    super(rn, rd);
   }
 
   public Add(int i, IntelInstructionSize size, Register Rd) {

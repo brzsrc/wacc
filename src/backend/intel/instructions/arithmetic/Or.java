@@ -5,9 +5,9 @@ import utils.backend.register.Register;
 
 public class Or extends IntelArithmeticLogic {
 
-  protected Or(Register rd,
-      Register rn) {
-    super(rd, rn);
+  protected Or(Register rn,
+      Register rd) {
+    super(rn, rd);
   }
 
   @Override

@@ -6,9 +6,9 @@ import utils.backend.register.Register;
 
 public class Xor extends IntelArithmeticLogic {
 
-  protected Xor(Register rd,
-      Register rn) {
-    super(rd, rn);
+  protected Xor(Register rn,
+      Register rd) {
+    super(rn, rd);
   }
 
   protected Xor(int val, IntelInstructionSize size, Register r) {

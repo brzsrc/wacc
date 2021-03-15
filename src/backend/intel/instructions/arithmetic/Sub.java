@@ -7,9 +7,9 @@ import utils.backend.register.Register;
 
 public class Sub extends IntelArithmeticLogic {
 
-  public Sub(Register rd,
-      Register rn) {
-    super(rd, rn);
+  public Sub(Register rn,
+      Register rd) {
+    super(rn, rd);
   }
 
   public Sub(int val, IntelInstructionSize size, Register rd) {

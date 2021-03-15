@@ -6,9 +6,9 @@ import utils.backend.register.Register;
 
 public class And extends IntelArithmeticLogic {
 
-  protected And(Register rd,
-      Register rn) {
-    super(rd, rn);
+  protected And(Register rn,
+      Register rd) {
+    super(rn, rd);
   }
 
   @Override

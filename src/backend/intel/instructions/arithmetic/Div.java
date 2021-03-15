@@ -7,7 +7,7 @@ import utils.backend.register.Register;
 public class Div extends IntelArithmeticLogic {
 
   protected Div(Register rd) {
-    super(rd, null);
+    super(null, rd);
   }
 
   @Override
