@@ -67,7 +67,7 @@ test-optimise:
   stage: optimise-test
   script:
     - echo "compile oprimise sample tests and conpair with given .log result file"
-    - ./scripts/constantPropagate
+    - ./scripts/constantPropagation
     - ./scripts/extensionValidTest
   artifacts:
     paths:

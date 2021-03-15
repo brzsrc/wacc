@@ -159,15 +159,17 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
     /* constant propagation:
     *  add new entry into map */
-    if ((node.getLhs() instanceof IdentNode) && exprNode.isImmediate()) {
+    if (node.getLhs() instanceof IdentNode) {
       Symbol lhsSymbol = ((IdentNode) node.getLhs()).getSymbol();
       /* remove prev map of symbol
          and all other symbol that depend on prev value of this updated SYMBOL */
       removeSymbol(lhsSymbol);
 
-      /* add in updated value */
-      identValMap.put(lhsSymbol, exprNode);
-      addDependent(lhsSymbol, dependentList);
+      if (exprNode.isImmediate()) {
+        /* add in updated value */
+        identValMap.put(lhsSymbol, exprNode);
+        addDependent(lhsSymbol, dependentList);
+      }
     }
     return resultNode;
   }
@@ -240,7 +242,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     StatNode ifBody = visit(node.getIfBody()).asStatNode();
     Map<Symbol, ExprNode> ifIdMap = new HashMap<>(identValMap);
 
-    /* 3 visit while body */
+    /* 3 visit else body */
     identValMap = oldMap;
     StatNode elseBody = visit(node.getElseBody()).asStatNode();
 
@@ -451,8 +453,6 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     mergeIdMap(breakMapList);
     Map<Symbol, ExprNode> mergedEndMap = new HashMap<>(identValMap);
     identValMap = mergedStartMap;
-
-    showIdMap();
 
     /* 3 visit again using map after getting the intersection */
     ExprNode cond = visit(node.getCond()).asExprNode();

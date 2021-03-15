@@ -64,9 +64,6 @@ public class Compiler {
 
         int optimise_cmd_index = cmd_ops.indexOf("--optimise");
 
-        for (String cmd : cmd_ops) {
-          System.out.println(cmd);
-        }
         if (optimise_cmd_index != 0) {
           String optimise_level = cmd_ops.get(optimise_cmd_index + 1);
           switch (optimise_level) {
