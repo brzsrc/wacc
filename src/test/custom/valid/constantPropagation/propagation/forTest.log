@@ -1,3 +1,4 @@
+optimising using const propagate
 {scope
   INTEGER a0 = 0
   INTEGER b0 = 0

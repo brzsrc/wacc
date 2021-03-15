@@ -35,6 +35,8 @@ for folder in ${VALID_EXAMPLES[@]}; do
     EXECUTABLE_OUTPUT_FILE="${EXECUTE_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
     echo $file
     ./compile $file 2> "${EXECUTABLE_FILE_NAME}.log.txt"
+    echo "${EXECUTABLE_FILE_NAME}.s"
+    echo "${FILE_NAME}.s"
     mv "${FILE_NAME}.s" "${EXECUTABLE_FILE_NAME}.s"
 
     arm-linux-gnueabi-gcc -o $EXECUTABLE_OUTPUT_FILE -mcpu=arm1176jzf-s -mtune=arm1176jzf-s "${EXECUTABLE_FILE_NAME}.s" > "${EXECUTABLE_OUTPUT_FILE}.log.txt"
