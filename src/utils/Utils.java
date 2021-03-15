@@ -74,6 +74,12 @@ public class Utils {
       "/", Binop.DIV,
       "%", Binop.MOD
   );
+
+  public static final Map<String, Binop> bitwiseOpEnumMapping = Map.of(
+      "|", Binop.OR,
+      "&", Binop.AND
+  );
+
   public static final Map<String, Binop> EqEnumMapping = Map.of(
       "==", Binop.EQUAL,
       "!=", Binop.INEQUAL
