@@ -210,7 +210,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     List<Symbol> childSymbols = dependentMap.get(symbol);
 
     dependentMap.remove(symbol);
-    if (dependentMap.containsKey(symbol)) {
+    if (childSymbols != null) {
       for (Symbol child : childSymbols) {
         removeSymbol(child);
       }
@@ -220,9 +220,11 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   /* add lhsSymbol as symbol that depend on each rhsSymbols */
   private void addDependent(Symbol lhsSymbol, List<Symbol> rhsSymbols) {
     for (Symbol rhsSymbol : rhsSymbols) {
-      if (dependentMap.containsKey(rhsSymbol)) {
-        dependentMap.get(rhsSymbol).add(lhsSymbol);
-      }
+      if (!dependentMap.containsKey(rhsSymbol)) {
+        /* haven't add any variable depend on the LHS SYMBOL, create a new content */
+        dependentMap.put(rhsSymbol, new ArrayList<>());
+      }        
+      dependentMap.get(rhsSymbol).add(lhsSymbol);
     }
   }
 
@@ -345,6 +347,9 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     ExprNode cond = visit(node.getCond()).asExprNode();
     StatNode body = visit(node.getBody()).asStatNode();
     identValMap = mergedEndMap;
+
+    System.out.print("end of while loop"); 
+    showIdMap();
 
     /* 4 restore mapList */
     loopStartMapList = oldLoopStartMapList;
