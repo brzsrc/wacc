@@ -153,24 +153,34 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   @Override
   public Node visitAssignNode(AssignNode node) {
     dependentList = new ArrayList<>();
-    ExprNode exprNode = visit(node.getRhs()).asExprNode();
-    AssignNode resultNode = new AssignNode(node.getLhs(), exprNode);
-    resultNode.setScope(node.getScope());
-
-    /* constant propagation:
-    *  add new entry into map */
+    ExprNode exprNode;
+    
+    /* if lhs is IDENT, delete it first, 
+     * so that if lhs IDENT is contained in right hand side, 
+           and if assign is in loop, 
+           this assign could update value of IDENT from last iterate */
     if (node.getLhs() instanceof IdentNode) {
       Symbol lhsSymbol = ((IdentNode) node.getLhs()).getSymbol();
       /* remove prev map of symbol
          and all other symbol that depend on prev value of this updated SYMBOL */
       removeSymbol(lhsSymbol);
 
+      exprNode = visit(node.getRhs()).asExprNode();
+
       if (exprNode.isImmediate()) {
         /* add in updated value */
         identValMap.put(lhsSymbol, exprNode);
         addDependent(lhsSymbol, dependentList);
       }
+
+    /* else, lhs cannot be added into dependMap or identMap, 
+       simply simplified rhs */
+    } else {
+      exprNode = visit(node.getRhs()).asExprNode();
     }
+    
+    AssignNode resultNode = new AssignNode(node.getLhs(), exprNode);
+    resultNode.setScope(node.getScope());
     return resultNode;
   }
 
@@ -194,14 +204,17 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   /* remove the symbol from current identValMap
   *  and remove all SYMBOL that depend on this SYMBOL */
   private void removeSymbol(Symbol symbol) {
+    /* IMPORTANT: have to remove this symbol first, prevent circular remove, 
+                  i.e a = a + ..., not remove a first will result in live-lock */
     identValMap.remove(symbol);
+    List<Symbol> childSymbols = dependentMap.get(symbol);
 
+    dependentMap.remove(symbol);
     if (dependentMap.containsKey(symbol)) {
-      for (Symbol childSymbol : dependentMap.get(symbol)) {
-        removeSymbol(childSymbol);
+      for (Symbol child : childSymbols) {
+        removeSymbol(child);
       }
     }
-    dependentMap.remove(symbol);
   }
 
   /* add lhsSymbol as symbol that depend on each rhsSymbols */
