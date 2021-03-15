@@ -20,6 +20,11 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   *  used for the current visit of ident node */
   private Map<Symbol, ExprNode> identValMap;
 
+  /* map of SYMBOL with the list of SYMBOL that depend on it */
+  private Map<Symbol, List<Symbol>> dependentMap;
+  /* list of SYMBOL of variables that right hand side contains */
+  private List<Symbol> dependentList;
+
   /* list of ident map, which will be merged in the end of the CURRENT while, if, switch, for loop
   *    loopStartMapList is maplist that can reach while condition check
   *    breakMapList is all mapList copy of each time a BREAK is called */
@@ -29,6 +34,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     identValMap = new HashMap<>();
     this.loopStartMapList = new ArrayList<>();
     this.breakMapList = new ArrayList<>();
+    this.dependentMap = new HashMap<>();
   }
 
   @Override
@@ -90,6 +96,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   @Override
   public Node visitIdentNode(IdentNode node) {
     if (identValMap.containsKey(node.getSymbol())) {
+      dependentList.add(node.getSymbol());
       return identValMap.get(node.getSymbol());
     }
     return node;
@@ -145,6 +152,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitAssignNode(AssignNode node) {
+    dependentList = new ArrayList<>();
     ExprNode exprNode = visit(node.getRhs()).asExprNode();
     AssignNode resultNode = new AssignNode(node.getLhs(), exprNode);
     resultNode.setScope(node.getScope());
@@ -152,14 +160,21 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     /* constant propagation:
     *  add new entry into map */
     if ((node.getLhs() instanceof IdentNode) && exprNode.isImmediate()) {
-      identValMap.remove(((IdentNode) node.getLhs()).getSymbol());
-      identValMap.put(((IdentNode) node.getLhs()).getSymbol(), exprNode);
+      Symbol lhsSymbol = ((IdentNode) node.getLhs()).getSymbol();
+      /* remove prev map of symbol
+         and all other symbol that depend on prev value of this updated SYMBOL */
+      removeSymbol(lhsSymbol);
+
+      /* add in updated value */
+      identValMap.put(lhsSymbol, exprNode);
+      addDependent(lhsSymbol, dependentList);
     }
     return resultNode;
   }
 
   @Override
   public Node visitDeclareNode(DeclareNode node) {
+    dependentList = new ArrayList<>();
     ExprNode exprNode = visit(node.getRhs()).asExprNode();
     DeclareNode resultNode = new DeclareNode(node.getIdentifier(), exprNode);
     resultNode.setScope(node.getScope());
@@ -167,9 +182,33 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     /* constant propagation:
     *  add new entry in map */
     if (exprNode.isImmediate()) {
-      identValMap.put(node.getScope().lookup(node.getIdentifier()), exprNode);
+      Symbol lhsSymbol = node.getScope().lookup(node.getIdentifier());
+      identValMap.put(lhsSymbol, exprNode);
+      addDependent(lhsSymbol, dependentList);
     }
     return resultNode;
+  }
+
+  /* remove the symbol from current identValMap
+  *  and remove all SYMBOL that depend on this SYMBOL */
+  private void removeSymbol(Symbol symbol) {
+    identValMap.remove(symbol);
+
+    if (dependentMap.containsKey(symbol)) {
+      for (Symbol childSymbol : dependentMap.get(symbol)) {
+        removeSymbol(childSymbol);
+      }
+    }
+    dependentMap.remove(symbol);
+  }
+
+  /* add lhsSymbol as symbol that depend on each rhsSymbols */
+  private void addDependent(Symbol lhsSymbol, List<Symbol> rhsSymbols) {
+    for (Symbol rhsSymbol : rhsSymbols) {
+      if (dependentMap.containsKey(rhsSymbol)) {
+        dependentMap.get(rhsSymbol).add(lhsSymbol);
+      }
+    }
   }
 
   @Override
