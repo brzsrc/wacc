@@ -101,7 +101,9 @@ public class Utils {
           Binop.MINUS, ((x, y) -> arithmeticWithCheck(x, y, Math::subtractExact)),
           Binop.MUL, ((x, y) -> arithmeticWithCheck(x, y, Math::multiplyExact)),
           Binop.DIV, ((x, y) -> y == 0 ? null : new IntegerNode(x / y)),
-          Binop.MOD, ((x, y) -> y == 0 ? null : new IntegerNode(x % y))
+          Binop.MOD, ((x, y) -> y == 0 ? null : new IntegerNode(x % y)),
+          Binop.BITAND, ((x, y) -> y == 0 ? null : new IntegerNode(x & y)),
+          Binop.BITOR, ((x, y) -> y == 0 ? null : new IntegerNode(x | y))
   );
 
   public static final Map<Binop, BiFunction<Integer, Integer, Boolean>> cmpMap = Map.of(

@@ -288,7 +288,11 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitScopeNode(ScopeNode node) {
-    return node;
+    List<StatNode> body = new ArrayList<>();
+    for (StatNode statNode : node.getBody()) {
+      body.add(visit(statNode).asStatNode());
+    }
+    return new ScopeNode(node, body);
   }
 
   @Override
@@ -447,6 +451,8 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     mergeIdMap(breakMapList);
     Map<Symbol, ExprNode> mergedEndMap = new HashMap<>(identValMap);
     identValMap = mergedStartMap;
+
+    showIdMap();
 
     /* 3 visit again using map after getting the intersection */
     ExprNode cond = visit(node.getCond()).asExprNode();
