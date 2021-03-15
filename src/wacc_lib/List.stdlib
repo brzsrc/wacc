@@ -27,7 +27,33 @@ int add(List<E> list, E val) is
 end
 
 bool add(List<E> list, E val, int pos) is
-  return false
+  Node<E> node = new Node<E>{val, empty};
+  if (pos == 0) then
+    Node<E> next = list.root;
+    node.next = next;
+    list.root = node;
+    return true
+  else
+    if (list.root == empty) then
+      return false
+    else
+      Node<E> cur = list.root;
+      Node<E> next = cur.next;
+      while (pos > 1) do
+        if (next == empty) then
+          return false
+        else
+          skip
+        fi
+        cur = next;
+        next = next.next;
+        pos = pos - 1;
+      done;
+      cur.next = node;
+      node.next = next;
+      return true
+    fi
+  fi
 end
 
 bool remove(List<E> list, int pos) is
@@ -85,5 +111,12 @@ E get(List<E> list, int pos) is
 end
 
 bool destroy(List<E> list) is
-  return false
+  Node<E> cur = list.root;
+  while (cur != empty) do
+    Node<E> next = cur.next;
+    free cur;
+    cur = next;
+  done;
+  free list;
+  return true
 end
