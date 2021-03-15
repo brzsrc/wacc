@@ -5,8 +5,8 @@ VALID_EXAMPLES=(
                  "/bitwiseOperation"
                  "/do-while"
                  "/for"
-                 "/import"  # OK
-                 "/jump"    # OK
+                 "/import"
+                 "/jump"
                  "/struct"
                  "/switch"
                 )
@@ -45,11 +45,11 @@ for folder in ${VALID_EXAMPLES[@]}; do
     echo "execution exit status" $ret2
 
     ## altomatically generate output .log file
-    mv "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
+    # mv "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
 
     if [ "$ret1" -eq 0 ] && [ "$ret2" -eq 0 ]; then 
     ## test if output is same as .log file
-    #   diff "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
+       diff "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
       (( COUNTER += 1 ))
     fi 
 

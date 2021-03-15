@@ -1,17 +1,17 @@
-{scope size = 20 current scope = utils.frontend.symbolTable.SymbolTable@67b64c45 parent = null
+{scope
   INTEGER a = 0
   INTEGER b = 0
   INTEGER c = 0
   INTEGER d = 0
-  switch 
-frontend.node.expr.IntegerNode@6bf256fa
-case 
-0      b (8) = 1
-case 
-1      b (8) = 0
-case 
-4      d (16) = 0
-    c (12) = 1
+  switch 3
+    case 0
+      b (8) = 1
+    case 1
+      b (8) = 0
+    case 4
+      d (16) = 0
+    default
+      c (12) = 1
   INTEGER e = 1
   e (20) = b (8) PLUS 1
   e (20) = c (12) PLUS 1

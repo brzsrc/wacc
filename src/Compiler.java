@@ -66,7 +66,7 @@ public class Compiler {
         int optimise_cmd_index = cmd_ops.indexOf("--optimise");
 
         /* if not found optimise flag, no optimise */
-        if (optimise_cmd_index == 0) {
+        if (optimise_cmd_index != 0) {
           String optimise_level = cmd_ops.get(optimise_cmd_index + 1);
           switch (optimise_level) {
             case "0":
