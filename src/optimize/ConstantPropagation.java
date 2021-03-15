@@ -232,15 +232,12 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitReadNode(ReadNode node) {
-    ExprNode expr = visit(node.getInputExpr()).asExprNode();
-    ReadNode resultNode = new ReadNode(expr);
-    resultNode.setScope(node.getScope());
-
+    ExprNode expr = node.getInputExpr();
     /* delete expr in identMap, since cannot determine expr's value */
     if (expr instanceof IdentNode) {
       identValMap.remove(((IdentNode) expr).getSymbol());
     }
-    return resultNode;
+    return node;
   }
 
   @Override
@@ -269,10 +266,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     /* constant propagation algorithm:
      *  visit body twice, get intersection with the first iterate */
 
-    /* 1 visit cond */
-    ExprNode cond = visit(node.getCond()).asExprNode();
-
-    /* 1.2 record the mapList, which might contain maps from parent WHILE
+    /* 1 record the mapList, which might contain maps from parent WHILE
      *      current identMap is one map of parent block of while block */
     List<Map<Symbol, ExprNode>>
             oldLoopStartMapList = loopStartMapList,
@@ -294,6 +288,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     identValMap = mergedStartMap;
 
     /* 3 visit again using map after getting the intersection */
+    ExprNode cond = visit(node.getCond()).asExprNode();
     StatNode body = visit(node.getBody()).asStatNode();
     identValMap = mergedEndMap;
 
@@ -399,13 +394,9 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitForNode(ForNode node) {
-    /* 1 visit init, view as part of block before loop */
+    /* init statement count as part of map of block before loop body */
     StatNode initStat = visit(node.getInit()).asStatNode();
-
-    /* 2 visit cond, same as while, no special treat */
-    ExprNode cond = visit(node.getCond()).asExprNode();
-
-    /* 3 visit body and increment */
+    /* 1 visit body and increment */
     /*   (same as while) record the mapList, which might contain maps from parent WHILE
      *      current identMap is one map of parent block of while block */
     List<Map<Symbol, ExprNode>>
@@ -420,7 +411,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
      *   loop start map is merged, result is map parent of loop body and block after loop
      *   break is then merged, result is map before block after loop
      *   merged start/end map are used to record map, prevent overwrite in second visit */
-    visit(node.getBody()).asStatNode();
+    visit(node.getBody());
     visit(node.getIncrement());
     mergeIdMap(loopStartMapList);
     Map<Symbol, ExprNode> mergedStartMap = new HashMap<>(identValMap);
@@ -429,6 +420,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     identValMap = mergedStartMap;
 
     /* 3 visit again using map after getting the intersection */
+    ExprNode cond = visit(node.getCond()).asExprNode();
     StatNode body = visit(node.getBody()).asStatNode();
     StatNode inc = visit(node.getIncrement()).asStatNode();
     identValMap = mergedEndMap;

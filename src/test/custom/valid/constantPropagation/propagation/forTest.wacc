@@ -6,7 +6,7 @@ begin
   int i = 0;       # i is update, no propagate
   int j = 0;       # j is init as different value, propagate to new init value 
 
-  for (i = 0, j = 1; i < 10; i = i + 1) do 
+  for (i = 0, j = 1; i < 1; i = i + 1) do 
     b0 = 1;
     
     while true do 
