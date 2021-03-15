@@ -118,7 +118,7 @@ public class Utils {
   public static final Map<Unop, Function<ExprNode, ExprNode>> unopApplyMap = Map.of(
           Unop.MINUS, (x -> arithmeticWithCheck(0, x.getCastedVal(), Math::subtractExact)),
           Unop.NOT, (x -> new BoolNode(x.getCastedVal() != 1)),
-          Unop.LEN, (x -> new IntegerNode(x.getCastedVal())),
+          Unop.LEN, (x -> x),
           Unop.ORD, (x -> new IntegerNode(x.getCastedVal())),
           Unop.CHR, (x -> new CharNode((char) x.getCastedVal()))
   );
