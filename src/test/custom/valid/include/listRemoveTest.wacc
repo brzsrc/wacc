@@ -1,0 +1,17 @@
+include List<int>
+
+begin
+  List<int> list = new List<int>();
+  int out = call add(list, 0);
+  out = call add(list, 0);
+  for (int i = 1; i <= 10; i = i + 1) do
+    bool success = call add(list, i, 1);
+    int val = call get(list, 1);
+    println val;
+    success = call remove(list, 1)
+  done;
+  int head = call get(list, 0);
+  int tail = call get(list, 1);
+  println head;
+  println tail
+end

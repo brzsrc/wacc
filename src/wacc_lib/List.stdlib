@@ -44,10 +44,10 @@ bool add(List<E> list, E val, int pos) is
           return false
         else
           skip
-        fi
+        fi;
         cur = next;
         next = next.next;
-        pos = pos - 1;
+        pos = pos - 1
       done;
       cur.next = node;
       node.next = next;
@@ -115,7 +115,7 @@ bool destroy(List<E> list) is
   while (cur != empty) do
     Node<E> next = cur.next;
     free cur;
-    cur = next;
+    cur = next
   done;
   free list;
   return true

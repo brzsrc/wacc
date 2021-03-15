@@ -48,6 +48,10 @@ public class Compiler {
       CharStream input = CharStreams.fromStream(fis);
       // Pass the input stream of the file to WACC lexer
       WACCLexer lexer = new WACCLexer(input);
+      // delete the pre-compiled file
+      if (!file.getName().equals(sourceFile.getName())) {
+        file.delete();
+      }
       // Obtain the internal tokens from the lexer
       CommonTokenStream tokens = new CommonTokenStream(lexer);
       // Parse the tokens into a syntax tree
@@ -112,8 +116,6 @@ public class Compiler {
       System.out.println("ERROR in Compile.java: the given file '" + args[0] + "' is not found.");
     } catch (IOException e) {
       System.out.println("ERROR in Compile.java: IOException has been raised in Compile.java");
-    } finally {
-      file.delete();
     }
   }
 }

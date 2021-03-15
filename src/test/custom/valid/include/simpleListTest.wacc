@@ -1,0 +1,14 @@
+include List<int>
+
+begin
+  List<int> list = new List<int>();
+  int out = call add(list, 10);
+  out = call add(list, 100);
+  out = call add(list, 1000);
+  int first = call get(list, 0);
+  int second = call get(list, 1);
+  int third = call get(list, 2);
+  println first;
+  println second;
+  println third
+end
