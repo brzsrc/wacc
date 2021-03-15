@@ -238,14 +238,14 @@ public class Utils {
   }
 
   /* TODO: better code quality here */
-  public static final Map<IntelInstructionSize, Integer> m = Map.of(
+  public static final Map<IntelInstructionSize, Integer> intelSizeToInt = Map.of(
       IntelInstructionSize.Q, 8,
       IntelInstructionSize.L, 4,
       IntelInstructionSize.W, 2,
       IntelInstructionSize.B, 1
   );
 
-  public static final Map<Integer, IntelInstructionSize> m2 = Map.of(
+  public static final Map<Integer, IntelInstructionSize> intToIntelSize = Map.of(
       8, IntelInstructionSize.Q,
       4, IntelInstructionSize.L,
       2, IntelInstructionSize.W,
@@ -253,11 +253,11 @@ public class Utils {
   );
 
   public static String calculateSize(IntelInstructionSize size1, IntelInstructionSize size2) {
-    return m2.get(Math.max(m.get(size1), m.get(size2))).toString().toLowerCase();
+    return intToIntelSize.get(Math.max(intelSizeToInt.get(size1), intelSizeToInt.get(size2))).toString().toLowerCase();
   }
 
   public static String calculateSize(IntelInstructionSize size) {
-    return m2.get(m.get(size)).toString().toLowerCase();
+    return intToIntelSize.get(intelSizeToInt.get(size)).toString().toLowerCase();
   }
 
   /**

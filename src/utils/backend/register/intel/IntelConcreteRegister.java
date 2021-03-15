@@ -46,7 +46,13 @@ public class IntelConcreteRegister extends Register {
   public String toString() {
     Set<IntelRegisterLabel> s = Set.of(IntelRegisterLabel.RAX,
         IntelRegisterLabel.RBX, IntelRegisterLabel.RCX, IntelRegisterLabel.RDX,
-        IntelRegisterLabel.RSI, IntelRegisterLabel.RDI, IntelRegisterLabel.RBP);
+        IntelRegisterLabel.RSI, IntelRegisterLabel.RDI, IntelRegisterLabel.RBP,
+        IntelRegisterLabel.RSP, IntelRegisterLabel.RIP);
+
+    Set<IntelRegisterLabel> s2 = Set.of(
+        IntelRegisterLabel.RAX, IntelRegisterLabel.RBX,
+        IntelRegisterLabel.RCX, IntelRegisterLabel.RDX
+    );
 
     if (s.contains(this.label)) {
       switch (size) {
@@ -55,20 +61,24 @@ public class IntelConcreteRegister extends Register {
         case L:
           return "%e" + label.name().toLowerCase().substring(1);
         case W:
-          return label.name().toLowerCase().substring(1);
+          return "%" + label.name().toLowerCase().substring(1);
         case B:
-          return label.name().toLowerCase().substring(1) + "l";
+          if (s2.contains(this.label)) {
+            return "%" + label.name().toLowerCase().charAt(1) + "l";
+          } else {
+            return "%" + label.name().toLowerCase().substring(1) + "l";
+          }
       }
     } else {
       switch (size) {
         case Q:
-          return label.name().toLowerCase();
+          return "%" + label.name().toLowerCase();
         case L:
-          return label.name().toLowerCase() + "d";
+          return "%" + label.name().toLowerCase() + "d";
         case W:
-          return label.name().toLowerCase() + "w";
+          return "%" + label.name().toLowerCase() + "w";
         case B:
-          return label.name().toLowerCase() + "b";
+          return "%" + label.name().toLowerCase() + "b";
       }
     }
 

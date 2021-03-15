@@ -1,6 +1,7 @@
 package backend.intel.instructions.arithmetic;
 
 import backend.arm.instructions.addressing.Operand2;
+import utils.Utils.IntelInstructionSize;
 import utils.backend.register.Register;
 
 public class Xor extends IntelArithmeticLogic {
@@ -8,6 +9,10 @@ public class Xor extends IntelArithmeticLogic {
   protected Xor(Register rd,
       Register rn) {
     super(rd, rn);
+  }
+
+  protected Xor(int val, IntelInstructionSize size, Register r) {
+    super(val, size, r);
   }
 
   @Override

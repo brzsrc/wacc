@@ -21,9 +21,10 @@ public class DataSection implements Directive {
   @Override
   public List<String> toStringList() {
     List<String> dataText = new ArrayList<>();
+    dataText.add(".section\t.rodata");
     for (Entry<Label, String> e : data.entrySet()) {
       dataText.add(e.getKey().assemble());
-      dataText.add(e.getValue());
+      dataText.add("\t.string\t\"" + e.getValue() + "\"");
     }
 
     return dataText;

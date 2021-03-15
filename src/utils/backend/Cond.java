@@ -3,6 +3,7 @@ package utils.backend;
 public enum Cond {
   NULL,
   EQ,
+  E,
   NE,
   LT,
   VS,

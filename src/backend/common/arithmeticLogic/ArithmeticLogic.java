@@ -3,6 +3,7 @@ package backend.common.arithmeticLogic;
 import backend.common.address.Address;
 import backend.common.address.Immediate;
 import backend.intel.instructions.address.IntelImmediate;
+import utils.Utils.IntelInstructionSize;
 import utils.backend.register.Register;
 
 public abstract class ArithmeticLogic {
@@ -25,7 +26,7 @@ public abstract class ArithmeticLogic {
     this(rd, rn, null, null);
   }
 
-  public ArithmeticLogic(int val, Register rd) {
-    this(rd, null, null, new IntelImmediate(val));
+  public ArithmeticLogic(int val, IntelInstructionSize size, Register rd) {
+    this(rd, null, null, new IntelImmediate(val, size));
   }
 }

@@ -860,8 +860,10 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     visit(node.getBody());
 
     currBreakJumpToLabel = lastBreakJumpToLabel;
-    currContinueJumpToLabel = lastContinueJumpToLabel;
+    Label afterLabel = branchLabelGenerator.getLabel();
+    currContinueJumpToLabel = afterLabel;
 
+    instructions.add(afterLabel);
     /* here we also need to append the for-loop in crement at the end */
     visit(node.getIncrement());
 

@@ -3,6 +3,7 @@ package backend.intel.instructions.address;
 import backend.common.address.Address;
 import backend.common.address.Immediate;
 import backend.intel.instructions.Label;
+import utils.Utils.IntelInstructionSize;
 import utils.backend.register.intel.IntelConcreteRegister;
 
 public class IntelAddress extends Address {
@@ -30,7 +31,7 @@ public class IntelAddress extends Address {
 
   /* This represents the Immediate int value addressing, i.e. movl $7, %eax */
   public IntelAddress(int val) {
-    this(new IntelImmediate(val), null, null, null, 0);
+    this(new IntelImmediate(val, IntelInstructionSize.L), null, null, null, 0);
   }
 
   /* This represents normal addressing, i.e. movq (%rbp), %rax*/
@@ -40,7 +41,7 @@ public class IntelAddress extends Address {
 
   /* This represents the displacement addressing, i.e. movl 8(%rdi), %eax */
   public IntelAddress(IntelConcreteRegister rb, int displacement) {
-    this(null, rb, new IntelImmediate(displacement), null, 0);
+    this(null, rb, new IntelImmediate(displacement, IntelInstructionSize.L), null, 0);
   }
 
   public IntelAddress(IntelConcreteRegister rb, Label label) {
@@ -50,7 +51,7 @@ public class IntelAddress extends Address {
   /* This represents the indexed addressing */
   public IntelAddress(IntelConcreteRegister rb, int displacement,
       IntelConcreteRegister ri, int scale) {
-    this(null, rb, new IntelImmediate(displacement), ri, scale);
+    this(null, rb, new IntelImmediate(displacement, IntelInstructionSize.L), ri, scale);
   }
 
   @Override
@@ -60,7 +61,7 @@ public class IntelAddress extends Address {
     }
 
     StringBuilder str = new StringBuilder();
-    str.append(displacement == null ? "" : displacement.assemble());
+    str.append(displacement == null ? "" : displacement.assemble().substring(1));
     str.append("(")
         .append(Rb == null ? "" : Rb)
         .append(Ri == null ? "" : ", " + Ri)

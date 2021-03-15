@@ -25,16 +25,12 @@ public class Cmp extends CmpInstruction implements IntelInstruction {
   public String assemble() {
     StringBuilder str = new StringBuilder();
     str.append("cmp");
-    if (addr == null) {
-      str.append(Utils.calculateSize(rs.asIntelRegister().getSize(), rd.asIntelRegister()
-          .getSize())).append(" ");
-    } else {
-      str.append(Utils.calculateSize(rd.asIntelRegister().getSize())).append(" ");
-    }
 
-    str.append(rs + ", ");
-    str.append(rd);
-    str.append(addr == null ? "" : addr);
+    str.append(Utils.calculateSize(rs.asIntelRegister().getSize()) + " ");
+
+    str.append(rs == null ? "" : rs + ", ");
+    str.append(rd == null ? "" : rd);
+    str.append(addr == null ? "" : ", " + addr);
 
     return str.toString();
   }

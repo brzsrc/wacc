@@ -8,14 +8,14 @@ public class IntelImmediate extends Immediate {
 
   private final IntelInstructionSize size;
 
-  public IntelImmediate(int val) {
+  public IntelImmediate(int val, IntelInstructionSize size) {
     super(val);
-    size = IntelInstructionSize.L;
+    this.size = size;
   }
 
   public IntelImmediate(Label label) {
     super(label);
-    size = IntelInstructionSize.L;
+    size = null;
   }
 
   public IntelInstructionSize getSize() {
@@ -24,6 +24,6 @@ public class IntelImmediate extends Immediate {
 
   @Override
   public String assemble() {
-    return label == null ? "$" + val : label.getName();
+    return label == null ? "$" + val : "." + label.getName();
   }
 }

@@ -20,6 +20,7 @@ import backend.intel.instructions.arithmetic.IntelArithmeticLogic;
 import backend.intel.instructions.arithmetic.Sal;
 import backend.intel.instructions.arithmetic.Sub;
 import backend.intel.instructions.directives.CFIEndProc;
+import backend.intel.instructions.directives.CFIStartProc;
 import frontend.node.FuncNode;
 import frontend.node.ProgramNode;
 import frontend.node.StructDeclareNode;
@@ -76,12 +77,10 @@ import static utils.Utils.CHAR_BASIC_TYPE;
 import static utils.Utils.FALSE;
 import static utils.Utils.FUNC_HEADER;
 import static utils.Utils.INT_BASIC_TYPE;
-import static utils.Utils.RoutineInstruction.PRINT_BOOL;
-import static utils.Utils.RoutineInstruction.PRINT_CHAR;
-import static utils.Utils.RoutineInstruction.PRINT_INT;
-import static utils.Utils.RoutineInstruction.PRINT_STRING;
 import static utils.Utils.STRING_BASIC_TYPE;
 import static utils.Utils.TRUE;
+import static utils.Utils.intToIntelSize;
+import static utils.backend.Cond.E;
 import static utils.backend.Cond.EQ;
 import static utils.backend.Cond.NE;
 import static utils.backend.Cond.NULL;
@@ -98,12 +97,14 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   /* the data section in the assembly */
   private final Map<Label, String> dataSection;
+  private final Map<String, Label> biDataSection;
 
   public IntelInstructionGenerator() {
     branchLabelGenerator = new LabelGenerator<>(".L", Label.class);
     dataLabelGenerator = new LabelGenerator<>(".LC", Label.class);
     intelRegAllocator = new IntelConcreteRegisterAllocator();
     dataSection = new LinkedHashMap<>();
+    biDataSection = new LinkedHashMap<>();
   }
 
   @Override
@@ -113,7 +114,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int offset = currSymbolTable.getSize()
         - currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
         + stackOffset;
-    instructions.add(new Mov(new IntelAddress(rbp, offset), addrReg));
+    instructions.add(new Mov(new IntelAddress(rbp, -offset), addrReg));
 
     IntelConcreteRegister indexReg;
     for (int i = 0; i < node.getDepth(); i++) {
@@ -131,7 +132,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       }
 
       int elemSize = i < node.getDepth() - 1 ? 2 : node.getType().getSize() / 2;
-      instructions.add(new Sal(elemSize, indexReg));
+      instructions.add(new Sal(elemSize, IntelInstructionSize.Q, indexReg));
       instructions.add(new Add(addrReg, indexReg));
 
       /* free indexReg to make it available for the indexing of the next depth */
@@ -157,7 +158,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       visit(node.getElem(i));
       int indexOffset = i * node.getContentSize();
       instructions.add(new Mov(intelRegAllocator.curr(), new IntelAddress(addrReg)));
-      instructions.add(new Add(indexOffset, addrReg));
+      instructions.add(new Add(indexOffset, IntelInstructionSize.Q, addrReg.withSize(IntelInstructionSize.L)));
       intelRegAllocator.free();
     }
 
@@ -186,15 +187,18 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     }
 
     Binop operator = node.getOperator();
+    Type type = expr1.getType();
+    IntelInstructionSize size = intToIntelSize.get(type.getSize());
 
     instructions.addAll(IntelArithmeticLogic.intelBinopAsm
-         .binopAssemble(e1reg, e2reg, null, operator)
+         .binopAssemble(e2reg.asIntelRegister().withSize(size),
+                        e1reg.asIntelRegister().withSize(size), null, operator)
          .stream().map(i -> (IntelInstruction) i).collect(Collectors.toList()));
 
     if (operator.equals(Binop.DIV)) {
-      instructions.add(new Mov(rax.withSize(IntelInstructionSize.L), e1reg));
+      instructions.add(new Mov(rax.withSize(IntelInstructionSize.L), e1reg.asIntelRegister().withSize(IntelInstructionSize.L)));
     } else if (operator.equals(Binop.MOD)) {
-      instructions.add(new Mov(rdx.withSize(IntelInstructionSize.L), e1reg));
+      instructions.add(new Mov(rdx.withSize(IntelInstructionSize.L), e1reg.asIntelRegister().withSize(IntelInstructionSize.L)));
     }
 
     if (expr1.getWeight() < expr2.getWeight()) {
@@ -239,10 +243,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* if is lhs, then only put address in register */
     if (isLhs) {
-      instructions.add(new Mov(new IntelAddress(offset), intelRegAllocator.allocate()));
+      instructions.add(new Lea(new IntelAddress(-offset), intelRegAllocator.allocate()));
     } else {
       /* otherwise, put value in register */
-      instructions.add(new Mov(new IntelAddress(rbp, offset), intelRegAllocator.allocate()));
+      instructions.add(new Mov(new IntelAddress(rbp, -offset), intelRegAllocator.allocate()));
     }
     return null;
   }
@@ -267,9 +271,11 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   @Override
   public Void visitStringNode(StringNode node) {
     /* Add msg into the data list */
-    String str = node.getString();
+    String strWithQuote = node.getString();
+    String str = strWithQuote.substring(1, strWithQuote.length() - 1);
     Label msgLabel = dataLabelGenerator.getLabel().asIntelLabel();
     dataSection.put(msgLabel, str);
+    biDataSection.put(str, msgLabel);
 
     instructions.add(new Lea(new IntelAddress(rip, msgLabel), intelRegAllocator.curr()));
     return null;
@@ -282,7 +288,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     Register reg = intelRegAllocator.curr();
     Unop operator = node.getOperator();
 
-    List<Instruction> insList = armUnopAsm
+    List<Instruction> insList = IntelArithmeticLogic.intelUnopAsm
         .unopAssemble(reg, reg, operator, null);
     instructions.addAll(insList.stream().map(i -> (IntelInstruction) i).collect(Collectors.toList()));
 
@@ -316,7 +322,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int offset = currSymbolTable.getSize() -
         node.getScope().lookup(node.getIdentifier()).getStackOffset();
 
-    instructions.add(new Mov(intelRegAllocator.curr(), new IntelAddress(rbx, offset)));
+    instructions.add(new Mov(intelRegAllocator.curr(), new IntelAddress(rbp, -offset)));
     intelRegAllocator.free();
     return null;
   }
@@ -352,13 +358,19 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     /* 1 condition check, branch */
     visit(node.getCond());
     IntelConcreteRegister cond = intelRegAllocator.curr();
-    instructions.add(new Cmp(cond, new IntelAddress(1)));
-    instructions.add(new Jmp(NE, elseIfLabel.assemble()));
+    IntelConcreteRegister oneReg = intelRegAllocator.allocate();
+    instructions.add(new Mov(new IntelAddress(1), oneReg));
+    instructions.add(new Cmp(cond.withSize(IntelInstructionSize.B), oneReg.withSize(IntelInstructionSize.B)));
+    instructions.add(new Jmp(NE, elseIfLabel.getName()));
+    intelRegAllocator.free();
     intelRegAllocator.free();
 
     /* translate if body */
     visit(node.getIfBody());
-    instructions.add(new Jmp(exitLabel.assemble()));
+    instructions.add(new Jmp(exitLabel.getName()));
+
+    instructions.add(elseIfLabel);
+    visit(node.getElseBody());
 
     /* 3 end of if statement */
     instructions.add(exitLabel);
@@ -371,10 +383,11 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     /* print content same as printNode */
     visitPrintNode(new PrintNode(node.getExpr()));
 
-    Label newLineLabel = null;
-    if (!alreadyExist("\n")) {
+    Label newLineLabel = biDataSection.get("\\n");
+    if (!alreadyExist("\\n")) {
       newLineLabel = dataLabelGenerator.getLabel();
-      dataSection.put(newLineLabel, "\n");
+      dataSection.put(newLineLabel, "\\n");
+      biDataSection.put("\\n", newLineLabel);
     }
 
     instructions.add(new Lea(new IntelAddress(rip, newLineLabel), rdi));
@@ -403,29 +416,42 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     String printTypeString = printTypeStringMap.get(type);
 
-    Label printLabel = dataLabelGenerator.getLabel();
     if (type.equals(BOOL_BASIC_TYPE)) {
+      Label trueMsgLabel = biDataSection.get("true");
+      Label falseMsgLabel = biDataSection.get("false");
       if (!alreadyExist("true")) {
-        Label trueMsgLabel = dataLabelGenerator.getLabel();
-        Label falseMsgLabel = dataLabelGenerator.getLabel();
+        trueMsgLabel = dataLabelGenerator.getLabel();
+        falseMsgLabel = dataLabelGenerator.getLabel();
         dataSection.put(trueMsgLabel, "true");
+        biDataSection.put("true", trueMsgLabel);
         dataSection.put(falseMsgLabel, "false");
-
-        Label trueLabel = dataLabelGenerator.getLabel();
-        Label falseLabel = dataLabelGenerator.getLabel();
-        instructions.add(new Cmp(intelRegAllocator.curr(), new IntelAddress(1)));
-        instructions.add(new Jmp(EQ, trueLabel.getName()));
+        biDataSection.put("false", falseMsgLabel);
+      }
+        Label trueLabel = branchLabelGenerator.getLabel();
+        Label falseLabel = branchLabelGenerator.getLabel();
+        Label afterLabel = branchLabelGenerator.getLabel();
+        IntelConcreteRegister oneReg = intelRegAllocator.allocate();
+        instructions.add(new Mov(new IntelAddress(1), oneReg));
+        instructions.add(new Cmp(intelRegAllocator.last().withSize(IntelInstructionSize.B), oneReg.withSize(IntelInstructionSize.B)));
+        intelRegAllocator.free();
+        instructions.add(new Jmp(E, trueLabel.getName()));
         instructions.add(new Jmp(NULL, falseLabel.getName()));
         instructions.add(trueLabel);
         instructions.add(new Lea(new IntelAddress(rip, trueMsgLabel), rdi));
+        instructions.add(new Jmp(NULL, afterLabel.getName()));
         instructions.add(falseLabel);
         instructions.add(new Lea(new IntelAddress(rip, falseMsgLabel), rdi));
-      }
+        instructions.add(new Jmp(NULL, afterLabel.getName()));
+        instructions.add(afterLabel);
     } else {
+      Label printLabel = biDataSection.get(printTypeString);
       if (!alreadyExist(printTypeString)) {
+        printLabel = dataLabelGenerator.getLabel();
         dataSection.put(printLabel, printTypeString);
-        instructions.add(new Lea(new IntelAddress(rip, printLabel), rdi));
+        biDataSection.put(printTypeString, printLabel);
       }
+      instructions.add(new Mov(intelRegAllocator.curr(), rsi));
+      instructions.add(new Lea(new IntelAddress(rip, printLabel), rdi));
     }
 
     instructions.add(new Mov(new IntelAddress(0), rax));
@@ -447,8 +473,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     Label l = dataLabelGenerator.getLabel();
     if (type.equalToType(INT_BASIC_TYPE)) {
       dataSection.put(l, "%d");
+      biDataSection.put("%d", l);
     } else if (type.equalToType(CHAR_BASIC_TYPE)) {
       dataSection.put(l, "%c");
+      biDataSection.put("%c", l);
     }
 
     instructions.add(new Mov(intelRegAllocator.curr(), rsi));
@@ -476,7 +504,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int temp = stackSize;
     while (temp > 0) {
       int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
-      instructions.add(new Sub(realStackSize, rsp));
+      instructions.add(new Sub(realStackSize, IntelInstructionSize.Q, rsp));
       temp = temp - realStackSize;
     }
 
@@ -498,7 +526,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     temp = stackSize;
     while (temp > 0) {
       int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
-      instructions.add(new Add(realStackSize, rsp));
+      instructions.add(new Add(realStackSize, IntelInstructionSize.Q, rsp));
       temp = temp - realStackSize;
     }
 
@@ -541,10 +569,14 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     instructions.add(testLabel);
     /* translate cond expr */
     visit(node.getCond());
-    instructions.add(new Cmp(intelRegAllocator.curr(), new IntelAddress(1)));
+
+    IntelConcreteRegister oneReg = intelRegAllocator.allocate();
+    instructions.add(new Mov(new IntelAddress(1), oneReg));
+    instructions.add(new Cmp(intelRegAllocator.curr().withSize(IntelInstructionSize.B), oneReg.withSize(IntelInstructionSize.B)));
+    intelRegAllocator.free();
 
     /* 5 conditional branch jump to the start of loop */
-    instructions.add(new Jmp(EQ, startLabel.assemble()));
+    instructions.add(new Jmp(E, startLabel.assemble()));
 
     instructions.add(nextLabel);
 
@@ -610,6 +642,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     /* 2 start of main */
     Label mainLabel = new Label("main");
     instructions.add(mainLabel);
+    instructions.add(new CFIStartProc());
     /* 3 PUSH rsp and MOV rsp to rbp */
     instructions.add(new Push(Collections.singletonList(rbp)));
     instructions.add(new Mov(rsp, rbp));
