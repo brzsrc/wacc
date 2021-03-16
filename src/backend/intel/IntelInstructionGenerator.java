@@ -136,7 +136,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
         visit(index);
         indexReg = intelRegAllocator.curr();
         if (isLhs) {
-          instructions.add(new Mov(new IntelAddress(indexReg), indexReg));
+          instructions.add(new Mov(new IntelAddress(indexReg), indexReg.withSize(intToIntelSize.get(index.getType().getSize()))));
         }
       } else {
         indexReg = intelRegAllocator.allocate();
@@ -300,16 +300,13 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
         - currParamListSize + stackOffset;
 
-    System.out.println(node.getName());
-    System.out.println(offset);
-
     /* if is lhs, then only put address in register */
     if (isLhs) {
       instructions.add(new Lea(new IntelAddress(rbp, -offset), intelRegAllocator.allocate()));
     } else {
       /* otherwise, put value in register */
       Map<Integer, IntelMovType> m = Map.of(8, IntelMovType.MOV, 4, IntelMovType.MOV, 1, IntelMovType.MOVZBQ);
-      instructions.add(new Mov(new IntelAddress(rbp, -offset), intelRegAllocator.allocate(), m.get(identTypeSize)));
+      instructions.add(new Mov(new IntelAddress(rbp, -offset), intelRegAllocator.allocate().withSize(intToIntelSize.get(identTypeSize)), m.get(identTypeSize)));
     }
     return null;
   }

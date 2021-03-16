@@ -46,7 +46,7 @@ public class Mov extends MovInstruction implements IntelInstruction {
     boolean isNormalMov = type.equals(IntelMovType.MOV);
 
     if (!isNormalMov) {
-      str.append(type.name().toLowerCase(Locale.ROOT));
+      str.append(type.name().toLowerCase());
     }
 
     String size = "";
