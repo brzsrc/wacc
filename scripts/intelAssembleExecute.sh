@@ -21,6 +21,11 @@ ASSEMBLY_OUTPUT_DIR="./log/assembly/intel"
 VALID_EXAMPLE_DIR="./src/test/examples/valid"
 REF_COMPILE="./src/test/examples/refCompile"
 
+mkdir log
+mkdir $EXECUTE_OUTPUT_DIR
+mkdir log/assembly
+mkdir $ASSEMBLY_OUTPUT_DIR
+
 # counters to represent the total number of test files to be processed
 TOTAL_COUNT=$(find "${VALID_EXAMPLES[@]/#/${EXECUTE_OUTPUT_DIR}}" -name "*.output.txt" | wc -l)
 COUNTER=0

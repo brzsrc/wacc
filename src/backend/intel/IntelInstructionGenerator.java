@@ -110,7 +110,8 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   public Void visitArrayElemNode(ArrayElemNode node) {
     /* get the address of this array and store it in an available register */
     IntelConcreteRegister addrReg = intelRegAllocator.allocate();
-    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) - stackOffset + currSymbolTable.getSize();
+    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) +
+        (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize());
     instructions.add(new Mov(new IntelAddress(rbp, -offset), addrReg));
 
     IntelConcreteRegister indexReg;
@@ -326,7 +327,8 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int identTypeSize = node.getRhs().getType().getSize();
     /* TODO: add intel move type here */
 
-    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset();
+    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset()
+        + (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize());;
 
     instructions.add(new Mov(intelRegAllocator.curr().withSize(intToIntelSize.get(identTypeSize)), new IntelAddress(rbp, -offset)));
     intelRegAllocator.free();
