@@ -14,7 +14,6 @@ import backend.intel.instructions.Pop;
 import backend.intel.instructions.Push;
 import backend.intel.instructions.Ret;
 import backend.intel.instructions.address.IntelAddress;
-import backend.intel.instructions.address.IntelImmediate;
 import backend.intel.instructions.arithmetic.Add;
 import backend.intel.instructions.arithmetic.IntelArithmeticLogic;
 import backend.intel.instructions.arithmetic.Sal;
@@ -239,8 +238,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int identTypeSize = node.getType().getSize();
 
     /* put pointer that point to ident's value in stack to next available register */
-    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) - stackOffset + currSymbolTable.getSize();
+    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
+        + (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize());
 
+    System.out.println(offset);
     /* TODO: add Intel move type */
 
     /* if is lhs, then only put address in register */
@@ -325,7 +326,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int identTypeSize = node.getRhs().getType().getSize();
     /* TODO: add intel move type here */
 
-    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset() + currSymbolTable.getSize();
+    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset();
 
     instructions.add(new Mov(intelRegAllocator.curr().withSize(intToIntelSize.get(identTypeSize)), new IntelAddress(rbp, -offset)));
     intelRegAllocator.free();
