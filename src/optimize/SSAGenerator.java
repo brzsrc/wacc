@@ -229,7 +229,7 @@ public class SSAGenerator implements NodeVisitor<SSAGenerator.Pair<CFGNode, CFGN
         currNode.addBody(stat);
       }
     }
-    return null;
+    return new Pair<>(scopeStartNode, currNode);
   }
 
   private boolean isLoop(StatNode stat) {
