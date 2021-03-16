@@ -39,6 +39,7 @@ for folder in ${VALID_EXAMPLES[@]}; do
   do
     FILE_NAME=$(basename "${file%.*}")
     EXECUTABLE_OUTPUT_FILE="${OUTPUT_VALID_FOLDER}/${FILE_NAME}.output.txt"
+    EXECUTABLE_FILE_NAME="${ASSEMBLY_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
     echo $file
     ./compile -i $file 2> "${EXECUTABLE_FILE_NAME}.log.txt"
     mv "${FILE_NAME}.s" "${EXECUTABLE_FILE_NAME}.s"
