@@ -347,7 +347,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
       instructions.add(new Add(SP, SP, new Operand2(paramSize)));
     }
 
-    /* 4 get result, put in register */
+    /* 4 get result, put in a general register */
     instructions.add(new Mov(armRegAllocator.allocate(), new Operand2(r0)));
 
     return null;

@@ -3,9 +3,6 @@ package backend.intel;
 
 import backend.Instruction;
 import backend.InstructionGenerator;
-import backend.arm.instructions.LDR;
-import backend.arm.instructions.LDR.LdrMode;
-import backend.arm.instructions.addressing.AddressingMode2;
 import backend.intel.instructions.Call;
 import backend.intel.instructions.Cmp;
 import backend.intel.instructions.IntelInstruction;
@@ -74,7 +71,10 @@ import utils.backend.register.intel.IntelConcreteRegister;
 import utils.backend.register.intel.IntelConcreteRegisterAllocator;
 
 import static backend.arm.instructions.LDR.LdrMode.LDRSB;
+import static backend.arm.instructions.STR.StrMode.STR;
+import static backend.arm.instructions.STR.StrMode.STRB;
 import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
+import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.PREINDEX;
 import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.armUnopAsm;
 import static utils.Utils.BOOL_BASIC_TYPE;
 import static utils.Utils.CHAR_ARRAY_TYPE;
@@ -90,6 +90,9 @@ import static utils.backend.Cond.E;
 import static utils.backend.Cond.EQ;
 import static utils.backend.Cond.NE;
 import static utils.backend.Cond.NULL;
+import static utils.backend.register.arm.ARMConcreteRegister.PC;
+import static utils.backend.register.arm.ARMConcreteRegister.SP;
+import static utils.backend.register.arm.ARMConcreteRegister.r0;
 import static utils.backend.register.intel.IntelConcreteRegister.*;
 
 public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruction> {
@@ -105,7 +108,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   private final Map<Label, String> dataSection;
   private final Map<String, Label> biDataSection;
 
-  private boolean isMain;
+  private int currParamListSize;
 
   public IntelInstructionGenerator() {
     branchLabelGenerator = new LabelGenerator<>(".L", Label.class);
@@ -113,15 +116,17 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     intelRegAllocator = new IntelConcreteRegisterAllocator();
     dataSection = new LinkedHashMap<>();
     biDataSection = new LinkedHashMap<>();
-    isMain = false;
+    currParamListSize = 0;
   }
 
   @Override
   public Void visitArrayElemNode(ArrayElemNode node) {
     /* get the address of this array and store it in an available register */
     IntelConcreteRegister addrReg = intelRegAllocator.allocate();
-    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol()) +
-        (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize());
+
+    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
+        - (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize())
+        + stackOffset;
     instructions.add(new Mov(new IntelAddress(rbp, -offset), addrReg));
 
     IntelConcreteRegister indexReg;
@@ -248,6 +253,41 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitFunctionCallNode(FunctionCallNode node) {
+
+    /*
+     * 1 compute parameters, all parameter in stack also add into function's
+     * identmap
+     */
+    List<ExprNode> params = node.getParams();
+    int paramSize = 0;
+    stackOffset = 0;
+    int paramNum = params.size();
+
+    for (int i = paramNum - 1; i >= 0; i--) {
+      ExprNode expr = params.get(i);
+      visit(expr);
+      Register reg = intelRegAllocator.curr();
+      int size = expr.getType().getSize();
+      instructions.add(new Sub(size, IntelInstructionSize.Q, rbp));
+      instructions.add(new Mov(reg, new IntelAddress(rbp, -size)));
+
+      intelRegAllocator.free();
+
+      paramSize += size;
+      stackOffset += size;
+    }
+    stackOffset = 0;
+
+    /* 2 call function with B instruction */
+    instructions.add(new Jmp(FUNC_HEADER + node.getFunction().getFunctionName()));
+
+    /* 3 add back stack pointer */
+    if (paramSize > 0) {
+      instructions.add(new Add(paramSize, IntelInstructionSize.Q, rbp));
+    }
+
+    /* 4 get result, put in a general register */
+    instructions.add(new Mov(intelRegAllocator.allocate(), rax));
     return null;
   }
 
@@ -257,7 +297,8 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* put pointer that point to ident's value in stack to next available register */
     int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
-        + (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize());
+        - (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize())
+        - currParamListSize + stackOffset;
 
     System.out.println(offset);
 
@@ -345,8 +386,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* TODO: add intel move type here */
 
-    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset()
-        + (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize());;
+    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset();
 
     instructions.add(new Mov(intelRegAllocator.curr().withSize(intToIntelSize.get(identTypeSize)), new IntelAddress(rbp, -offset)));
     intelRegAllocator.free();
@@ -520,6 +560,14 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitReturnNode(ReturnNode node) {
+    visit(node.getExpr());
+    instructions.add(new Mov(intelRegAllocator.curr(), rax));
+    intelRegAllocator.free();
+    if (funcStackSize != 0) {
+      instructions.add(new Add(funcStackSize, IntelInstructionSize.Q, rsp));
+    }
+    instructions.add(new Pop(rbp));
+
     return null;
   }
 
@@ -528,14 +576,12 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     List<StatNode> list = node.getBody();
 
     /* 1 leave space for variables in stack */
-    int stackSize = node.getStackSize();
+    int stackSize = node.getScope().getParentSymbolTable() == null
+        ? 0 : node.getScope().getParentSymbolTable().getSize();
     int temp = stackSize;
     while (temp > 0) {
       int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
-      if (isMain) {
-        realStackSize = Math.max(16, realStackSize);
-      }
-      instructions.add(new Sub(realStackSize, IntelInstructionSize.Q, rsp));
+      instructions.add(new Sub(realStackSize, IntelInstructionSize.Q, rbp));
       temp = temp - realStackSize;
     }
 
@@ -546,9 +592,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
      *   set currentSymbolTable here, eliminate all other set symbol table in other statNode */
     currSymbolTable = node.getScope();
     for (StatNode elem : list) {
-      isMain = false;
       visit(elem);
-      isMain = true;
     }
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
@@ -559,10 +603,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     temp = stackSize;
     while (temp > 0) {
       int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
-      if (isMain) {
-        realStackSize = Math.max(16, realStackSize);
-      }
-      instructions.add(new Add(realStackSize, IntelInstructionSize.Q, rsp));
+      instructions.add(new Add(realStackSize, IntelInstructionSize.Q, rbp));
       temp = temp - realStackSize;
     }
 
@@ -649,22 +690,22 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     instructions.add(new Push(Collections.singletonList(rbp)));
     instructions.add(new Mov(rsp, rbp));
 
-//    /* 2 decrease stack, leave space for variable in function body
-//     *   DOES NOT include parameters' stack area */
-//    if (funcStackSize != 0) {
-//      instructions.add(new Sub(f));
-//      instructions.add(new Sub(SP, SP,
-//          new Operand2(funcStackSize)));
-//    }
-//
-//    /* 3 visit function,
-//     *   RETURN are responsible for adding stack back
-//     */
-//    visit(node.getFunctionBody());
-//
-//    /* function always add pop and ltorg at the end of function body */
-//    instructions.add(new backend.arm.instructions.Pop(Collections.singletonList(PC)));
-//    instructions.add(new LTORG());
+    /* 2 decrease stack, leave space for variable in function body
+     *   DOES NOT include parameters' stack area */
+    if (funcStackSize != 0) {
+      instructions.add(new Sub(funcStackSize, IntelInstructionSize.Q, rsp));
+    }
+
+    /* 3 visit function,
+     *   RETURN are responsible for adding stack back
+     */
+    currParamListSize = node.paramListStackSize();
+    visit(node.getFunctionBody());
+    currParamListSize = 0;
+
+    /* function always add pop and ltorg at the end of function body */
+    instructions.add(new Pop(rbp));
+
     return null;
   }
 
@@ -682,12 +723,12 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     /* 3 PUSH rsp and MOV rsp to rbp */
     instructions.add(new Push(Collections.singletonList(rbp)));
     instructions.add(new Mov(rsp, rbp));
+    instructions.add(new Sub(Math.max(16, node.getBody().getScope().getSize()), IntelInstructionSize.Q, rsp));
 
     /* 4 main body */
-    isMain = true;
     visit(node.getBody());
-    isMain = false;
 
+    instructions.add(new Add(Math.max(16, node.getBody().getScope().getSize()), IntelInstructionSize.Q, rsp));
     /* 5 set return value and return */
     instructions.add(new Mov(new IntelAddress(0), rax.withSize(IntelInstructionSize.L)));
     instructions.add(new Pop(rbp));
