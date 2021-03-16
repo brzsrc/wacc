@@ -1,0 +1,75 @@
+define Set<E>() Set<E>{empty,0}
+define Set<E> Set_E
+define Elem<E> Elem_E
+
+struct Set<E> is {Elem<E> root, int length}
+struct Elem<E> is {E val, Elem<E> next}
+
+
+int size(Set<E> set) is return set.length end
+
+bool contains(Set<E> set, E val) is
+  Elem<E> cur = set.root;
+  while(cur != empty) do
+    bool equal = call equals(cur.val, val);
+    if (equal) then
+      return true
+    else
+      cur = cur.next
+    fi
+  done;
+  return false
+end
+
+bool add(Set<E> set, E val) is
+  bool contains = call contains(set, val);
+  if (contains) then
+    return false
+  else
+    Elem<E> e = new Elem<E>{val, set.root};
+    set.root = e;
+    set.length = set.length + 1;
+    return true
+  fi
+end
+
+bool remove(Set<E> set, E val) is
+  if (set.root == empty) then
+    return false
+  else
+    Elem<E> cur = set.root;
+    bool equal = call equals(cur.val, val);
+    if (equal) then
+      set.root = cur.next;
+      free cur;
+      set.length = set.length - 1;
+      return true
+    else
+      Elem<E> next = cur.next;
+      while (next != empty) do
+        equal = call equals(next.val, val);
+        if (equal) then
+          cur.next = next.next;
+          free next;
+          set.length = set.length - 1;
+          return true
+        else
+          cur = next;
+          next = next.next
+        fi
+      done;
+      return false
+    fi
+  fi
+end
+
+bool destroy(Set<E> set) is
+  Elem<E> cur = set.root;
+  while (cur != empty) do
+    Elem<E> next = cur.next;
+    free cur;
+    cur = next
+  done;
+  free set;
+  return true
+end

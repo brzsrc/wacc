@@ -73,7 +73,7 @@ public class PreCompiler {
       str = str.split(commentMark, 2)[0];
       if (str.contains(defineRuleContext)) {
         /* process and store the macros info */
-        String[] macro = str.split(" ");
+        String[] macro = str.split(" ", 3);
         if (macro.length != 3 || macro[0].length() != defineRuleContext.length() - 1) {
           mediateFile.delete();
           System.out.println("Invalid macro at line " + lineCounter);
@@ -158,7 +158,7 @@ public class PreCompiler {
 
       if (str.contains(defineRuleContext)) {
         /* get the lib's macro info, assume macros in stdlib are all valid */
-        String[] macro = str.split(" ");
+        String[] macro = str.split(" ", 3);
         macros.add(new MacroInfo(macro[1], macro[2]));
       } else {
         bw.write("  " + str + "\n"); /* copy the content */

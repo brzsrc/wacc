@@ -32,6 +32,7 @@ bool add(List<E> list, E val, int pos) is
     Node<E> next = list.root;
     node.next = next;
     list.root = node;
+    list.length = list.length + 1;
     return true
   else
     if (list.root == empty) then
@@ -51,6 +52,7 @@ bool add(List<E> list, E val, int pos) is
       done;
       cur.next = node;
       node.next = next;
+      list.length = list.length + 1;
       return true
     fi
   fi
@@ -64,6 +66,7 @@ bool remove(List<E> list, int pos) is
       Node<E> next = list.root.next;
       free list.root;
       list.root = next;
+      list.length = list.length - 1;
       return true
     else
       if (list.root.next == empty) then
@@ -83,6 +86,7 @@ bool remove(List<E> list, int pos) is
         done;
         cur.next = next.next;
         free next;
+        list.length = list.length - 1;
         return true
       fi
     fi

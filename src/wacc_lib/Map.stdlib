@@ -1,0 +1,79 @@
+define Map<E1,E2>() Map<E1,E2>{empty}
+define Map<E1,E2> Map_E1_E2
+define Entry<E1,E2> Entry_E1_E2
+
+struct Map<E1,E2> is {Entry<E1,E2> root}
+struct Entry<E1,E2> is {E1 key, E2 val, Entry<E1,E2> next}
+
+bool put(Map<E1,E2> map, E1 key, E2 val) is
+  if (map.root == empty) then
+    map.root = new Entry<E1,E2>{key, val, empty};
+    return true
+  else
+    Entry<E1,E2> cur = map.root;
+    while (cur.next != empty) do
+      bool equal = call equals(cur.key, key);
+      if (equal) then
+        cur.val = val;
+        return false
+      else
+        cur = cur.next
+      fi
+    done;
+
+    bool equal = call equals(cur.key, key);
+    if (equal) then
+      cur.val = val;
+      return false
+    else
+      cur.next = new Entry<E1,E2>{key, val, empty};
+      return true
+    fi
+  fi
+end
+
+bool containsKey(Map<E1,E2> map, E1 key) is
+  if (map.root == empty) then
+    return false
+  else
+    Entry<E1,E2> e = map.root;
+    while (e != empty) do
+      bool equal = call equals(e.key, key);
+      if (equal) then
+        return true
+      else
+        e = e.next
+      fi
+    done;
+    return false
+  fi
+end
+
+E2 getOrDefault(Map<E1,E2> map, E1 key, E2 val) is
+  if (map.root == empty) then
+    return val
+  else
+    Entry<E1,E2> cur = map.root;
+    while (cur != empty) do
+      bool equal = call equals(cur.key, key);
+      if (equal) then
+        return cur.val
+      else
+        cur = cur.next
+      fi
+    done;
+    return val
+  fi
+end
+
+bool destroy(Map<E1,E2> map) is
+  Entry<E1,E2> cur = map.root;
+  while (cur != empty) do
+    Entry<E1,E2> next = cur.next;
+    free cur;
+    cur = next
+  done;
+  free map;
+  return true
+end
+
