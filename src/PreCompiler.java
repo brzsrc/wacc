@@ -69,7 +69,7 @@ public class PreCompiler {
     int lineCounter = 1;
     while (br.ready()) {
       String str = br.readLine();
-      if (str.contains(defineRuleContext)) {
+      if (str.contains(defineRuleContext) && !str.contains(commentMark)) {
         /* process and store the macros info */
         String[] macro = str.split(" ");
         if (macro.length != 3) {
@@ -78,7 +78,7 @@ public class PreCompiler {
           System.exit(INTERNAL_ERROR_CODE);
         }
         macros.add(new MacroInfo(macro[1], macro[2]));
-      } else if (str.contains(includeRuleContext)) {
+      } else if (str.contains(includeRuleContext) && !str.contains(commentMark)) {
         /* process and store the stdlib including info */
         String[] tokens = str.split("<", 2);
         /* e.g. include lib<a, b, c>, tokens[0] = include lib, tokens[1] = a, b, c> */
@@ -86,6 +86,7 @@ public class PreCompiler {
         List<String> generics = (tokens.length > 1) ? getTypeParam(tokens[1]) : new ArrayList<>();
         imports.add(new IncludeInfo(libName, generics));
       } else if (str.contains(programBodyMark) && !str.contains(commentMark)) {
+        bw.write(str + "\n");
         break; /* reach the end of file header */
       } else {
         bw.write(str + "\n"); /* copy the content */
@@ -108,9 +109,8 @@ public class PreCompiler {
       String str = br.readLine();
       if (isInProgramBody) {
         bw.write(str + "\n");
-      } else if (str.contains(programBodyMark)) {
+      } else if (str.contains(programBodyMark) && !str.contains(commentMark)) {
         isInProgramBody = true;
-        bw.write(str + "\n");
       }
     }
 
@@ -143,7 +143,7 @@ public class PreCompiler {
         }
       }
 
-      if (str.contains(defineRuleContext)) {
+      if (str.contains(defineRuleContext) && !str.contains(commentMark)) {
         /* get the lib's macro info, assume macros in stdlib are all valid */
         String[] macro = str.split(" ");
         macros.add(new MacroInfo(macro[1], macro[2]));
@@ -168,7 +168,7 @@ public class PreCompiler {
         for (MacroInfo m : macros) {
           str = str.replace(m.getKey(), m.getValue());
         }
-      } else if (str.contains(programBodyMark)) {
+      } else if (str.contains(programBodyMark) && !str.contains(commentMark)) {
         isInProgramBody = true;
       }
       bw.write(str + "\n");
