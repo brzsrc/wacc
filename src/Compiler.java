@@ -39,7 +39,7 @@ public class Compiler {
 
     // Creating the file instance for the .wacc file
     File sourceFile = new File(args[0]);
-    File file = PreCompiler.preCompile(args[0]);
+    File file = new PreCompiler(sourceFile).preCompile();
 
     // System.out.println(file.getName());
     // try-with-resources so that fis can be closed properly even when error occurs

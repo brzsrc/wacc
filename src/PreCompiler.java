@@ -5,185 +5,215 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import utils.Utils;
+import static utils.Utils.*;
 
 public class PreCompiler {
 
-  public static File preCompile(String fileName) throws IOException {
-    String pathName = fileName.substring(0, fileName.length()-5);
-    String mediateName = pathName + "_mid.wacc";
-    String outputName = pathName + "_pre.wacc";
+  private final List<IncludeInfo> imports = new ArrayList<>();
+  private final List<MacroInfo> macros = new ArrayList<>();
 
-    File input = new File(fileName);
-    File mediate = new File(mediateName);
-    if (!mediate.exists()) {
-      mediate.createNewFile();
+  private final File sourceFile;
+  private final String pathName;
+
+  public PreCompiler(File sourceFile) {
+    this.sourceFile = sourceFile;
+    String sourceFilePath = sourceFile.getPath();
+    pathName = sourceFilePath.substring(0, sourceFilePath.length() - waccFormatName.length());
+  }
+
+  public File preCompile() throws IOException {
+
+    File mediateFile = new File(pathName + mediateFileSuffix + waccFormatName);
+    if (!mediateFile.exists()) {
+      mediateFile.createNewFile();
     }
 
+    /* Visit the contents before entering the program body (begin) */
+    visitFileHeader(sourceFile, mediateFile);
 
-    /* Get the import info */
-    BufferedReader br = new BufferedReader(new FileReader(input));
-    BufferedWriter bw = new BufferedWriter(new FileWriter(mediate));
+    /* If there is no stdlib including or marcos, just return the source file */
+    if (imports.isEmpty() && macros.isEmpty()) {
+      mediateFile.delete();
+      return sourceFile;
+    }
 
-    List<IncludeInfo> imports = new ArrayList<>();
-    List<MacroInfo> macros = new ArrayList<>();
+    /* Concat the content of all libs */
+    concatAllLibs(mediateFile);
+
+    /* Append the contents of the program body */
+    visitFileBody(sourceFile, mediateFile);
+
+    /* If there is no macros, just return the mediateFile file */
+    if (macros.isEmpty()) {
+      return mediateFile;
+    }
+
+    File outputFile = new File(pathName + outputFileSuffix + waccFormatName);
+    if (!outputFile.exists()) {
+      outputFile.createNewFile();
+    }
+
+    /* Macro replacement */
+    replaceMacros(mediateFile, outputFile);
+
+    mediateFile.delete();
+    return outputFile;
+  }
+
+
+  private void visitFileHeader(File sourceFile, File mediateFile) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(sourceFile));
+    BufferedWriter bw = new BufferedWriter(new FileWriter(mediateFile));
 
     int lineCounter = 1;
     while (br.ready()) {
       String str = br.readLine();
-      if (str.contains("define")) {
+      if (str.contains(defineRuleContext)) {
+        /* process and store the macros info */
         String[] macro = str.split(" ");
         if (macro.length != 3) {
-          mediate.delete();
+          mediateFile.delete();
           System.out.println("Invalid macro at line " + lineCounter);
-          System.exit(Utils.INTERNAL_ERROR_CODE);
+          System.exit(INTERNAL_ERROR_CODE);
         }
         macros.add(new MacroInfo(macro[1], macro[2]));
-      } else if (str.contains("include")) {
-        
-        String[] tokens = str.split("[<]", 2);
-        String libName = tokens[0].split("[ ]")[1];
-        /* include lib with type param */
-        if (tokens.length > 1) {
-          String[] generics = tokens[1].replace(" ", "").split("[,]");
-          /* the last type param would have one '>' which should be removed*/
-          int last = generics.length - 1;
-          generics[last] = generics[last].substring(0, generics[last].length() - 1);
-          imports.add(new IncludeInfo(libName, generics));
-
-        /* lib without type param */
-        } else {
-          imports.add(new IncludeInfo(libName, null));
-        }
-
-      } else if (str.contains("import")) {
-        bw.write(str + "\n");
-      } else if (str.contains("begin")) {
-        bw.write(str + "\n");
-        break;
+      } else if (str.contains(includeRuleContext)) {
+        /* process and store the stdlib including info */
+        String[] tokens = str.split("<", 2);
+        /* e.g. include lib<a, b, c>, tokens[0] = include lib, tokens[1] = a, b, c> */
+        String libName = tokens[0].split(" ", 2)[1];
+        List<String> generics = (tokens.length > 1) ? getTypeParam(tokens[1]) : new ArrayList<>();
+        imports.add(new IncludeInfo(libName, generics));
+      } else if (str.contains(programBodyMark) && !str.contains(commentMark)) {
+        break; /* reach the end of file header */
+      } else {
+        bw.write(str + "\n"); /* copy the content */
       }
+
       lineCounter++;
     }
 
     br.close();
     bw.close();
+  }
 
-    /* if there is no stdlib including or marcos, just return the source file */
-    if (imports.isEmpty() && macros.isEmpty()) {
-      mediate.delete();
-      return input;
-    }
+  private void visitFileBody(File sourceFile, File mediateFile) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(sourceFile));
+    BufferedWriter bw = new BufferedWriter(new FileWriter(mediateFile, true));
 
-    /* Concat the content of the lib */
-    imports.sort((importInfo, t1) -> t1.getMaxTypeLen() - importInfo.getMaxTypeLen());
-    for (IncludeInfo i : imports) {
-      String libName = i.getLibName();
-      String[] generics = i.getGenerics();
-      writeTo(new File("src/wacc_lib/" + libName + ".stdlib"), mediate, generics, macros);
-    }
-
-    /* Append the rest of the original part */
-    br = new BufferedReader(new FileReader(input));
-    bw = new BufferedWriter(new FileWriter(mediate, true));
-
-    boolean isBegin = false;
+    boolean isInProgramBody = false;
+    /* only concat the contents of program body */
     while (br.ready()) {
       String str = br.readLine();
-      if (isBegin) {
+      if (isInProgramBody) {
         bw.write(str + "\n");
-      } else if (str.contains("begin")) {
-        isBegin = true;
+      } else if (str.contains(programBodyMark)) {
+        isInProgramBody = true;
+        bw.write(str + "\n");
       }
     }
 
     br.close();
     bw.close();
+  }
 
-    /* if there is no macros, return the mediate file */
-    if (macros.isEmpty()) {
-      return mediate;
+  private void concatAllLibs(File mediateFile) throws IOException {
+    imports.sort((importInfo, t1) -> t1.getMaxTypeLen() - importInfo.getMaxTypeLen());
+    for (IncludeInfo i : imports) {
+      String libName = i.getLibName();
+      List<String> typeParams = i.getTypeParams();
+      concatOneLib(new File(stdlibPath + libName + stdlibFormatName), mediateFile, typeParams);
     }
+  }
 
-    /* Macro replacement */
-    File output = new File(outputName);
-    if (!output.exists()) {
-      output.createNewFile();
-    }
+  /* helper function which is used to concat the contents of one lib to the dst file */
+  private void concatOneLib(File lib, File dst, List<String> typeParams) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(lib));
+    BufferedWriter bw = new BufferedWriter(new FileWriter(dst, true));
 
-    br = new BufferedReader(new FileReader(mediate));
-    bw = new BufferedWriter(new FileWriter(output));
     while (br.ready()) {
       String str = br.readLine();
-      if (!str.contains("import")) {
+      /* replace all the generics with the given typeParams */
+      if (typeParams.size() == 1) {
+        str = str.replace(genericMark, typeParams.get(0));
+      } else if (typeParams.size() > 1) {
+        for (int i = 0; i < typeParams.size(); i++) {
+          str = str.replace(genericMark + (i+1), typeParams.get(i));
+        }
+      }
+
+      if (str.contains(defineRuleContext)) {
+        /* get the lib's macro info, assume macros in stdlib are all valid */
+        String[] macro = str.split(" ");
+        macros.add(new MacroInfo(macro[1], macro[2]));
+      } else {
+        bw.write("  " + str + "\n"); /* copy the content */
+      }
+    }
+
+    br.close();
+    bw.close();
+  }
+
+  private void replaceMacros(File mediateFile, File outputFile) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(mediateFile));
+    BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+
+    boolean isInProgramBody = false;
+    /* only do text replacement in the program body */
+    while (br.ready()) {
+      String str = br.readLine();
+      if (isInProgramBody) {
         for (MacroInfo m : macros) {
           str = str.replace(m.getKey(), m.getValue());
         }
+      } else if (str.contains(programBodyMark)) {
+        isInProgramBody = true;
       }
       bw.write(str + "\n");
     }
 
     br.close();
     bw.close();
-
-    mediate.delete();
-    return output;
   }
 
-  private static String replaceGenerics(String str, String[] generics) {
-    if (generics.length == 1) {
-      return str.replace("E", generics[0]);
-    }
+  /* helper function which is used to get the corresponding type params */
+  private List<String> getTypeParam(String str) {
+    List<String> typeParams = new ArrayList<>();
+    int depth = 1;
+    StringBuilder token = new StringBuilder();
+    for (int i = 0; i < str.length(); i++) {
+      char c = str.charAt(i);
+      if (c == '<') depth++;
+      if (c == '>') depth--;
 
-    for (int i = 0; i < generics.length; i++) {
-      str = str.replace("E" + (i+1), generics[i]);
-    }
-
-    return str;
-  }
-
-  private static void writeTo(
-      File src, File dst, String[] generics, List<MacroInfo> macros) throws IOException {
-
-    BufferedReader br = new BufferedReader(new FileReader(src));
-    BufferedWriter bw = new BufferedWriter(new FileWriter(dst, true));
-
-
-    while (br.ready()) {
-      String str = br.readLine();
-      if (generics != null) {
-        str = replaceGenerics(str, generics);
-      }
-
-      if (str.contains("define")) {
-        String[] macro = str.split(" ");
-        /* could throw an error here */
-        assert macro.length == 3;
-        macros.add(new MacroInfo(macro[1], macro[2]));
-      } else {
-        bw.write("  " + str + "\n");
+      if (depth == 0) {
+        typeParams.add(token.toString());
+        break;
+      } else  if (depth == 1 && c == ',') {
+        typeParams.add(token.toString());
+        token = new StringBuilder();
+      } else if (c != ' ') {
+        token.append(c);
       }
     }
 
-    br.close();
-    bw.close();
+    return typeParams;
   }
 
   private static class IncludeInfo {
     private final String libName;
-    private final String[] generics;
+    private final List<String> typeParams;
     private int maxTypeLen;
 
-    private IncludeInfo(String libName, String[] generics) {
+    private IncludeInfo(String libName, List<String> typeParams) {
       this.libName = libName;
-      this.generics = generics;
+      this.typeParams = typeParams;
       maxTypeLen = 0;
-      if (generics != null) {
-        for (String p : generics) {
-          if (p.length() > maxTypeLen) {
-            maxTypeLen = p.length();
-          }
+      for (String p : typeParams) {
+        if (p.length() > maxTypeLen) {
+          maxTypeLen = p.length();
         }
       }
     }
@@ -192,17 +222,12 @@ public class PreCompiler {
       return libName;
     }
 
-    public String[] getGenerics() {
-      return generics;
+    public List<String> getTypeParams() {
+      return typeParams;
     }
 
     public int getMaxTypeLen() {
       return maxTypeLen;
-    }
-
-    @Override
-    public String toString() {
-      return libName + ": " + Arrays.toString(generics);
     }
   }
 
