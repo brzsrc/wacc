@@ -1,15 +1,15 @@
 #!/bin/bash
 
 VALID_EXAMPLES=(
-                "/advanced"
-                "/array"
+                #"/advanced"
+                #"/array"
                 "/basic"
                 "/expressions"
-                "/function"
+                #"/function"
                 "/if"
                 "/IO"
-                "/pairs"
-                "/runtimeErr"
+                #"/pairs"
+                #"/runtimeErr"
                 "/scope"
                 "/sequence"
                 "/variables"
@@ -27,7 +27,7 @@ mkdir log/assembly
 mkdir $ASSEMBLY_OUTPUT_DIR
 
 # counters to represent the total number of test files to be processed
-TOTAL_COUNT=$(find "${VALID_EXAMPLES[@]/#/${VALID_EXAMPLES_SRC_DIR}}" -name "*.output.txt" | wc -l)
+TOTAL_COUNT=$(find "${VALID_EXAMPLES[@]/#/${VALID_EXAMPLES_SRC_DIR}}" -name "*.wacc" | wc -l)
 COUNTER=0
 
 for folder in ${VALID_EXAMPLES[@]}; do
