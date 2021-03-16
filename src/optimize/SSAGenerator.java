@@ -144,7 +144,7 @@ public class SSAGenerator implements NodeVisitor<SSAGenerator.Pair<CFGNode, CFGN
   @Override
   public Pair<CFGNode, CFGNode> visitScopeNode(ScopeNode node) {
     CFGNode currNode = new CFGNode();
-    CFGNode startNode = currNode;
+    CFGNode scopeStartNode = currNode;
     for (StatNode stat : node.getBody()) {
       if (isLoop(stat)) {
         /*        <-------------------+
@@ -154,9 +154,9 @@ public class SSAGenerator implements NodeVisitor<SSAGenerator.Pair<CFGNode, CFGN
                 +---------------------------->
            break also have edge point to endNode
            continue also have edge point to startNode
-           edge shown here are only for while loop, for and do-while have different linking edge
+           edge shown here are only for while loop, for and do-while have different linking edge,
+             different link implemented in each visitNode
         */
-        // todo: return pair of CFG, meaning the group of CFG node's start and end, single CFG will return pair of the same CFGNode twice
         CFGNode endNode = new CFGNode(),
                 startNode = new CFGNode();
         breakPostNodes.push(endNode);
@@ -181,11 +181,16 @@ public class SSAGenerator implements NodeVisitor<SSAGenerator.Pair<CFGNode, CFGN
         CFGNode endNode = new CFGNode();
 
         IfNode ifStat = (IfNode) stat;
+        Pair<CFGNode, CFGNode> ifBody = visit(ifStat.getIfBody());
+        Pair<CFGNode, CFGNode> elseBody = visit(ifStat.getElseBody());
 
-        visit(ifStat.getIfBody());
+        /* link 4 edge shown in graph above */
+        link(currNode, ifBody.getFst());
+        link(currNode, elseBody.getFst());
+        link(ifBody.getSnd(), endNode);
+        link(elseBody.getSnd(), endNode);
 
-        visit(ifStat.getElseBody());
-
+        currNode = endNode;
 
       } else if (stat instanceof JumpNode) {
         /* implement edge shown in loop part,
@@ -198,19 +203,26 @@ public class SSAGenerator implements NodeVisitor<SSAGenerator.Pair<CFGNode, CFGN
         }
         /* return directly, so that CFG will not link this block to end of if/loop
         *  also eliminate junk after break/continue  */
-        return null;
+        currNode.addBody(stat);
+        return new Pair<>(scopeStartNode, currNode);
       } else if (stat instanceof SwitchNode) {
-        /* update break target to end of switch, no need to change continue target */
+        /*
+          switch(expr) -> expr       -> switchEnd
+                       -> expr       |
+                       -> expr       |
+                       -> expr       |
+        update break target to end of switch, no need to change continue target */
         CFGNode switchEnd = new CFGNode();
 
         breakPostNodes.push(switchEnd);
-        CFGNode switchStart = visit(stat);
+        Pair<CFGNode, CFGNode> switchStartEnd = visit(stat);
         breakPostNodes.pop();
 
         /* link currNode with start of switch */
-        link(currNode, switchStart);
+        link(currNode, switchStartEnd.getFst());
 
         /* end of switch is next block */
+        assert switchEnd == switchStartEnd.getSnd();
         currNode = switchEnd;
       } else {
         /* statement has no branch*/
