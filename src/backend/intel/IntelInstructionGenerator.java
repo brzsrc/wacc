@@ -125,7 +125,6 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     IntelConcreteRegister addrReg = intelRegAllocator.allocate();
 
     int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
-        - (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize())
         + stackOffset;
     instructions.add(new Mov(new IntelAddress(rbp, -offset), addrReg));
 
@@ -177,9 +176,11 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     for (int i = 0; i < node.getLength(); i++) {
       visit(node.getElem(i));
       int indexOffset = node.getContentSize() * i;
-      IntelConcreteRegister realAddr = intelRegAllocator.allocate();
-      instructions.add(new Lea(new IntelAddress(addrReg, indexOffset), realAddr));
-      instructions.add(new Mov(intelRegAllocator.last(), new IntelAddress(realAddr)));
+      IntelConcreteRegister tempAddr = intelRegAllocator.allocate();
+      instructions.add(new Mov(addrReg, tempAddr));
+      instructions.add(new Add(indexOffset, IntelInstructionSize.Q, tempAddr));
+      instructions.add(new Mov(intelRegAllocator.last().withSize(intToIntelSize.get(node.getContentSize()))
+          , new IntelAddress(tempAddr)));
       intelRegAllocator.free();
       intelRegAllocator.free();
     }
@@ -297,9 +298,9 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* put pointer that point to ident's value in stack to next available register */
     int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
-        - (currSymbolTable.getParentSymbolTable() == null ? 0 : currSymbolTable.getParentSymbolTable().getSize())
         - currParamListSize + stackOffset;
 
+    System.out.println(node.getName());
     System.out.println(offset);
 
     /* if is lhs, then only put address in register */
