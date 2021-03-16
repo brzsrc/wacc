@@ -34,12 +34,12 @@ public class Utils {
   public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOLEAN);
   public static final Type CHAR_BASIC_TYPE = new BasicType(BasicTypeEnum.CHAR);
   public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING);
-  public static final Type ARRAY_TYPE = new ArrayType();
-  public static final Type PAIR_TYPE = new PairType();
-  public static final Type STRUCT_TYPE = new StructType();
+  public static final Type ARRAY_TYPE = new ArrayType(AssemblyArchitecture.ARMv6);
+  public static final Type PAIR_TYPE = new PairType(AssemblyArchitecture.ARMv6);
+  public static final Type STRUCT_TYPE = new StructType("",  AssemblyArchitecture.ARMv6);
 
   /* char array type would be the same as string for printf */
-  public static final Type CHAR_ARRAY_TYPE = new ArrayType(CHAR_BASIC_TYPE);
+  public static final Type CHAR_ARRAY_TYPE = new ArrayType(CHAR_BASIC_TYPE, AssemblyArchitecture.ARMv6);
 
   /* a list of allowed types in read, free, cmp statement */
   public static final Set<Type> readStatAllowedTypes = new HashSet<>(
@@ -136,7 +136,8 @@ public class Utils {
   public static final int INTERNAL_ERROR_CODE = 300;
 
   /* word, byte size in unit: byte */
-  public static final int WORD_SIZE = 4, BYTE_SIZE = 1, POINTER_SIZE = WORD_SIZE;
+  public static final int QUAD_SIZE = 8, WORD_SIZE = 4, BYTE_SIZE = 1;
+  public static final int ARM_POINTER_SIZE = WORD_SIZE, INTEL_POINTER_SIZE = QUAD_SIZE;
 
   public static final int TRUE = 1;
   public static final int FALSE = 0;
@@ -149,6 +150,10 @@ public class Utils {
 
   public enum IntelInstructionSize {
     Q, L, W, B
+  }
+
+  public enum AssemblyArchitecture {
+    ARMv6, Intelx86
   }
 
   /* adding a private constructor to override the default public constructor in order to

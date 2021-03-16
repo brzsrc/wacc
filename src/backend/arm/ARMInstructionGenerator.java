@@ -187,7 +187,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
       instructions.add(new Mov(r1, new Operand2(addrReg)));
       instructions.add(new BL(CHECK_ARRAY_BOUND.toString()));
 
-      instructions.add(new Add(addrReg, addrReg, new Operand2(POINTER_SIZE)));
+      instructions.add(new Add(addrReg, addrReg, new Operand2(ARM_POINTER_SIZE)));
 
       int elemSize = i < node.getDepth() - 1 ? 2 : node.getType().getSize() / 2;
       instructions.add(new Add(addrReg, addrReg, new Operand2(indexReg, LSL, elemSize)));
@@ -209,7 +209,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     /* get the total number of bytes needed to allocate enough space for the array */
     int size = node.getType() == null ? 0 : node.getContentSize() * node.getLength();
     /* add 4 bytes to `size` to include the size of the array as the first byte */
-    size += POINTER_SIZE;
+    size += ARM_POINTER_SIZE;
 
     /* load R0 with the number of bytes needed and malloc  */
     instructions.add(new LDR(r0, new ImmedAddress(size)));
@@ -412,7 +412,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     if (node.isFirst()) {
       addrMode = new AddressingMode2(OFFSET, reg);
     } else {
-      addrMode = new AddressingMode2(OFFSET, reg, POINTER_SIZE);
+      addrMode = new AddressingMode2(OFFSET, reg, ARM_POINTER_SIZE);
     }
 
     if (isLhs) {
@@ -437,7 +437,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     /* 1 malloc pair */
     /* 1.1 move size of a pair in r0
      *    pair in heap is 2 pointers, so 8 byte */
-    instructions.add(new LDR(r0, new ImmedAddress(2 * POINTER_SIZE)));
+    instructions.add(new LDR(r0, new ImmedAddress(2 * ARM_POINTER_SIZE)));
 
     /* 1.2 BL malloc and get pointer in general use register*/
     instructions.add(new BL(MALLOC.toString()));

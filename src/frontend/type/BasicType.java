@@ -40,17 +40,11 @@ public class BasicType implements Type {
 
   @Override
   public int getSize() {
-    switch (basicTypeEnum) {
-      case CHAR:
-      case BOOLEAN:
-        return BYTE_SIZE;
-      case INTEGER:
-        return WORD_SIZE;
-      case STRING:
-        return POINTER_SIZE;
-      default:
-        throw new IllegalArgumentException("getSize on Illegal basicTypeNum" + basicTypeEnum);
-    }
+    return switch (basicTypeEnum) {
+      case CHAR, BOOLEAN -> BYTE_SIZE;
+      case INTEGER -> WORD_SIZE;
+      case STRING -> QUAD_SIZE;
+    };
   }
 
   @Override

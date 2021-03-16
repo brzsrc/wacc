@@ -31,6 +31,7 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import utils.NodeVisitor;
+import utils.Utils.AssemblyArchitecture;
 import utils.frontend.ParserErrorHandler;
 
 public class Compiler {
@@ -68,7 +69,11 @@ public class Compiler {
       Node program;
       // If the `--parse_only` flag is specified, then we do not run semantic analysis
       if (!cmd_ops.contains("--parse_only")) {
-        SemanticChecker semanticChecker = new SemanticChecker();
+        AssemblyArchitecture arch = AssemblyArchitecture.ARMv6;
+        if (cmd_ops.contains("--intel")) {
+          arch = AssemblyArchitecture.Intelx86;
+        }
+        SemanticChecker semanticChecker = new SemanticChecker(arch);
         program = semanticChecker.visitProgram(tree);
 
         int optimise_cmd_index = cmd_ops.indexOf("--optimise");
@@ -77,7 +82,7 @@ public class Compiler {
           case "0":
             break;
           case "1":
-            NodeVisitor<Node> constPropOptimiser = new ConstantPropagation();
+            NodeVisitor<Node> constPropOptimiser = new ConstantPropagation(arch);
             program = constPropOptimiser.visit(program);
             break;
           default:

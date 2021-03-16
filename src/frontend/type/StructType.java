@@ -1,16 +1,17 @@
 package frontend.type;
 
-import static utils.Utils.POINTER_SIZE;
+import utils.Utils;
+import utils.Utils.AssemblyArchitecture;
 
 public class StructType implements Type {
 
-  private String name;
+  private final String name;
+  private final AssemblyArchitecture arch;
 
-  public StructType(String name) {
+  public StructType(String name, AssemblyArchitecture arch) {
     this.name = name;
+    this.arch = arch;
   }
-
-  public StructType() { name = null; }
 
   public String getName() {
     return name;
@@ -42,7 +43,7 @@ public class StructType implements Type {
 
   @Override
   public int getSize() {
-    return POINTER_SIZE;
+    return arch.equals(AssemblyArchitecture.ARMv6) ? Utils.ARM_POINTER_SIZE : Utils.INTEL_POINTER_SIZE;
   }
 
   @Override

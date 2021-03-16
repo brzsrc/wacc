@@ -67,8 +67,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   private StatNode currForLoopIncrementBreak;
   private StatNode currForLoopIncrementContinue;
 
+  /* indicate the architecture */
+  private AssemblyArchitecture arch;
+
   /* constructor of SemanticChecker */
-  public SemanticChecker() {
+  public SemanticChecker(AssemblyArchitecture arch) {
     currSymbolTable = null;
     globalStructTable = new HashMap<>();
     globalFuncTable = new HashMap<>();
@@ -80,6 +83,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     expectedFunctionReturn = null;
     currForLoopIncrementBreak = null;
     currForLoopIncrementContinue = null;
+    this.arch = arch;
   }
 
   @Override
@@ -188,7 +192,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     /* initialise as -4 byte in order to leave space for PUSH {lr}, 
        which takes up 4 bute on stack */
-    int tempStackAddr = -POINTER_SIZE;
+    int tempStackAddr = this.arch.equals(AssemblyArchitecture.ARMv6) ? -WORD_SIZE : -QUAD_SIZE;
     List<IdentNode> params = funcNode.getParamList();
     int paramNum = params.size();
 
@@ -643,7 +647,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitArray_liter(Array_literContext ctx) {
     int length = ctx.expr().size();
     if (length == 0) {
-      return new ArrayNode(null, new ArrayList<>(), length);
+      return new ArrayNode(null, new ArrayList<>(), length, this.arch);
     }
     ExprNode firstExpr = visit(ctx.expr(0)).asExprNode();
     Type firstContentType = firstExpr.getType();
@@ -654,7 +658,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       semanticError |= typeCheck(context, firstContentType, exprType);
       list.add(expr);
     }
-    return new ArrayNode(firstContentType, list, length);
+    return new ArrayNode(firstContentType, list, length, this.arch);
   }
 
   @Override
@@ -670,7 +674,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       invalidRuleException(ctx, "visitArray_type");
       return null;
     }
-    return new TypeDeclareNode(new ArrayType(type.getType()));
+    return new TypeDeclareNode(new ArrayType(type.getType(), this.arch));
   }
 
   @Override
@@ -687,7 +691,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitNewPair(NewPairContext ctx) {
     ExprNode fst = visit(ctx.expr(0)).asExprNode();
     ExprNode snd = visit(ctx.expr(1)).asExprNode();
-    return new PairNode(fst, snd);
+    return new PairNode(fst, snd, this.arch);
   }
 
   @Override
@@ -708,7 +712,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       elemNodes.add(node);
     }
 
-    return new StructNode(elemNodes, struct.getOffsets(), struct.getSize(), name);
+    return new StructNode(elemNodes, struct.getOffsets(), struct.getSize(), name, this.arch);
   }
 
   @Override
@@ -795,7 +799,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   /* pairExpr is basically 'null', extend 'null' to represent uninitialised struct */
   @Override
   public Node visitPairExpr(PairExprContext ctx) {
-    return (isStruct)? new StructNode() : new PairNode();
+    return (isStruct)? new StructNode() : new PairNode(this.arch);
   }
 
   @Override
@@ -986,14 +990,14 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitPairElemPairType(PairElemPairTypeContext ctx) {
-    return new TypeDeclareNode(new PairType());
+    return new TypeDeclareNode(new PairType(this.arch));
   }
 
   @Override
   public Node visitPair_type(Pair_typeContext ctx) {
     TypeDeclareNode leftChild = visit(ctx.pair_elem_type(0)).asTypeDeclareNode();
     TypeDeclareNode rightChild = visit(ctx.pair_elem_type(1)).asTypeDeclareNode();
-    Type type = new PairType(leftChild.getType(), rightChild.getType());
+    Type type = new PairType(leftChild.getType(), rightChild.getType(), this.arch);
     return new TypeDeclareNode(type);
   }
 
@@ -1006,6 +1010,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (!globalStructTable.containsKey(name)) {
       symbolNotFound(ctx, name);
     }
-    return new TypeDeclareNode(new StructType(name));
+    return new TypeDeclareNode(new StructType(name, this.arch));
   }
 }

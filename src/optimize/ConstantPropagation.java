@@ -18,6 +18,12 @@ import static utils.Utils.*;
 
 public class ConstantPropagation implements NodeVisitor<Node> {
 
+  private final AssemblyArchitecture arch;
+
+  public ConstantPropagation(AssemblyArchitecture arch) {
+    this.arch = arch;
+  }
+
   @Override
   public Node visitArrayElemNode(ArrayElemNode node) {
     /* only simplify all indexes, nothing else to be changed */
@@ -29,7 +35,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   public Node visitArrayNode(ArrayNode node) {
     /* only simplify all contents, nothing else to be changed */
     List<ExprNode> content = simplifyExprList(node.getContent());
-    return new ArrayNode(node.getType().asArrayType().getContentType(), content, node.getLength());
+    return new ArrayNode(node.getType().asArrayType().getContentType(), content, node.getLength(), this.arch);
   }
 
   @Override
@@ -102,7 +108,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     ExprNode expr1 = visit(node.getFst()).asExprNode();
     ExprNode expr2 = visit(node.getSnd()).asExprNode();
 
-    return new PairNode(expr1, expr2);
+    return new PairNode(expr1, expr2, this.arch);
   }
 
   @Override
