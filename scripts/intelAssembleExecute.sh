@@ -18,7 +18,7 @@ VALID_EXAMPLES=(
 
 EXECUTE_OUTPUT_DIR="./log/output"
 ASSEMBLY_OUTPUT_DIR="./log/assembly/intel"
-VALID_EXAMPLE_DIR="./src/test/examples/valid"
+VALID_EXAMPLES_SRC_DIR="./src/test/examples/valid"
 REF_COMPILE="./src/test/examples/refCompile"
 
 mkdir log
@@ -35,7 +35,7 @@ for folder in ${VALID_EXAMPLES[@]}; do
   OUTPUT_VALID_FOLDER="${EXECUTE_OUTPUT_DIR}${folder}"
   mkdir $ASSEMBLY_OUTPUT_VALID_FOLDER
   mkdir $OUTPUT_VALID_FOLDER
-  for file in $(find "${VALID_EXAMPLE_DIR}${folder}" -name "*.wacc")
+  for file in $(find "${VALID_EXAMPLES_SRC_DIR}${folder}" -name "*.wacc")
   do
     FILE_NAME=$(basename "${file%.*}")
     EXECUTABLE_OUTPUT_FILE="${OUTPUT_VALID_FOLDER}/${FILE_NAME}.output.txt"
