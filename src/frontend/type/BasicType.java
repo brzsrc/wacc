@@ -40,11 +40,18 @@ public class BasicType implements Type {
 
   @Override
   public int getSize() {
-    return switch (basicTypeEnum) {
-      case CHAR, BOOLEAN -> BYTE_SIZE;
-      case INTEGER -> WORD_SIZE;
-      case STRING -> QUAD_SIZE;
-    };
+    switch (basicTypeEnum) {
+      case CHAR:
+      case BOOLEAN:
+        return BYTE_SIZE;
+      case INTEGER:
+        return WORD_SIZE;
+      case STRING:
+        // todo: change returned value to arch.equals(AssemblyArchitecture.ARMv6) ? Utils.ARM_POINTER_SIZE : Utils.INTEL_POINTER_SIZE
+        return QUAD_SIZE;
+      default:
+        throw new IllegalArgumentException("unsupported base type enum: " + basicTypeEnum);
+    }
   }
 
   @Override

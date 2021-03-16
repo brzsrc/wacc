@@ -190,8 +190,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     expectedFunctionReturn = funcNode.getReturnType();
     currSymbolTable = new SymbolTable(currSymbolTable);
 
-    /* initialise as -4 byte in order to leave space for PUSH {lr}, 
-       which takes up 4 bute on stack */
+    /* ARM: initialise as -4 byte in order to leave space for PUSH {lr},
+       which takes up 4 bute on stack
+       intel: rbp is assigned after push, so all */
     int tempStackAddr = this.arch.equals(AssemblyArchitecture.ARMv6) ? -WORD_SIZE : -QUAD_SIZE;
     List<IdentNode> params = funcNode.getParamList();
     int paramNum = params.size();
