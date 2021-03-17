@@ -110,8 +110,8 @@ public class Utils {
           Binop.MUL, ((x, y) -> arithmeticWithCheck(x, y, Math::multiplyExact)),
           Binop.BITAND, ((x, y) -> y == 0 ? null : new IntegerNode(x & y, AssemblyArchitecture.ARMv6)),
           Binop.BITOR, ((x, y) -> y == 0 ? null : new IntegerNode(x | y, AssemblyArchitecture.ARMv6)),
-          Binop.DIV, ((x, y) -> new IntegerNode(x / y, AssemblyArchitecture.ARMv6)),
-          Binop.MOD, ((x, y) -> new IntegerNode(x % y, AssemblyArchitecture.ARMv6))
+          Binop.DIV, ((x, y) -> y == 0 ? null : new IntegerNode(x / y, AssemblyArchitecture.ARMv6)),
+          Binop.MOD, ((x, y) -> y == 0 ? null : new IntegerNode(x % y, AssemblyArchitecture.ARMv6))
   );
 
   public static final Map<Binop, BiFunction<Integer, Integer, Boolean>> cmpMap = Map.of(
