@@ -305,9 +305,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       instructions.add(new Lea(new IntelAddress(rbp, -offset), intelRegAllocator.allocate()));
     } else {
       /* otherwise, put value in register */
-//      Map<Integer, IntelMovType> m = Map.of(8, IntelMovType.MOV, 4, IntelMovType.MOV, 1, IntelMovType.MOVZBQ);
-//      instructions.add(new Mov(new IntelAddress(rbp, -offset), intelRegAllocator.allocate().withSize(intToIntelSize.get(identTypeSize)), m.get(identTypeSize)));
-      instructions.add(new Mov(new IntelAddress(rbp, -offset), intelRegAllocator.allocate().withSize(intToIntelSize.get(identTypeSize)), IntelMovType.MOV));
+      Map<Integer, IntelMovType> m = Map.of(8, IntelMovType.MOV, 4, IntelMovType.MOV, 1, IntelMovType.MOVZBQ);
+      IntelMovType type = m.get(identTypeSize);
+      IntelInstructionSize size = type.equals(IntelMovType.MOV) ? intToIntelSize.get(identTypeSize) : IntelInstructionSize.Q;
+      instructions.add(new Mov(new IntelAddress(rbp, -offset), intelRegAllocator.allocate().withSize(size), type));
     }
     return null;
   }
