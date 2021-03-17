@@ -1,9 +1,9 @@
 optimising using const propagate
-{scope
-  INTEGER a = 0
-  INTEGER b = 0
-  INTEGER c = 0
-  INTEGER d = 0
+{scope size = 20 current scope = utils.frontend.symbolTable.SymbolTable@13fee20c parent = null
+  INT a = 0
+  INT b = 0
+  INT c = 0
+  INT d = 0
   switch 3
     case 0
       b (8) = 1
@@ -13,7 +13,7 @@ optimising using const propagate
       d (16) = 0
     default
       c (12) = 1
-  INTEGER e = 1
+  INT e = 1
   e (20) = b (8) PLUS 1
   e (20) = c (12) PLUS 1
   e (20) = 1

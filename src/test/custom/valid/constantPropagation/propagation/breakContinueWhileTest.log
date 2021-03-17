@@ -1,39 +1,39 @@
 optimising using const propagate
-{scope size = 52 current scope = utils.frontend.symbolTable.SymbolTable@6a5fc7f7 parent = null
-  INTEGER a0 = 0
-  INTEGER a1 = 0
-  INTEGER a2 = 0
-  INTEGER a3 = 0
-  INTEGER a4 = 0
-  INTEGER a5 = 0
-  INTEGER b0 = 0
-  INTEGER b1 = 0
-  INTEGER b2 = 0
-  INTEGER b3 = 0
-  INTEGER b4 = 0
-  INTEGER b5 = 0
+{scope size = 52 current scope = utils.frontend.symbolTable.SymbolTable@edf4efb parent = null
+  INT a0 = 0
+  INT a1 = 0
+  INT a2 = 0
+  INT a3 = 0
+  INT a4 = 0
+  INT a5 = 0
+  INT b0 = 0
+  INT b1 = 0
+  INT b2 = 0
+  INT b3 = 0
+  INT b4 = 0
+  INT b5 = 0
   while true :
-    {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@39ba5a14 parent = utils.frontend.symbolTable.SymbolTable@6a5fc7f7
+    {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@6aaa5eb0 parent = utils.frontend.symbolTable.SymbolTable@edf4efb
       b1 (32) = 0
       a1 (8) = 1
       if true :
-        {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@7e0ea639 parent = utils.frontend.symbolTable.SymbolTable@39ba5a14
+        {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@3498ed parent = utils.frontend.symbolTable.SymbolTable@6aaa5eb0
           b2 (36) = 0
           a2 (12) = 1
 CONTINUE
         }
       else
-        {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@3d24753a parent = utils.frontend.symbolTable.SymbolTable@39ba5a14
+        {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@1a407d53 parent = utils.frontend.symbolTable.SymbolTable@6aaa5eb0
           b3 (40) = 0
           a3 (16) = 1
           if true :
-            {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@59a6e353 parent = utils.frontend.symbolTable.SymbolTable@3d24753a
+            {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@3d8c7aca parent = utils.frontend.symbolTable.SymbolTable@1a407d53
               b4 (44) = 0
               a4 (20) = 1
 BREAK
             }
           else
-            {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@7a0ac6e3 parent = utils.frontend.symbolTable.SymbolTable@3d24753a
+            {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@5ebec15 parent = utils.frontend.symbolTable.SymbolTable@1a407d53
               b5 (48) = 0
               a5 (24) = 1
             }
@@ -41,7 +41,7 @@ BREAK
         }
       
     }
-  INTEGER c = 0
+  INT c = 0
   c (52) = a1 (8)
   c (52) = a2 (12)
   c (52) = a3 (16)

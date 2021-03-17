@@ -1,23 +1,23 @@
 optimising using const propagate
-{scope 
-  INTEGER a = 0
-  INTEGER b = 0
+{scope size = 12 current scope = utils.frontend.symbolTable.SymbolTable@6fadae5d parent = null
+  INT a = 0
+  INT b = 0
   if true :
-    {scope 
+    {scope size = 8 current scope = utils.frontend.symbolTable.SymbolTable@4411d970 parent = utils.frontend.symbolTable.SymbolTable@6fadae5d
       a (4) = 0
       b (8) = 0
-      INTEGER a = 0
-      INTEGER b = 0
+      INT a = 0
+      INT b = 0
     }
   else
-    {scope 
+    {scope size = 8 current scope = utils.frontend.symbolTable.SymbolTable@6442b0a6 parent = utils.frontend.symbolTable.SymbolTable@6fadae5d
       a (4) = 0
       b (8) = 1
-      INTEGER a = 0
-      INTEGER b = 0
+      INT a = 0
+      INT b = 0
     }
   
-  INTEGER c = 0
+  INT c = 0
   c (12) = b (8)
 }
 Assembly file created!

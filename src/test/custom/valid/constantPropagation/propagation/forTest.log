@@ -1,32 +1,32 @@
 optimising using const propagate
-{scope
-  INTEGER a0 = 0
-  INTEGER b0 = 0
+{scope size = 25 current scope = utils.frontend.symbolTable.SymbolTable@26f67b76 parent = null
+  INT a0 = 0
+  INT b0 = 0
   CHAR c0 = <char:32>
-  INTEGER d0 = 32
-  INTEGER i = 0
-  INTEGER j = 0
-  for     {scope
+  INT d0 = 32
+  INT i = 0
+  INT j = 0
+  for     {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@39fb3ab6 parent = utils.frontend.symbolTable.SymbolTable@26f67b76
       i (17) = 0
       j (21) = 1
     }
-    true    {scope
+    i (17) LESS 1    {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@39fb3ab6 parent = utils.frontend.symbolTable.SymbolTable@26f67b76
       i (17) = i (17) PLUS 1
     }
   :
-    {scope
+    {scope size = 4 current scope = utils.frontend.symbolTable.SymbolTable@6276ae34 parent = utils.frontend.symbolTable.SymbolTable@39fb3ab6
       b0 (8) = 1
       while true :
-        {scope
+        {scope size = 0 current scope = utils.frontend.symbolTable.SymbolTable@7946e1f4 parent = utils.frontend.symbolTable.SymbolTable@6276ae34
           c0 (9) = <char:97>
           d0 (13) = 32
         }
-      INTEGER d = 1
+      INT d = 1
       d (4) = 1
       d (4) = ORDc0 (9)
       d (4) = 32
     }
-  INTEGER d = 1
+  INT d = 1
   d (25) = b0 (8) PLUS 1
   d (25) = ORDc0 (9)
   d (25) = 32

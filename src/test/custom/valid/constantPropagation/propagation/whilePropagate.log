@@ -1,18 +1,18 @@
 optimising using const propagate
-{scope 
-  INTEGER a = 0
-  INTEGER n = 0
-  INTEGER c = 0
+{scope size = 16 current scope = utils.frontend.symbolTable.SymbolTable@6aaa5eb0 parent = null
+  INT a = 0
+  INT n = 0
+  INT c = 0
   while true :
-    {scope 
+    {scope size = 8 current scope = utils.frontend.symbolTable.SymbolTable@7a5d012c parent = utils.frontend.symbolTable.SymbolTable@6aaa5eb0
       a (4) = 1
       c (12) = 0
-      INTEGER a = 0
-      INTEGER b = 0
+      INT a = 0
+      INT b = 0
       b (8) = n (8)
       n (8) = n (8) PLUS 1
     }
-  INTEGER b = 0
+  INT b = 0
   b (16) = a (4) PLUS 1
 }
 Assembly file created!
