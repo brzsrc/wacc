@@ -2,7 +2,7 @@
 
 VALID_EXAMPLES=(
                  "/propagation"
-                #  "/evaluation"
+                 "/evaluation"
                 )
 
 VALID_EXAMPLES_SRC_DIR="./src/test/custom/valid/constantPropagation"
@@ -25,9 +25,11 @@ for folder in ${VALID_EXAMPLES[@]}; do
     echo $file
     ./compile -t -o1 $file > "${EXECUTABLE_FILE_NAME}.log.txt"
 
-    if diff "${EXECUTABLE_FILE_NAME}.log.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log" -I scope; then
-      (( COUNTER += 1 ))
-    fi
+    mv "${EXECUTABLE_FILE_NAME}.log.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
+
+    # if diff "${EXECUTABLE_FILE_NAME}.log.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log" -I scope; then
+    #   (( COUNTER += 1 ))
+    # fi
 
 
     echo "$COUNTER / $(($TOTAL_COUNT)) files have been executed"

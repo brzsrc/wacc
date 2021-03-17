@@ -1,8 +1,9 @@
+optimising using const propagate
 WARNING: arithmetic  on -14 and 2147483600 will cause overflow
 WARNING: arithmetic  on -14 and 2147483600 will cause overflow
-{scope 
-  INTEGER a = 0
-  BOOLEAN b = false
+{scope size = 5 current scope = utils.frontend.symbolTable.SymbolTable@32e6e9c3 parent = null
+  INT a = 0
+  BOOL b = false
   a (4) = 3
   a (4) = 0
   a (4) = 3

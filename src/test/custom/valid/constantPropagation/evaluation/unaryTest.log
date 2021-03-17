@@ -1,7 +1,8 @@
+optimising using const propagate
 WARNING: arithmetic  on 0 and -2147483648 will cause overflow
-{scope
-  INTEGER a = 0
-  BOOLEAN b = false
+{scope size = 6 current scope = utils.frontend.symbolTable.SymbolTable@7a5d012c parent = null
+  INT a = 0
+  BOOL b = false
   CHAR c = <char:32>
   b (5) = false
   b (5) = true

@@ -98,17 +98,6 @@ public class Compiler {
               System.out.println("unsupported optimisation level: " + optimise_level);
           }
 
-          switch (optimise_level) {
-            case "0":
-              break;
-            case "1":
-              NodeVisitor<Node> constPropOptimiser = new ConstantPropagation(arch);
-              program = constPropOptimiser.visit(program);
-              break;
-            default:
-              System.out.println("unsupported optimisation level: " + optimise_level);
-          }
-
           /* print optimised ast tree */
           if (cmd_ops.contains("--print_ast")) {
             ASTPrinter painter = new ASTPrinter();
