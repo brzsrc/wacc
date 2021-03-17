@@ -1,3 +1,4 @@
+optimising using const propagate
 {scope size = 52 current scope = utils.frontend.symbolTable.SymbolTable@6a5fc7f7 parent = null
   INTEGER a0 = 0
   INTEGER a1 = 0

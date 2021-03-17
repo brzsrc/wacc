@@ -5,8 +5,8 @@ VALID_EXAMPLES=(
                  "/bitwiseOperation"
                  "/do-while"
                  "/for"
-                 "/import"  # OK
-                 "/jump"    # OK
+                 "/import"
+                 "/jump"
                  "/struct"
                  "/switch"
                 )
@@ -35,6 +35,8 @@ for folder in ${VALID_EXAMPLES[@]}; do
     EXECUTABLE_OUTPUT_FILE="${EXECUTE_OUTPUT_VALID_FOLDER}/${FILE_NAME}"
     echo $file
     ./compile $file 2> "${EXECUTABLE_FILE_NAME}.log.txt"
+    echo "${EXECUTABLE_FILE_NAME}.s"
+    echo "${FILE_NAME}.s"
     mv "${FILE_NAME}.s" "${EXECUTABLE_FILE_NAME}.s"
 
     arm-linux-gnueabi-gcc -o $EXECUTABLE_OUTPUT_FILE -mcpu=arm1176jzf-s -mtune=arm1176jzf-s "${EXECUTABLE_FILE_NAME}.s" > "${EXECUTABLE_OUTPUT_FILE}.log.txt"
@@ -45,11 +47,11 @@ for folder in ${VALID_EXAMPLES[@]}; do
     echo "execution exit status" $ret2
 
     ## altomatically generate output .log file
-    mv "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
+    # mv "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
 
     if [ "$ret1" -eq 0 ] && [ "$ret2" -eq 0 ]; then 
     ## test if output is same as .log file
-    #   diff "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
+       diff "${EXECUTABLE_OUTPUT_FILE}.output.txt" "${VALID_EXAMPLES_SRC_DIR}${folder}/${FILE_NAME}.log"
       (( COUNTER += 1 ))
     fi 
 

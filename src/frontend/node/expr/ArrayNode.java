@@ -55,15 +55,4 @@ public class ArrayNode extends ExprNode {
   public <T> T accept(NodeVisitor<T> visitor) {
     return visitor.visitArrayNode(this);
   }
-
-  /* array can be immediate, but will not be visited in binop */
-  @Override
-  public boolean isImmediate() {
-    return true;
-  }
-
-  @Override
-  public int getCastedVal() {
-    return length;
-  }
 }

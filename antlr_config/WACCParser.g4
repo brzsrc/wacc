@@ -131,8 +131,7 @@ expr : INT_LITER      #IntExpr
      | expr bop=( '+' | '-' ) expr                    #ArithmeticExpr
      | expr bop=( '>' | '>=' | '<' | '<=' ) expr      #CmpExpr
      | expr bop=( '==' | '!=' ) expr                  #EqExpr
-     | expr '&' expr                                  #BitwiseAndExpr
-     | expr '|' expr                                  #BitwiseOrExpr
+     | expr bitop=( '&' | '|' ) expr                    #BitwiseExpr
      | expr '&&' expr                                 #AndExpr
      | expr '||' expr                                 #OrExpr
      | OPEN_PARENTHESES expr CLOSE_PARENTHESES        #ParenExpr

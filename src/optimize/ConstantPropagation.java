@@ -20,6 +20,11 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   *  used for the current visit of ident node */
   private Map<Symbol, ExprNode> identValMap;
 
+  /* map of SYMBOL with the list of SYMBOL that depend on it */
+  private Map<Symbol, List<Symbol>> dependentMap;
+  /* list of SYMBOL of variables that right hand side contains */
+  private List<Symbol> dependentList;
+
   /* list of ident map, which will be merged in the end of the CURRENT while, if, switch, for loop
   *    loopStartMapList is maplist that can reach while condition check
   *    breakMapList is all mapList copy of each time a BREAK is called */
@@ -29,6 +34,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     identValMap = new HashMap<>();
     this.loopStartMapList = new ArrayList<>();
     this.breakMapList = new ArrayList<>();
+    this.dependentMap = new HashMap<>();
   }
 
   @Override
@@ -90,6 +96,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   @Override
   public Node visitIdentNode(IdentNode node) {
     if (identValMap.containsKey(node.getSymbol())) {
+      dependentList.add(node.getSymbol());
       return identValMap.get(node.getSymbol());
     }
     return node;
@@ -145,21 +152,41 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitAssignNode(AssignNode node) {
-    ExprNode exprNode = visit(node.getRhs()).asExprNode();
+    dependentList = new ArrayList<>();
+    ExprNode exprNode;
+    
+    /* if lhs is IDENT, delete it first, 
+     * so that if lhs IDENT is contained in right hand side, 
+           and if assign is in loop, 
+           this assign could update value of IDENT from last iterate */
+    if (node.getLhs() instanceof IdentNode) {
+      Symbol lhsSymbol = ((IdentNode) node.getLhs()).getSymbol();
+      /* remove prev map of symbol
+         and all other symbol that depend on prev value of this updated SYMBOL */
+      removeSymbol(lhsSymbol);
+
+      exprNode = visit(node.getRhs()).asExprNode();
+
+      if (exprNode.isImmediate()) {
+        /* add in updated value */
+        identValMap.put(lhsSymbol, exprNode);
+        addDependent(lhsSymbol, dependentList);
+      }
+
+    /* else, lhs cannot be added into dependMap or identMap, 
+       simply simplified rhs */
+    } else {
+      exprNode = visit(node.getRhs()).asExprNode();
+    }
+    
     AssignNode resultNode = new AssignNode(node.getLhs(), exprNode);
     resultNode.setScope(node.getScope());
-
-    /* constant propagation:
-    *  add new entry into map */
-    if ((node.getLhs() instanceof IdentNode) && exprNode.isImmediate()) {
-      identValMap.remove(((IdentNode) node.getLhs()).getSymbol());
-      identValMap.put(((IdentNode) node.getLhs()).getSymbol(), exprNode);
-    }
     return resultNode;
   }
 
   @Override
   public Node visitDeclareNode(DeclareNode node) {
+    dependentList = new ArrayList<>();
     ExprNode exprNode = visit(node.getRhs()).asExprNode();
     DeclareNode resultNode = new DeclareNode(node.getIdentifier(), exprNode);
     resultNode.setScope(node.getScope());
@@ -167,9 +194,38 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     /* constant propagation:
     *  add new entry in map */
     if (exprNode.isImmediate()) {
-      identValMap.put(node.getScope().lookup(node.getIdentifier()), exprNode);
+      Symbol lhsSymbol = node.getScope().lookup(node.getIdentifier());
+      identValMap.put(lhsSymbol, exprNode);
+      addDependent(lhsSymbol, dependentList);
     }
     return resultNode;
+  }
+
+  /* remove the symbol from current identValMap
+  *  and remove all SYMBOL that depend on this SYMBOL */
+  private void removeSymbol(Symbol symbol) {
+    /* IMPORTANT: have to remove this symbol first, prevent circular remove, 
+                  i.e a = a + ..., not remove a first will result in live-lock */
+    identValMap.remove(symbol);
+    List<Symbol> childSymbols = dependentMap.get(symbol);
+
+    dependentMap.remove(symbol);
+    if (childSymbols != null) {
+      for (Symbol child : childSymbols) {
+        removeSymbol(child);
+      }
+    }
+  }
+
+  /* add lhsSymbol as symbol that depend on each rhsSymbols */
+  private void addDependent(Symbol lhsSymbol, List<Symbol> rhsSymbols) {
+    for (Symbol rhsSymbol : rhsSymbols) {
+      if (!dependentMap.containsKey(rhsSymbol)) {
+        /* haven't add any variable depend on the LHS SYMBOL, create a new content */
+        dependentMap.put(rhsSymbol, new ArrayList<>());
+      }        
+      dependentMap.get(rhsSymbol).add(lhsSymbol);
+    }
   }
 
   @Override
@@ -201,7 +257,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     StatNode ifBody = visit(node.getIfBody()).asStatNode();
     Map<Symbol, ExprNode> ifIdMap = new HashMap<>(identValMap);
 
-    /* 3 visit while body */
+    /* 3 visit else body */
     identValMap = oldMap;
     StatNode elseBody = visit(node.getElseBody()).asStatNode();
 
@@ -232,15 +288,12 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitReadNode(ReadNode node) {
-    ExprNode expr = visit(node.getInputExpr()).asExprNode();
-    ReadNode resultNode = new ReadNode(expr);
-    resultNode.setScope(node.getScope());
-
+    ExprNode expr = node.getInputExpr();
     /* delete expr in identMap, since cannot determine expr's value */
     if (expr instanceof IdentNode) {
       identValMap.remove(((IdentNode) expr).getSymbol());
     }
-    return resultNode;
+    return node;
   }
 
   @Override
@@ -269,10 +322,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     /* constant propagation algorithm:
      *  visit body twice, get intersection with the first iterate */
 
-    /* 1 visit cond */
-    ExprNode cond = visit(node.getCond()).asExprNode();
-
-    /* 1.2 record the mapList, which might contain maps from parent WHILE
+    /* 1 record the mapList, which might contain maps from parent WHILE
      *      current identMap is one map of parent block of while block */
     List<Map<Symbol, ExprNode>>
             oldLoopStartMapList = loopStartMapList,
@@ -294,6 +344,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     identValMap = mergedStartMap;
 
     /* 3 visit again using map after getting the intersection */
+    ExprNode cond = visit(node.getCond()).asExprNode();
     StatNode body = visit(node.getBody()).asStatNode();
     identValMap = mergedEndMap;
 
@@ -382,30 +433,20 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   @Override
   public Node visitStructNode(StructNode node) {
     // todo: support constant propagation on struct, same difficulty as array, pair
-
-    List<ExprNode> simplifiedInitVals = new ArrayList<>();
-    for (ExprNode elem : node.getAllElem()) {
-      simplifiedInitVals.add(visit(elem).asExprNode());
-    }
-    return new StructNode(simplifiedInitVals, node.getAllOffsets(), node.getSize(), node.getName());
+    return node;
   }
 
   @Override
   public Node visitStructDeclareNode(StructDeclareNode node) {
     // todo: support constant propagation on struct, same difficulty as array, pair
-
     return node;
   }
 
   @Override
   public Node visitForNode(ForNode node) {
-    /* 1 visit init, view as part of block before loop */
+    /* init statement count as part of map of block before loop body */
     StatNode initStat = visit(node.getInit()).asStatNode();
-
-    /* 2 visit cond, same as while, no special treat */
-    ExprNode cond = visit(node.getCond()).asExprNode();
-
-    /* 3 visit body and increment */
+    /* 1 visit body and increment */
     /*   (same as while) record the mapList, which might contain maps from parent WHILE
      *      current identMap is one map of parent block of while block */
     List<Map<Symbol, ExprNode>>
@@ -420,7 +461,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
      *   loop start map is merged, result is map parent of loop body and block after loop
      *   break is then merged, result is map before block after loop
      *   merged start/end map are used to record map, prevent overwrite in second visit */
-    visit(node.getBody()).asStatNode();
+    visit(node.getBody());
     visit(node.getIncrement());
     mergeIdMap(loopStartMapList);
     Map<Symbol, ExprNode> mergedStartMap = new HashMap<>(identValMap);
@@ -429,6 +470,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     identValMap = mergedStartMap;
 
     /* 3 visit again using map after getting the intersection */
+    ExprNode cond = visit(node.getCond()).asExprNode();
     StatNode body = visit(node.getBody()).asStatNode();
     StatNode inc = visit(node.getIncrement()).asStatNode();
     identValMap = mergedEndMap;

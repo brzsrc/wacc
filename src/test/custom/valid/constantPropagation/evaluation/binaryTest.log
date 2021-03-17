@@ -21,8 +21,8 @@ WARNING: arithmetic  on -14 and 2147483600 will cause overflow
   b (5) = true
   b (5) = true
   b (5) = false
-  b (5) = true
-  b (5) = true
+  b (5) = false
+  b (5) = false
 }
 Assembly file created!
 Assembly has been written to the file!
