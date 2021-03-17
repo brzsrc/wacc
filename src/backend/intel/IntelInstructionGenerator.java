@@ -3,6 +3,13 @@ package backend.intel;
 
 import backend.Instruction;
 import backend.InstructionGenerator;
+import backend.arm.instructions.BL;
+import backend.arm.instructions.LDR;
+import backend.arm.instructions.STR;
+import backend.arm.instructions.STR.StrMode;
+import backend.arm.instructions.addressing.AddressingMode2;
+import backend.arm.instructions.addressing.ImmedAddress;
+import backend.arm.instructions.addressing.Operand2;
 import backend.intel.instructions.*;
 import backend.intel.instructions.Mov.IntelMovType;
 import backend.intel.instructions.address.IntelAddress;
@@ -67,6 +74,7 @@ import static backend.arm.instructions.STR.StrMode.STRB;
 import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
 import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.PREINDEX;
 import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.armUnopAsm;
+import static utils.Utils.ARM_POINTER_SIZE;
 import static utils.Utils.BOOL_BASIC_TYPE;
 import static utils.Utils.CHAR_ARRAY_TYPE;
 import static utils.Utils.CHAR_BASIC_TYPE;
@@ -74,8 +82,11 @@ import static utils.Utils.FALSE;
 import static utils.Utils.FUNC_HEADER;
 import static utils.Utils.INTEL_POINTER_SIZE;
 import static utils.Utils.INT_BASIC_TYPE;
+import static utils.Utils.RoutineInstruction.CHECK_NULL_POINTER;
 import static utils.Utils.STRING_BASIC_TYPE;
+import static utils.Utils.SystemCallInstruction.MALLOC;
 import static utils.Utils.TRUE;
+import static utils.Utils.WORD_SIZE;
 import static utils.Utils.intToIntelSize;
 import static utils.backend.Cond.E;
 import static utils.backend.Cond.EQ;
@@ -322,12 +333,82 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitPairElemNode(PairElemNode node) {
+    /* 1 get pointer to the pair from stack
+     *   store into next available register
+     *   reg is expected register where visit will put value in */
+
+    /* e.g. read fst a, (fst a) is used as lhs but (a) is used as rhs */
+    Register reg = intelRegAllocator.next();
+    boolean isLhsOutside = isLhs;
+    int size = node.getPair().getType().getSize();
+    isLhs = false;
+    visit(node.getPair());
+    isLhs = isLhsOutside;
+
+    /* 2 get pointer to child
+     *   store in the same register, save register space
+     *   no need to check whether child has initialised, as it is in lhs */
+    IntelAddress addr;
+
+    if (node.isFirst()) {
+      addr = new IntelAddress(reg.asIntelRegister());
+    } else {
+      addr = new IntelAddress(reg.asIntelRegister(), INTEL_POINTER_SIZE);
+    }
+
+    instructions.add(new Mov(addr, reg));
+
+    if (!isLhs) {
+      instructions.add(new Mov(new IntelAddress(reg.asIntelRegister()), reg.asIntelRegister().withSize(intToIntelSize.get(size))));
+    }
     return null;
   }
 
   @Override
   public Void visitPairNode(PairNode node) {
+    /* null is also a pairNode
+     *  if one of child is null, the other has to be null */
+    if (node.getFst() == null || node.getSnd() == null) {
+      instructions.add(new Mov(new IntelAddress(0), intelRegAllocator.allocate()));
+      return null;
+    }
+
+    /* 1 malloc pair */
+    /* 1.1 move size of a pair in r0
+     *    pair in heap is 2 pointers, so 8 byte */
+    instructions.add(new Mov(new IntelAddress(2 * INTEL_POINTER_SIZE), rdi));
+
+    /* 1.2 BL malloc and get pointer in general use register*/
+    instructions.add(new Call("malloc@PLT"));
+    Register pairPointer = intelRegAllocator.allocate();
+
+    instructions.add(new Mov(rax, pairPointer));
+
+    /* 2 visit both child */
+    visitPairChildExpr(node.getFst(), pairPointer, 0);
+    /* pair contains two pointers, each with size 4 */
+    visitPairChildExpr(node.getSnd(), pairPointer, INTEL_POINTER_SIZE);
     return null;
+  }
+
+  private void visitPairChildExpr(ExprNode child, Register pairPointer, int offset) {
+    int size = child.getType().getSize();
+
+    /* 1 move size of fst child in r0 */
+    instructions.add(new Mov(new IntelAddress(size), rdi));
+
+    /* 2 BL malloc, assign child value and get pointer in heap area pairPointer[0] or [1] */
+    instructions.add(new Call("malloc@PLT"));
+
+    /* 3 visit fst expression, get result in general register */
+    visit(child);
+    Register fstVal = intelRegAllocator.curr();
+
+    instructions.add(new Mov(fstVal.asIntelRegister().withSize(intToIntelSize.get(size)), new IntelAddress(rax)));
+    instructions.add(new Mov(rax, new IntelAddress(pairPointer.asIntelRegister(), offset)));
+
+    /* free register used for storing child's value */
+    intelRegAllocator.free();
   }
 
   @Override
