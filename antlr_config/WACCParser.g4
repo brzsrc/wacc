@@ -12,9 +12,7 @@ func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat 
 param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
-import_file : IMPORT FILE_NAME         # ImportUserDefine // import example.hwacc
-            | IMPORT '<' FILE_NAME '>' # ImportSTDFile// import <FILE_FROM_LIB.hwacc>
-            ;
+import_file : IMPORT FILE_NAME;
 
 
 stat : skp                            #StatSkipStat    // This visitor will be replaced by #SkipStat

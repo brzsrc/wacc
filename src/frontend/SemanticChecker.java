@@ -50,7 +50,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   /* where the compiling file lives, used for determine include file */
   private String path;
-  private final String STD_PATH = "lib/waccLib/";
 
   /* recording the current SymbolTable during parser tree visits */
   private SymbolTable currSymbolTable;
@@ -240,16 +239,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   @Override
-  public Node visitImportUserDefine(ImportUserDefineContext ctx) {
+  public Node visitImport_file(Import_fileContext ctx) {
     visitImport(ctx, path + ctx.FILE_NAME().getText());
     return null;
   }
 
-  @Override
-  public Node visitImportSTDFile(ImportSTDFileContext ctx) {
-    visitImport(ctx, STD_PATH + ctx.FILE_NAME().getText());
-    return null;
-  }
 
   public void visitImport(ParserRuleContext ctx, String importFile) {
     /* detect circular import */
