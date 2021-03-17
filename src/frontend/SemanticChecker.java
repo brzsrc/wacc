@@ -88,8 +88,11 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   private Set<String> overloadFuncNames = new HashSet<>();
 
 
+  /* indicate the architecture */
+  private AssemblyArchitecture arch;
+
   /* constructor of SemanticChecker */
-  public SemanticChecker(Set<String> libraryCollection) {
+  public SemanticChecker(Set<String> libraryCollection, AssemblyArchitecture arch) {
     currSymbolTable = null;
     globalStructTable = new HashMap<>();
     globalFuncTable = new HashMap<>();
@@ -110,6 +113,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currForLoopIncrementBreak = new Stack<>();
     currForLoopIncrementContinue = new Stack<>();
     this.libraryCollection = libraryCollection;
+    this.arch = arch;
   }
 
   public void setPath(String path) {
@@ -275,7 +279,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       // Start parsing using the `library` rule defined in antlr_config/WACCParser.g4
       LibraryContext tree = parser.library();
 
-      SemanticChecker semanticChecker = new SemanticChecker(libraryCollection);
+      SemanticChecker semanticChecker = new SemanticChecker(libraryCollection, this.arch);
       semanticChecker.setPath(file.getParent() + "/");
       ProgramNode libraryContent = (ProgramNode) semanticChecker.visitLibrary(tree);
 
@@ -355,9 +359,10 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     expectedFunctionReturn = funcNode.getReturnType();
     currSymbolTable = new SymbolTable(currSymbolTable);
 
-    /* initialise as -4 byte in order to leave space for PUSH {lr}, 
-       which takes up 4 bute on stack */
-    int tempStackAddr = -POINTER_SIZE;
+    /* ARM: initialise as -4 byte in order to leave space for PUSH {lr},
+       which takes up 4 bute on stack
+       intel: rbp is assigned after push, so all */
+    int tempStackAddr = this.arch.equals(AssemblyArchitecture.ARMv6) ? -WORD_SIZE : -QUAD_SIZE;
     List<IdentNode> params = funcNode.getParamList();
     int paramNum = params.size();
 
@@ -833,7 +838,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     semanticError |= typeCheck(ctx.expr(0), BOOL_BASIC_TYPE, expr1Type);
     semanticError |= typeCheck(ctx.expr(1), BOOL_BASIC_TYPE, expr2Type);
 
-    return new BinopNode(expr1, expr2, Binop.AND);
+    return new BinopNode(expr1, expr2, Binop.AND, this.arch);
   }
 
   @Override
@@ -846,7 +851,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     semanticError |= typeCheck(ctx.expr(0), BOOL_BASIC_TYPE, expr1Type);
     semanticError |= typeCheck(ctx.expr(1), BOOL_BASIC_TYPE, expr2Type);
 
-    return new BinopNode(expr1, expr2, Binop.OR);
+    return new BinopNode(expr1, expr2, Binop.OR, this.arch);
   }
 
   @Override
@@ -862,14 +867,14 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     String literal = ctx.bitop.getText();
     Binop binop = bitwiseOpEnumMapping.get(literal);
 
-    return new BinopNode(expr1, expr2, binop);
+    return new BinopNode(expr1, expr2, binop, this.arch);
   }
 
   @Override
   public Node visitArray_liter(Array_literContext ctx) {
     int length = ctx.expr().size();
     if (length == 0) {
-      return new ArrayNode(null, new ArrayList<>(), length);
+      return new ArrayNode(null, new ArrayList<>(), length, this.arch);
     }
     ExprNode firstExpr = visit(ctx.expr(0)).asExprNode();
     Type firstContentType = firstExpr.getType();
@@ -880,7 +885,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       semanticError |= typeCheck(context, firstContentType, exprType);
       list.add(expr);
     }
-    return new ArrayNode(firstContentType, list, length);
+    return new ArrayNode(firstContentType, list, length, this.arch);
   }
 
   @Override
@@ -896,7 +901,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       invalidRuleException(ctx, "visitArray_type");
       return null;
     }
-    return new TypeDeclareNode(new ArrayType(type.getType()));
+    return new TypeDeclareNode(new ArrayType(type.getType(), this.arch));
   }
 
   @Override
@@ -913,7 +918,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitNewPair(NewPairContext ctx) {
     ExprNode fst = visit(ctx.expr(0)).asExprNode();
     ExprNode snd = visit(ctx.expr(1)).asExprNode();
-    return new PairNode(fst, snd);
+    return new PairNode(fst, snd, this.arch);
   }
 
   @Override
@@ -947,7 +952,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
       elemNodes.add(node);
     }
 
-    return new StructNode(elemNodes, struct.getOffsets(), struct.getSize(), name);
+    return new StructNode(elemNodes, struct.getOffsets(), struct.getSize(), name, this.arch);
   }
 
   @Override
@@ -1054,12 +1059,12 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitBoolExpr(BoolExprContext ctx) {
-    return new BoolNode(ctx.BOOL_LITER().getText().equals("true"));
+    return new BoolNode(ctx.BOOL_LITER().getText().equals("true"), this.arch);
   }
 
   @Override
   public Node visitPairExpr(PairExprContext ctx) {
-    return new PairNode();
+    return new PairNode(this.arch);
   }
 
   @Override
@@ -1069,9 +1074,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
      * text for escChar like '\0' is \'\\0\' length is 4 */
     assert text.length() == 3 || text.length() == 4;
     if (text.length() == 3) {
-      return new CharNode(text.charAt(1));
+      return new CharNode(text.charAt(1), this.arch);
     } else {
-      return new CharNode(escCharMap.get(text.charAt(2)));
+      return new CharNode(escCharMap.get(text.charAt(2)), this.arch);
     }
   }
 
@@ -1089,7 +1094,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     semanticError |= typeCheck(ctx.expr(1), cmpStatAllowedTypes, expr2Type);
     semanticError |= typeCheck(ctx.expr(0), expr1Type, expr2Type);
 
-    return new BinopNode(expr1, expr2, binop);
+    return new BinopNode(expr1, expr2, binop, this.arch);
   }
 
   @Override
@@ -1104,7 +1109,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     semanticError |= typeCheck(ctx.expr(0), exrp1Type, expr2Type);
 
-    return new BinopNode(expr1, expr2, binop);
+    return new BinopNode(expr1, expr2, binop, this.arch);
   }
 
   @Override
@@ -1119,22 +1124,22 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitHexExpr(HexExprContext ctx) {
-    return new IntegerNode(Integer.parseInt(ctx.HEX_LITER().getText().substring(2), 16));
+    return new IntegerNode(Integer.parseInt(ctx.HEX_LITER().getText().substring(2), 16), this.arch);
   }
 
   @Override
   public Node visitBinaryExpr(BinaryExprContext ctx) {
-    return new IntegerNode(Integer.parseInt(ctx.BINARY_LITER().getText().substring(2), 2));
+    return new IntegerNode(Integer.parseInt(ctx.BINARY_LITER().getText().substring(2), 2), this.arch);
   }
 
   @Override
   public Node visitOctalExpr(OctalExprContext ctx) {
-    return new IntegerNode(Integer.parseInt(ctx.OCTAL_LITER().getText().substring(2), 8));
+    return new IntegerNode(Integer.parseInt(ctx.OCTAL_LITER().getText().substring(2), 8), this.arch);
   }
 
   @Override
   public Node visitIntExpr(IntExprContext ctx) {
-    return new IntegerNode(intParse(ctx, ctx.INT_LITER().getText()));
+    return new IntegerNode(intParse(ctx, ctx.INT_LITER().getText()), this.arch);
   }
 
   @Override
@@ -1186,7 +1191,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     semanticError |= typeCheck(ctx.expr(0), INT_BASIC_TYPE, expr1Type);
     semanticError |= typeCheck(ctx.expr(1), INT_BASIC_TYPE, expr2Type);
 
-    return new BinopNode(expr1, expr2, binop);
+    return new BinopNode(expr1, expr2, binop, this.arch);
   }
 
   @Override
@@ -1196,7 +1201,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitStrExpr(StrExprContext ctx) {
-    return new StringNode(ctx.STR_LITER().getText());
+    return new StringNode(ctx.STR_LITER().getText(), this.arch);
   }
 
   /* visit UnopExpr with a special case on the MINUS sign being the negative sign of an integer */
@@ -1210,7 +1215,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     String exprText = ctx.expr().getText();
     if (unop.equals(Unop.MINUS) && isInteger(exprText)) {
       Integer intVal = intParse(ctx.expr(), "-" + exprText);
-      return new IntegerNode(intVal);
+      return new IntegerNode(intVal, this.arch);
     }
 
     /* Check the range of integer in the chr unary operator */
@@ -1225,7 +1230,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     Type exprType = expr.getType();
     semanticError |= typeCheck(ctx.expr(), targetType, exprType);
 
-    return new UnopNode(expr, unop);
+    return new UnopNode(expr, unop, this.arch);
   }
 
   /* =======================================================
@@ -1265,14 +1270,14 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitPairElemPairType(PairElemPairTypeContext ctx) {
-    return new TypeDeclareNode(new PairType());
+    return new TypeDeclareNode(new PairType(this.arch));
   }
 
   @Override
   public Node visitPair_type(Pair_typeContext ctx) {
     TypeDeclareNode leftChild = visit(ctx.pair_elem_type(0)).asTypeDeclareNode();
     TypeDeclareNode rightChild = visit(ctx.pair_elem_type(1)).asTypeDeclareNode();
-    Type type = new PairType(leftChild.getType(), rightChild.getType());
+    Type type = new PairType(leftChild.getType(), rightChild.getType(), this.arch);
     return new TypeDeclareNode(type);
   }
 
@@ -1285,6 +1290,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (!globalStructTable.containsKey(name)) {
       symbolNotFound(ctx, name);
     }
-    return new TypeDeclareNode(new StructType(name));
+    return new TypeDeclareNode(new StructType(name, this.arch));
   }
 }

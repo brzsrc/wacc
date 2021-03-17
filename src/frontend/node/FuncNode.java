@@ -6,8 +6,6 @@ import frontend.type.Type;
 import utils.NodeVisitor;
 import java.util.List;
 
-import static utils.Utils.POINTER_SIZE;
-
 public class FuncNode implements Node {
 
   /**

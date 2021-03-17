@@ -5,6 +5,7 @@ import frontend.type.Type;
 
 import utils.NodeVisitor;
 import java.util.List;
+import utils.Utils.AssemblyArchitecture;
 
 public class ArrayNode extends ExprNode {
 
@@ -18,10 +19,10 @@ public class ArrayNode extends ExprNode {
   private int contentSize;
   private List<ExprNode> content;
 
-  public ArrayNode(Type contentType, List<ExprNode> content, int length) {
+  public ArrayNode(Type contentType, List<ExprNode> content, int length, AssemblyArchitecture arch) {
     this.content = content;
     this.length = length;
-    this.type = new ArrayType(contentType);
+    this.type = new ArrayType(contentType, arch);
     this.contentSize = contentType == null || content.isEmpty() ? 0 : content.get(0).getType().getSize();
     this.weight = 2;
   }

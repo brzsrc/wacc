@@ -3,6 +3,7 @@ package frontend.node.expr;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import utils.NodeVisitor;
+import utils.Utils.AssemblyArchitecture;
 
 public class IntegerNode extends ExprNode {
 
@@ -13,9 +14,9 @@ public class IntegerNode extends ExprNode {
 
   private final int val;
 
-  public IntegerNode(int val) {
+  public IntegerNode(int val, AssemblyArchitecture arch) {
     this.val = val;
-    this.type = new BasicType(BasicTypeEnum.INT);
+    this.type = new BasicType(BasicTypeEnum.INT, arch);
     this.weight = 1;
   }
 

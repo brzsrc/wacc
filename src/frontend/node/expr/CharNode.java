@@ -3,6 +3,7 @@ package frontend.node.expr;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import utils.NodeVisitor;
+import utils.Utils.AssemblyArchitecture;
 
 public class CharNode extends ExprNode {
 
@@ -13,9 +14,9 @@ public class CharNode extends ExprNode {
 
   private final char val;
 
-  public CharNode(char c) {
+  public CharNode(char c, AssemblyArchitecture arch) {
     this.val = c;
-    this.type = new BasicType(BasicTypeEnum.CHAR);
+    this.type = new BasicType(BasicTypeEnum.CHAR, arch);
     this.weight = 1;
   }
 

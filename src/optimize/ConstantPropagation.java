@@ -29,12 +29,14 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   *    loopStartMapList is maplist that can reach while condition check
   *    breakMapList is all mapList copy of each time a BREAK is called */
   private List<Map<Symbol, ExprNode>> loopStartMapList, breakMapList;
+  private final AssemblyArchitecture arch;
 
-  public ConstantPropagation() {
+  public ConstantPropagation(AssemblyArchitecture arch) {
     identValMap = new HashMap<>();
     this.loopStartMapList = new ArrayList<>();
     this.breakMapList = new ArrayList<>();
     this.dependentMap = new HashMap<>();
+    this.arch = arch;
   }
 
   @Override
@@ -48,7 +50,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
   public Node visitArrayNode(ArrayNode node) {
     /* only simplify all contents, nothing else to be changed */
     List<ExprNode> content = simplifyExprList(node.getContent());
-    return new ArrayNode(node.getType().asArrayType().getContentType(), content, node.getLength());
+    return new ArrayNode(node.getType().asArrayType().getContentType(), content, node.getLength(), this.arch);
   }
 
   @Override
@@ -59,7 +61,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     /* if either of the nodes is not immediate, stop constant propagation
     *  return a node with so far the simplified form */
     if (!expr1.isImmediate() || !expr2.isImmediate()) {
-      return new BinopNode(expr1, expr2, node.getOperator());
+      return new BinopNode(expr1, expr2, node.getOperator(), AssemblyArchitecture.ARMv6);
     }
 
     /*  apply arithmetic evaluation */
@@ -67,14 +69,14 @@ public class ConstantPropagation implements NodeVisitor<Node> {
       ExprNode simpChild = arithmeticApplyMap.get(node.getOperator()).apply(
               expr1.getCastedVal(),
               expr2.getCastedVal());
-      return simpChild == null ? new BinopNode(expr1, expr2, node.getOperator()) : simpChild;
+      return simpChild == null ? new BinopNode(expr1, expr2, node.getOperator(), AssemblyArchitecture.ARMv6) : simpChild;
     }
 
     /* otherwise, have to be binop covered by cmpMap key */
     assert cmpMap.containsKey(node.getOperator());
 
     boolean val = cmpMap.get(node.getOperator()).apply(expr1.getCastedVal(), expr2.getCastedVal());
-    return new BoolNode(val);
+    return new BoolNode(val, AssemblyArchitecture.ARMv6);
   }
 
   @Override
@@ -125,7 +127,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     ExprNode expr1 = visit(node.getFst()).asExprNode();
     ExprNode expr2 = visit(node.getSnd()).asExprNode();
 
-    return new PairNode(expr1, expr2);
+    return new PairNode(expr1, expr2, this.arch);
   }
 
   @Override
@@ -141,12 +143,12 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     /* visit expr first, ensure child expr have already been simplified */
     ExprNode expr = visit(node.getExpr()).asExprNode();
     if (!expr.isImmediate()) {
-      return new UnopNode(expr, node.getOperator());
+      return new UnopNode(expr, node.getOperator(), AssemblyArchitecture.ARMv6);
     }
     ExprNode simpChild = unopApplyMap.get(node.getOperator()).apply(expr);
     /* return null when overflow */
     return simpChild == null ?
-            new UnopNode(expr, node.getOperator()) :
+            new UnopNode(expr, node.getOperator(), AssemblyArchitecture.ARMv6) :
             simpChild;
   }
 

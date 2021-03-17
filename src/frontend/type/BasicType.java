@@ -2,12 +2,16 @@ package frontend.type;
 
 import static utils.Utils.*;
 
+import utils.Utils;
+
 public class BasicType implements Type {
 
   private final BasicTypeEnum basicTypeEnum;
+  private final AssemblyArchitecture arch;
 
-  public BasicType(BasicTypeEnum basicTypeEnum) {
+  public BasicType(BasicTypeEnum basicTypeEnum, AssemblyArchitecture arch) {
     this.basicTypeEnum = basicTypeEnum;
+    this.arch = arch;
   }
 
   @Override
@@ -21,8 +25,6 @@ public class BasicType implements Type {
 
     return basicTypeEnum.equals(((BasicType) other).getTypeEnum());
   }
-
-
 
   public BasicTypeEnum getTypeEnum() {
     return basicTypeEnum;
@@ -47,9 +49,9 @@ public class BasicType implements Type {
       case INT:
         return WORD_SIZE;
       case STRING:
-        return POINTER_SIZE;
+        return arch.equals(AssemblyArchitecture.ARMv6) ? Utils.ARM_POINTER_SIZE : Utils.INTEL_POINTER_SIZE;
       default:
-        throw new IllegalArgumentException("getSize on Illegal basicTypeNum" + basicTypeEnum);
+        throw new IllegalArgumentException("unsupported base type enum: " + basicTypeEnum);
     }
   }
 

@@ -1,20 +1,24 @@
 package frontend.type;
 
-import static utils.Utils.POINTER_SIZE;
+import static utils.Utils.*;
+
+import utils.Utils.AssemblyArchitecture;
 
 public class PairType implements Type {
 
   private final int PAIR_HASH_CODE = 10;
   private final Type fstType;
   private final Type sndType;
+  private final AssemblyArchitecture arch;
 
-  public PairType(Type fstType, Type sndType) {
+  public PairType(Type fstType, Type sndType, AssemblyArchitecture arch) {
     this.fstType = fstType;
     this.sndType = sndType;
+    this.arch = arch;
   }
 
-  public PairType() {
-    this(null, null);
+  public PairType(AssemblyArchitecture arch) {
+    this(null, null, arch);
   }
 
   public Type getFstType() {
@@ -87,7 +91,7 @@ public class PairType implements Type {
 
   @Override
   public int getSize() {
-    return POINTER_SIZE;
+    return arch.equals(AssemblyArchitecture.ARMv6) ? ARM_POINTER_SIZE : INTEL_POINTER_SIZE;
   }
 
   @Override

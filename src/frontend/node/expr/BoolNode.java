@@ -3,6 +3,7 @@ package frontend.node.expr;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import utils.NodeVisitor;
+import utils.Utils.AssemblyArchitecture;
 
 public class BoolNode extends ExprNode {
 
@@ -13,9 +14,9 @@ public class BoolNode extends ExprNode {
 
   private final boolean val;
 
-  public BoolNode(boolean val) {
+  public BoolNode(boolean val, AssemblyArchitecture arch) {
     this.val = val;
-    this.type = new BasicType(BasicTypeEnum.BOOL);
+    this.type = new BasicType(BasicTypeEnum.BOOL, arch);
     this.weight = 1;
   }
 
