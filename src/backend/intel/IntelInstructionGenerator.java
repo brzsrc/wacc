@@ -262,7 +262,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     for (int i = paramNum - 1; i >= 0; i--) {
       ExprNode expr = params.get(i);
       visit(expr);
-      Register reg = intelRegAllocator.curr();
+      IntelConcreteRegister reg = intelRegAllocator.curr();
       int size = expr.getType().getSize();
       instructions.add(new Sub(size, IntelInstructionSize.Q, rbp));
       instructions.add(new Mov(reg.withSize(intToIntelSize.get(size)), new IntelAddress(rbp)));

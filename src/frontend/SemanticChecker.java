@@ -628,7 +628,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     semanticError |= typeCheck(ctx.expr(0), BOOL_BASIC_TYPE, expr1Type);
     semanticError |= typeCheck(ctx.expr(1), BOOL_BASIC_TYPE, expr2Type);
 
-    return new BinopNode(expr1, expr2, Binop.AND);
+    return new BinopNode(expr1, expr2, Binop.AND, this.arch);
   }
 
   @Override
@@ -641,7 +641,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     semanticError |= typeCheck(ctx.expr(0), BOOL_BASIC_TYPE, expr1Type);
     semanticError |= typeCheck(ctx.expr(1), BOOL_BASIC_TYPE, expr2Type);
 
-    return new BinopNode(expr1, expr2, Binop.OR);
+    return new BinopNode(expr1, expr2, Binop.OR, this.arch);
   }
 
   @Override
@@ -794,7 +794,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitBoolExpr(BoolExprContext ctx) {
-    return new BoolNode(ctx.BOOL_LITER().getText().equals("true"));
+    return new BoolNode(ctx.BOOL_LITER().getText().equals("true"), this.arch);
   }
 
   /* pairExpr is basically 'null', extend 'null' to represent uninitialised struct */
@@ -810,9 +810,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
      * text for escChar like '\0' is \'\\0\' length is 4 */
     assert text.length() == 3 || text.length() == 4;
     if (text.length() == 3) {
-      return new CharNode(text.charAt(1));
+      return new CharNode(text.charAt(1), this.arch);
     } else {
-      return new CharNode(escCharMap.get(text.charAt(2)));
+      return new CharNode(escCharMap.get(text.charAt(2)), this.arch);
     }
   }
 
@@ -830,7 +830,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     semanticError |= typeCheck(ctx.expr(1), cmpStatAllowedTypes, expr2Type);
     semanticError |= typeCheck(ctx.expr(0), expr1Type, expr2Type);
 
-    return new BinopNode(expr1, expr2, binop);
+    return new BinopNode(expr1, expr2, binop, this.arch);
   }
 
   @Override
@@ -845,7 +845,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     semanticError |= typeCheck(ctx.expr(0), exrp1Type, expr2Type);
 
-    return new BinopNode(expr1, expr2, binop);
+    return new BinopNode(expr1, expr2, binop, this.arch);
   }
 
   @Override
@@ -860,7 +860,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitIntExpr(IntExprContext ctx) {
-    return new IntegerNode(intParse(ctx, ctx.INT_LITER().getText()));
+    return new IntegerNode(intParse(ctx, ctx.INT_LITER().getText()), this.arch);
   }
 
   @Override
@@ -912,7 +912,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     semanticError |= typeCheck(ctx.expr(0), INT_BASIC_TYPE, expr1Type);
     semanticError |= typeCheck(ctx.expr(1), INT_BASIC_TYPE, expr2Type);
 
-    return new BinopNode(expr1, expr2, binop);
+    return new BinopNode(expr1, expr2, binop, this.arch);
   }
 
   @Override
@@ -922,7 +922,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitStrExpr(StrExprContext ctx) {
-    return new StringNode(ctx.STR_LITER().getText());
+    return new StringNode(ctx.STR_LITER().getText(), this.arch);
   }
 
   /* visit UnopExpr with a special case on the MINUS sign being the negative sign of an integer */
@@ -936,7 +936,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     String exprText = ctx.expr().getText();
     if (unop.equals(Unop.MINUS) && isInteger(exprText)) {
       Integer intVal = intParse(ctx.expr(), "-" + exprText);
-      return new IntegerNode(intVal);
+      return new IntegerNode(intVal, this.arch);
     }
 
     /* Check the range of integer in the chr unary operator */
@@ -951,7 +951,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     Type exprType = expr.getType();
     semanticError |= typeCheck(ctx.expr(), targetType, exprType);
 
-    return new UnopNode(expr, unop);
+    return new UnopNode(expr, unop, this.arch);
   }
 
   /* =======================================================

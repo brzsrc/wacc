@@ -30,10 +30,10 @@ public class Utils {
    */
 
   /* Type classes to represent BasicType, ArrayType, and PairType, used in type comparisons throughout the SemanticChecker */
-  public static final Type INT_BASIC_TYPE = new BasicType(BasicTypeEnum.INTEGER);
-  public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOLEAN);
-  public static final Type CHAR_BASIC_TYPE = new BasicType(BasicTypeEnum.CHAR);
-  public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING);
+  public static final Type INT_BASIC_TYPE = new BasicType(BasicTypeEnum.INTEGER, AssemblyArchitecture.ARMv6);
+  public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOLEAN, AssemblyArchitecture.ARMv6);
+  public static final Type CHAR_BASIC_TYPE = new BasicType(BasicTypeEnum.CHAR, AssemblyArchitecture.ARMv6);
+  public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING, AssemblyArchitecture.ARMv6);
   public static final Type ARRAY_TYPE = new ArrayType(AssemblyArchitecture.ARMv6);
   public static final Type PAIR_TYPE = new PairType(AssemblyArchitecture.ARMv6);
   public static final Type STRUCT_TYPE = new StructType("",  AssemblyArchitecture.ARMv6);
@@ -97,8 +97,8 @@ public class Utils {
           Binop.PLUS, ((x, y) -> arithmeticWithCheck(x, y, Math::addExact)),
           Binop.MINUS, ((x, y) -> arithmeticWithCheck(x, y, Math::subtractExact)),
           Binop.MUL, ((x, y) -> arithmeticWithCheck(x, y, Math::multiplyExact)),
-          Binop.DIV, ((x, y) -> new IntegerNode(x / y)),
-          Binop.MOD, ((x, y) -> new IntegerNode(x % y))
+          Binop.DIV, ((x, y) -> new IntegerNode(x / y, AssemblyArchitecture.ARMv6)),
+          Binop.MOD, ((x, y) -> new IntegerNode(x % y, AssemblyArchitecture.ARMv6))
   );
 
   public static final Map<Binop, BiFunction<Integer, Integer, Boolean>> cmpMap = Map.of(
@@ -114,15 +114,15 @@ public class Utils {
 
   public static final Map<Unop, Function<ExprNode, ExprNode>> unopApplyMap = Map.of(
           Unop.MINUS, (x -> arithmeticWithCheck(0, x.getCastedVal(), Math::subtractExact)),
-          Unop.NOT, (x -> new BoolNode(x.getCastedVal() != 1)),
-          Unop.LEN, (x -> new IntegerNode(x.getCastedVal())),
-          Unop.ORD, (x -> new IntegerNode(x.getCastedVal())),
-          Unop.CHR, (x -> new CharNode((char) x.getCastedVal()))
+          Unop.NOT, (x -> new BoolNode(x.getCastedVal() != 1, AssemblyArchitecture.ARMv6)),
+          Unop.LEN, (x -> new IntegerNode(x.getCastedVal(), AssemblyArchitecture.ARMv6)),
+          Unop.ORD, (x -> new IntegerNode(x.getCastedVal(), AssemblyArchitecture.ARMv6)),
+          Unop.CHR, (x -> new CharNode((char) x.getCastedVal(), AssemblyArchitecture.ARMv6))
   );
 
   private static ExprNode arithmeticWithCheck(int a, int b, BinaryOperator<Integer> exactOperator) {
     try {
-      return new IntegerNode(exactOperator.apply(a, b));
+      return new IntegerNode(exactOperator.apply(a, b), AssemblyArchitecture.ARMv6);
     } catch (ArithmeticException e) {
       System.out.println("WARNING: arithmetic " + " on " + a + " and " + b + " will cause overflow");
     }

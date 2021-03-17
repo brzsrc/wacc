@@ -46,7 +46,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     /* if either of the nodes is not immediate, stop constant propagation
     *  return a node with so far the simplified form */
     if (!expr1.isImmediate() || !expr2.isImmediate()) {
-      return new BinopNode(expr1, expr2, node.getOperator());
+      return new BinopNode(expr1, expr2, node.getOperator(), AssemblyArchitecture.ARMv6);
     }
 
     /*  apply arithmetic evaluation */
@@ -54,14 +54,14 @@ public class ConstantPropagation implements NodeVisitor<Node> {
       ExprNode simpChild = arithmeticApplyMap.get(node.getOperator()).apply(
               expr1.getCastedVal(),
               expr2.getCastedVal());
-      return simpChild == null ? new BinopNode(expr1, expr2, node.getOperator()) : simpChild;
+      return simpChild == null ? new BinopNode(expr1, expr2, node.getOperator(), AssemblyArchitecture.ARMv6) : simpChild;
     }
 
     /* otherwise, have to be binop covered by cmpMap key */
     assert cmpMap.containsKey(node.getOperator());
 
     boolean val = cmpMap.get(node.getOperator()).apply(expr1.getCastedVal(), expr2.getCastedVal());
-    return new BoolNode(val);
+    return new BoolNode(val, AssemblyArchitecture.ARMv6);
   }
 
   @Override
@@ -128,7 +128,7 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     ExprNode expr = visit(node.getExpr()).asExprNode();
     ExprNode simpChild = unopApplyMap.get(node.getOperator()).apply(expr);
     return simpChild == null ?
-            new UnopNode(expr, node.getOperator()) :
+            new UnopNode(expr, node.getOperator(), AssemblyArchitecture.ARMv6) :
             simpChild;
   }
 

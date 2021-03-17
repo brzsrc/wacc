@@ -81,7 +81,7 @@ public class ArrayType implements Type {
   public int hashCode() {
     int hash = ARRAY_HASH_CODE;
     if (contentType != null &&
-            contentType.equalToType(new BasicType(BasicTypeEnum.CHAR))) {
+            contentType.equalToType(new BasicType(BasicTypeEnum.CHAR, arch))) {
       hash += BYTE_SIZE;
     } else {
       hash += arch.equals(AssemblyArchitecture.ARMv6) ? ARM_POINTER_SIZE : INTEL_POINTER_SIZE;

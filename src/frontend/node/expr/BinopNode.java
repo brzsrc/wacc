@@ -3,6 +3,7 @@ package frontend.node.expr;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import utils.NodeVisitor;
+import utils.Utils.AssemblyArchitecture;
 
 public class BinopNode extends ExprNode {
 
@@ -23,7 +24,7 @@ public class BinopNode extends ExprNode {
   private ExprNode expr2;
   private Binop operator;
 
-  public BinopNode(ExprNode expr1, ExprNode expr2, Binop operator) {
+  public BinopNode(ExprNode expr1, ExprNode expr2, Binop operator, AssemblyArchitecture arch) {
     this.expr1 = expr1;
     this.expr2 = expr2;
     this.operator = operator;
@@ -33,10 +34,10 @@ public class BinopNode extends ExprNode {
       case MUL:
       case DIV:
       case MOD:
-        type = new BasicType(BasicTypeEnum.INTEGER);
+        type = new BasicType(BasicTypeEnum.INTEGER, arch);
         break;
       default:
-        type = new BasicType(BasicTypeEnum.BOOLEAN);
+        type = new BasicType(BasicTypeEnum.BOOLEAN, arch);
     }
     weight = expr1.getWeight() + expr2.getWeight() + 2;
   }

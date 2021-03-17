@@ -3,6 +3,7 @@ package frontend.node.expr;
 import frontend.type.BasicType;
 import frontend.type.BasicTypeEnum;
 import utils.NodeVisitor;
+import utils.Utils.AssemblyArchitecture;
 
 public class UnopNode extends ExprNode {
 
@@ -18,20 +19,20 @@ public class UnopNode extends ExprNode {
   ExprNode expr;
   Unop operator;
 
-  public UnopNode(ExprNode expr, Unop operator) {
+  public UnopNode(ExprNode expr, Unop operator, AssemblyArchitecture arch) {
     this.expr = expr;
     this.operator = operator;
     switch (operator) {
       case NOT:
-        type = new BasicType(BasicTypeEnum.BOOLEAN);
+        type = new BasicType(BasicTypeEnum.BOOLEAN, arch);
         break;
       case LEN:
       case MINUS:
       case ORD:
-        type = new BasicType(BasicTypeEnum.INTEGER);
+        type = new BasicType(BasicTypeEnum.INTEGER, arch);
         break;
       case CHR:
-        type = new BasicType(BasicTypeEnum.CHAR);
+        type = new BasicType(BasicTypeEnum.CHAR, arch);
         break;
     }
   }
