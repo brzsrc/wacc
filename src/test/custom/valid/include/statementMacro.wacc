@@ -1,0 +1,5 @@
+define PRINT println "This is a test"
+
+begin
+  PRINT
+end

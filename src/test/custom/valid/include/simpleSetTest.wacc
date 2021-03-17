@@ -1,0 +1,32 @@
+include Set<int>
+
+begin
+  bool equals(int a, int b) is return a == b end
+
+  Set<int> set = new Set<int>();
+  int size = call size(set);
+  println size;
+
+  bool output = false;
+  for (int i = 1; i <= 5 ; i = i + 1) do
+    output = call add(set, i)
+  done;
+  size = call size(set);
+  println size;
+
+  for (int i = 1; i <= 5 ; i = i + 1) do
+    output = call add(set, i)
+  done;
+  size = call size(set);
+  println size;
+
+  output = call remove(set, 6);
+  size = call size(set);
+  println size;
+
+  for (int i = 1; i <= 5 ; i = i + 1) do
+    output = call remove(set, i)
+  done;
+  size = call size(set);
+  println size
+end

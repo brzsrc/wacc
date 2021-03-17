@@ -27,7 +27,7 @@ public class Compiler {
 
   private static Object OptimizationLevel;
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     // Processing command line input
     if (args.length < 1) {
       System.out.println("No file/path has been supplied! Please specifiy a wacc file to compile!");
@@ -38,7 +38,8 @@ public class Compiler {
     Collections.addAll(cmd_ops, Arrays.copyOf(args, args.length));
 
     // Creating the file instance for the .wacc file
-    File file = new File(args[0]);
+    File sourceFile = new File(args[0]);
+    File file = new PreCompiler(sourceFile).preCompile();
 
     // System.out.println(file.getName());
     // try-with-resources so that fis can be closed properly even when error occurs
@@ -47,6 +48,10 @@ public class Compiler {
       CharStream input = CharStreams.fromStream(fis);
       // Pass the input stream of the file to WACC lexer
       WACCLexer lexer = new WACCLexer(input);
+      // delete the pre-compiled file
+      if (!file.getName().equals(sourceFile.getName())) {
+        file.delete();
+      }
       // Obtain the internal tokens from the lexer
       CommonTokenStream tokens = new CommonTokenStream(lexer);
       // Parse the tokens into a syntax tree
@@ -94,7 +99,8 @@ public class Compiler {
           ARMInstructionPrinter printer = new ARMInstructionPrinter(data, text, code,
               ARMInstructionPrinter.OptimizationLevel.NONE);
 
-          File asmFile = new File(file.getName().replaceFirst("[.][^.]+$", "") + ".s");
+          
+          File asmFile = new File(sourceFile.getName().replaceFirst("[.][^.]+$", "") + ".s");
 
           System.out.println("Assembly file created!");
           try (FileWriter asmWriter = new FileWriter(asmFile)) {

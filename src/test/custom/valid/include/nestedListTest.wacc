@@ -1,0 +1,21 @@
+include List<int>
+include List<List<int>>
+
+begin
+  List<List<int>> lists = new List<List<int>>();
+  List<int> list = new List<int>();
+  int out = call add(list, 1);
+  out = call add(list, 2);
+  out = call add(list, 3);
+  for (int i = 0; i < 5; i = i + 1) do
+    out = call add(lists, list)
+  done;
+  for (int i = 0; i < 5; i = i + 1) do
+    for (int j = 0; j < 3; j = j + 1) do
+      list = call get(lists, i);
+      int val = call get(list, j);
+      print val
+    done;
+    println ""
+  done
+end

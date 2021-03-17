@@ -1,0 +1,5 @@
+include Sth
+
+begin
+  skip
+end
