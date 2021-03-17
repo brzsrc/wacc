@@ -26,7 +26,7 @@ stat : skp                            #StatSkipStat    // This visitor will be r
      | println                        #StatPrintlnStat // This visitor will be replaced by #PrintlnStat
      | BREAK                          #BreakStat
      | CONTINUE                       #ContinueStat
-     | IF expr THEN stat ELSE stat FI #IfStat
+     | IF expr THEN stat (ELSE stat)? FI #IfStat
      | FOR OPEN_PARENTHESES
        for_stat SEMICOLON
        expr SEMICOLON
@@ -127,9 +127,10 @@ expr : INT_LITER      #IntExpr
      | uop=( '-' | '!' | 'len' | 'ord' | 'chr' | '~') expr #UnopExpr
      | expr bop=( '*' | '/' | '%' ) expr              #ArithmeticExpr
      | expr bop=( '+' | '-' ) expr                    #ArithmeticExpr
+     | expr bop=( '<<' | '>>' ) expr                  #BitwiseExpr
      | expr bop=( '>' | '>=' | '<' | '<=' ) expr      #CmpExpr
      | expr bop=( '==' | '!=' ) expr                  #EqExpr
-     | expr bitop=( '&' | '|' ) expr                    #BitwiseExpr
+     | expr bop=( '&' | '|' | '^' ) expr              #BitwiseExpr
      | expr '&&' expr                                 #AndExpr
      | expr '||' expr                                 #OrExpr
      | OPEN_PARENTHESES expr CLOSE_PARENTHESES        #ParenExpr

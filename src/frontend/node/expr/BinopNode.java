@@ -18,7 +18,7 @@ public class BinopNode extends ExprNode {
 
   public enum Binop {
     PLUS, MINUS, MUL, DIV, MOD, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, EQUAL,
-    INEQUAL, AND, OR, BITAND, BITOR,
+    INEQUAL, AND, OR, BITAND, BITOR, BITXOR
   }
 
   private ExprNode expr1;

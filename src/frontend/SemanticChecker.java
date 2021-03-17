@@ -425,21 +425,24 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     isJumpRepeated.push(permitJump);
 
     /* create the StatNode for the else body and generate new child scope */
-    currSymbolTable = new SymbolTable(currSymbolTable);
-    StatNode elseBody = visit(ctx.stat(1)).asStatNode();
-    currSymbolTable = currSymbolTable.getParentSymbolTable();
+    StatNode elseBody = null;
+    if (ctx.stat(1) != null) {
+      currSymbolTable = new SymbolTable(currSymbolTable);
+      elseBody = visit(ctx.stat(1)).asStatNode();
+      currSymbolTable = currSymbolTable.getParentSymbolTable();
+    }
 
     /* restore permit/not permit jump */
     isJumpRepeated.pop();
     isJumpRepeated.push(permitJump);
 
-    StatNode node = new IfNode(condition,
-            ifBody instanceof ScopeNode ?
-                    ifBody :
-                    new ScopeNode(ifBody),
-            elseBody instanceof ScopeNode ?
-                    elseBody :
-                    new ScopeNode(elseBody));
+    StatNode realIfBody = ifBody instanceof ScopeNode ? ifBody : new ScopeNode(ifBody);
+    StatNode realElseBody = null;
+    if (elseBody != null) {
+      realElseBody = elseBody instanceof ScopeNode ? elseBody : new ScopeNode(elseBody);
+    }
+
+    StatNode node = new IfNode(condition, realIfBody, realElseBody);
 
     node.setScope(currSymbolTable);
 
@@ -864,7 +867,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     semanticError |= typeCheck(ctx.expr(0), INT_BASIC_TYPE, expr1Type);
     semanticError |= typeCheck(ctx.expr(1), INT_BASIC_TYPE, expr2Type);
 
-    String literal = ctx.bitop.getText();
+    String literal = ctx.bop.getText();
     Binop binop = bitwiseOpEnumMapping.get(literal);
 
     return new BinopNode(expr1, expr2, binop, this.arch);

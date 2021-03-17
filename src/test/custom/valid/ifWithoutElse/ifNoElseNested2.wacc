@@ -1,0 +1,26 @@
+# simple true if statement without else statement
+
+# Output:
+# here
+
+# Program:
+
+begin
+  bool b1 = false;
+  bool b2 = false;
+  bool b3 = true;
+  if b1 then
+    println "incorrect"
+  else
+    if b2 then
+      println "incorrect"
+    else
+      if b3 then
+        if true then
+          println "correct"
+        fi
+      fi
+    fi
+  fi
+end
+

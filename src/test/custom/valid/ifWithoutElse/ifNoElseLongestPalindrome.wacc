@@ -1,0 +1,47 @@
+# a test of longest palindrome substring with if-no-else
+
+# Output:
+# badab
+
+begin
+  ########################################
+  ##     Longest Palindrome Substring
+  ########################################
+  char[] s = ['b', 'a', 'b', 'a', 'd', 'a', 'b'];
+  int n = len(s);
+  bool[] dp1 = [false, false, false, false, false, false, false];
+  bool[] dp2 = [false, false, false, false, false, false, false];
+  bool[] dp3 = [false, false, false, false, false, false, false];
+  bool[] dp4 = [false, false, false, false, false, false, false];
+  bool[] dp5 = [false, false, false, false, false, false, false];
+  bool[] dp6 = [false, false, false, false, false, false, false];
+  bool[] dp7 = [false, false, false, false, false, false, false];
+  bool[][] dp = [dp1, dp2, dp3, dp4, dp5, dp6, dp7];
+
+  int maxLen = 0;
+  char[] ans = [' ', ' ', ' ', ' ', ' ', ' ', ' '];
+
+  for (int l = 0; l < n; l = l + 1) do
+    for (int i = 0; i + l < n; i = i + 1) do
+      int j = i + l;
+      if l == 0 then
+        dp[i][j] = true
+      else
+        if l == 1 then
+          dp[i][j] = s[i] == s[j]
+        else
+          dp[i][j] = s[i] == s[j] && dp[i + 1][j - 1]
+        fi
+      fi;
+
+      if dp[i][j] && l + 1 > maxLen then
+        for (int k = 0; k < l + 1; k = k + 1) do
+          ans[k] = s[i + k]
+        done;
+        maxLen = l + 1
+      fi
+    done
+  done;
+
+  println ans
+end

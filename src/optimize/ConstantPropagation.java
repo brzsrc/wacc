@@ -251,6 +251,8 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     *  go through if and else body, generate symbol and exprNode map for both,
     *  merge two tables by taking intersection  */
 
+    boolean isIfElse = node.getElseBody() != null;
+
     /* 1 visit cond, record map before enter if body */
     ExprNode cond = visit(node.getCond()).asExprNode();
     Map<Symbol, ExprNode> oldMap = new HashMap<>(identValMap);
@@ -260,8 +262,11 @@ public class ConstantPropagation implements NodeVisitor<Node> {
     Map<Symbol, ExprNode> ifIdMap = new HashMap<>(identValMap);
 
     /* 3 visit else body */
-    identValMap = oldMap;
-    StatNode elseBody = visit(node.getElseBody()).asStatNode();
+    StatNode elseBody = null;
+    if (isIfElse) {
+      identValMap = oldMap;
+      elseBody = visit(node.getElseBody()).asStatNode();
+    }
 
     /* 4 new idMap is intersection of both */
     List<Map<Symbol, ExprNode>> list = new ArrayList<>();

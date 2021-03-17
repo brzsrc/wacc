@@ -499,6 +499,8 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitIfNode(IfNode node) {
+    boolean isIfElse = node.getElseBody() != null;
+
     Label elseIfLabel = branchLabelGenerator.getLabel().asIntelLabel();
     Label exitLabel = branchLabelGenerator.getLabel().asIntelLabel();
 
@@ -508,7 +510,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     IntelConcreteRegister oneReg = intelRegAllocator.allocate();
     instructions.add(new Mov(new IntelAddress(1), oneReg));
     instructions.add(new Cmp(cond.withSize(IntelInstructionSize.B), oneReg.withSize(IntelInstructionSize.B)));
-    instructions.add(new Jmp(NE, elseIfLabel.getName()));
+    instructions.add(new Jmp(NE, isIfElse ? elseIfLabel.getName() : exitLabel.getName()));
     intelRegAllocator.free();
     intelRegAllocator.free();
 
@@ -516,8 +518,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     visit(node.getIfBody());
     instructions.add(new Jmp(exitLabel.getName()));
 
-    instructions.add(elseIfLabel);
-    visit(node.getElseBody());
+    if (isIfElse) {
+      instructions.add(elseIfLabel);
+      visit(node.getElseBody());
+    }
 
     /* 3 end of if statement */
     instructions.add(exitLabel);

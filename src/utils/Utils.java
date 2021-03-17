@@ -78,8 +78,8 @@ public class Utils {
   );
 
   public static final Map<String, Binop> bitwiseOpEnumMapping = Map.of(
-      "|", Binop.OR,
-      "&", Binop.AND
+      "|", Binop.BITOR,
+      "&", Binop.BITAND
   );
 
   public static final Map<String, Binop> EqEnumMapping = Map.of(

@@ -576,6 +576,8 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
 
   @Override
   public Void visitIfNode(IfNode node) {
+    boolean isIfElse = node.getElseBody() != null;
+
     Label ifLabel = branchLabelGenerator.getLabel().asArmLabel();
     Label exitLabel = branchLabelGenerator.getLabel().asArmLabel();
 
@@ -583,12 +585,16 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     visit(node.getCond());
     Register cond = armRegAllocator.curr();
     instructions.add(new Cmp(cond, new Operand2(1)));
-    instructions.add(new B(EQ, ifLabel.getName()));
     armRegAllocator.free();
 
-    /* 2 elseBody translate */
-    visit(node.getElseBody());
-    instructions.add(new B(NULL, exitLabel.getName()));
+    /* 2 elseBody translate, if there is one */
+    if (isIfElse) {
+      instructions.add(new B(EQ, ifLabel.getName()));
+      visit(node.getElseBody());
+      instructions.add(new B(NULL, exitLabel.getName()));
+    } else {
+      instructions.add(new B(NE, exitLabel.getName()));
+    }
 
     /* 3 ifBody translate */
     instructions.add(ifLabel);
