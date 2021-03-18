@@ -103,8 +103,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     /* get the address of this array and store it in an available register */
     IntelConcreteRegister addrReg = intelRegAllocator.allocate();
 
-    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
-        + stackOffset;
+    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol());
     instructions.add(new Mov(new IntelAddress(rbp, -offset), addrReg));
 
     IntelConcreteRegister indexReg;
@@ -240,7 +239,6 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
      */
     List<ExprNode> params = node.getParams();
     int paramSize = 0;
-    stackOffset = 0;
     int paramNum = params.size();
 
     /* assign rbp as rsp, so that new parameters added will not overwrite variables */
@@ -259,10 +257,8 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       intelRegAllocator.free();
 
       paramSize += size;
-      stackOffset += size;
     }
-    stackOffset = 0;
-    
+
     /* 2 call function with B instruction */
     instructions.add(new Call(FUNC_HEADER + node.getFunction().getFunctionName()));
 
@@ -284,7 +280,6 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     System.out.println("ident " + node.getName() + " has:");
     System.out.println("offset " + currSymbolTable.getStackOffset(node.getName(), node.getSymbol()));
     System.out.println("paramList size " + currParamListSize);
-    System.out.println("stack offset" + stackOffset);
     System.out.println("ident size " + identTypeSize);
     System.out.print("ident type ");
     node.getType().showType();
@@ -294,10 +289,9 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int offset;
     if (funcLevel == 1) {
       offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
-              - currParamListSize + stackOffset;
+              - currParamListSize;
     } else {
-      offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
-              + stackOffset;
+      offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol());
     }
 
     /* if is lhs, then only put address in register */
@@ -639,8 +633,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitReturnNode(ReturnNode node) {
+    System.out.println("return with rsp + " + funcStackSize);
     visit(node.getExpr());
-    instructions.add(new Mov(intelRegAllocator.curr(), rax));
+    IntelInstructionSize intelSize = intToIntelSize.get(node.getExpr().getType().getSize());
+    instructions.add(new Mov(intelRegAllocator.curr().withSize(intelSize), rax.withSize(intelSize)));
     intelRegAllocator.free();
     if (funcStackSize != 0) {
       instructions.add(new Add(funcStackSize, IntelInstructionSize.Q, rsp));
@@ -660,11 +656,6 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     int stackSize = node.getScope().getParentSymbolTable() == null
               ? 0 : node.getScope().getParentSymbolTable().getSize();
 
-    if (funcLevel == 2) {
-      /* prev scope was top level scope of function */
-      stackSize = node.getScope().getParentSymbolTable().getSize() - currParamListSize;
-    }
-
     if (funcLevel == -1) {
       /* not in function, no operation */
     } else {
@@ -672,6 +663,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       funcLevel++;
     }
 
+    if (funcLevel == 2) {
+      /* prev scope was top level scope of function */
+      stackSize = node.getScope().getParentSymbolTable().getSize() - currParamListSize;
+    }
 
     int temp = stackSize;
     while (temp > 0) {
@@ -680,9 +675,6 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       temp = temp - realStackSize;
     }
 
-    /* accumulate function stack size, in case this scope is a function scope and contain return */
-    funcStackSize += stackSize;
-
     /* 2 visit statements
      *   set currentSymbolTable here, eliminate all other set symbol table in other statNode */
     currSymbolTable = node.getScope();
@@ -690,9 +682,6 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       visit(elem);
     }
     currSymbolTable = currSymbolTable.getParentSymbolTable();
-
-    /* decrease function stack size, as from this point stack is freed by the scope, not by return */
-    funcStackSize -= stackSize;
     
     /* 3 restore stack */
     temp = stackSize;
@@ -783,6 +772,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     /* cannot call get stack size on function body, as that will return 0
      * public field used here, so that on visit return statement, return can add stack back */
     funcStackSize = node.getFunctionBody().minStackRequired();
+    System.out.println("in function " + node.getFunctionName());
 
     /* 1 add function label,
      *   PUSH {lr}
