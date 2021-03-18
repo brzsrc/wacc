@@ -659,13 +659,15 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   public Void visitScopeNode(ScopeNode node) {
     List<StatNode> list = node.getBody();
 
+    instructions.add(new Mov(rsp, rbp));
+
     /* 1 leave space for variables in stack */
     int stackSize = node.getScope().getParentSymbolTable() == null
         ? 0 : node.getScope().getParentSymbolTable().getSize();
     int temp = stackSize;
     while (temp > 0) {
       int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
-      instructions.add(new Sub(realStackSize, IntelInstructionSize.Q, rbp));
+      instructions.add(new Sub(realStackSize, IntelInstructionSize.Q, rsp));
       temp = temp - realStackSize;
     }
 
@@ -682,7 +684,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* decrease function stack size, as from this point stack is freed by the scope, not by return */
     funcStackSize -= stackSize;
-
+    instructions.add(new Mov(rbp, rsp));
     /* 3 restore stack */
     temp = stackSize;
     while (temp > 0) {
