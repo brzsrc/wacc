@@ -162,14 +162,15 @@ public class Utils {
   public static String MAIN_BODY_NAME = "main";
 
   /* for function overload, to avoid name collision with user defined func name */
-  public static String overloadSeparator = "_" + new Random().nextInt(100) + "_";
+  public static int randomInt = new Random().nextInt(100);
+  public static String overloadSeparator = "_" + randomInt + "_";
 
   /* for pre-compiler */
   public final static String stdlibPath = "src/wacc_lib/";
   public final static String stdlibFormatName = ".stdlib";
   public final static String waccFormatName = ".wacc";
-  public final static String mediateFileSuffix = "_mid";
-  public final static String outputFileSuffix = "_out";
+  public final static String mediateFileSuffix = "_" + randomInt + "_mid";
+  public final static String outputFileSuffix = "_" + randomInt + "_out";
   public final static String defineRuleContext = "define ";
   public final static String includeRuleContext = "include ";
   public final static String genericMark = "E";
