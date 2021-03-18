@@ -361,8 +361,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     /* ARM: initialise as -4 byte in order to leave space for PUSH {lr},
        which takes up 4 bute on stack
-       intel: rbp is assigned after push, so all */
-    int tempStackAddr = this.arch.equals(AssemblyArchitecture.ARMv6) ? -WORD_SIZE : -QUAD_SIZE;
+       intel: one QUAD size is for PC, one QUAD size is for rbp pushed */
+    int tempStackAddr = this.arch.equals(AssemblyArchitecture.ARMv6) ? -WORD_SIZE : -2 * QUAD_SIZE;
     List<IdentNode> params = funcNode.getParamList();
     int paramNum = params.size();
 
@@ -1258,6 +1258,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitStringType(StringTypeContext ctx) {
+    if (arch.equals(AssemblyArchitecture.Intelx86)) {
+      return new TypeDeclareNode(STRING_BASIC_TYPE_INTEL);
+    }
     return new TypeDeclareNode(STRING_BASIC_TYPE);
   }
 

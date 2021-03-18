@@ -76,6 +76,10 @@ public class ScopeNode extends StatNode {
     isForStat = true;
   }
 
+  public boolean isAvoidSubStack() {
+    return avoidSubStack;
+  }
+
   public int getStackSize() {
     if (avoidSubStack) {
       return 0;

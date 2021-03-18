@@ -37,6 +37,7 @@ public class Utils {
   public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOL, AssemblyArchitecture.ARMv6);
   public static final Type CHAR_BASIC_TYPE = new BasicType(BasicTypeEnum.CHAR, AssemblyArchitecture.ARMv6);
   public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING, AssemblyArchitecture.ARMv6);
+  public static final Type STRING_BASIC_TYPE_INTEL = new BasicType(BasicTypeEnum.STRING, AssemblyArchitecture.Intelx86);
   public static final Type ARRAY_TYPE = new ArrayType(AssemblyArchitecture.ARMv6);
   public static final Type PAIR_TYPE = new PairType(AssemblyArchitecture.ARMv6);
   public static final Type STRUCT_TYPE = new StructType("",  AssemblyArchitecture.ARMv6);
@@ -46,11 +47,11 @@ public class Utils {
 
   /* a list of allowed types in read, free, cmp statement */
   public static final Set<Type> readStatAllowedTypes = new HashSet<>(
-      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
+      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE, STRING_BASIC_TYPE_INTEL));
   public static final Set<Type> freeStatAllowedTypes = new HashSet<>(
       Arrays.asList(ARRAY_TYPE, PAIR_TYPE, STRUCT_TYPE));
   public static final Set<Type> cmpStatAllowedTypes = new HashSet<>(
-      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
+      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE, STRING_BASIC_TYPE_INTEL));
 
   /* mapping from string literals to internal representations of UnopEnum and Type */
   public static final Map<String, Unop> unopEnumMapping = Map.of(

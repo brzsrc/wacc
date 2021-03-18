@@ -74,20 +74,9 @@ import static backend.arm.instructions.STR.StrMode.STRB;
 import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
 import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.PREINDEX;
 import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.armUnopAsm;
-import static utils.Utils.ARM_POINTER_SIZE;
-import static utils.Utils.BOOL_BASIC_TYPE;
-import static utils.Utils.CHAR_ARRAY_TYPE;
-import static utils.Utils.CHAR_BASIC_TYPE;
-import static utils.Utils.FALSE;
-import static utils.Utils.FUNC_HEADER;
-import static utils.Utils.INTEL_POINTER_SIZE;
-import static utils.Utils.INT_BASIC_TYPE;
+import static utils.Utils.*;
 import static utils.Utils.RoutineInstruction.CHECK_NULL_POINTER;
-import static utils.Utils.STRING_BASIC_TYPE;
 import static utils.Utils.SystemCallInstruction.MALLOC;
-import static utils.Utils.TRUE;
-import static utils.Utils.WORD_SIZE;
-import static utils.Utils.intToIntelSize;
 import static utils.backend.Cond.E;
 import static utils.backend.Cond.EQ;
 import static utils.backend.Cond.NE;
@@ -112,6 +101,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   private int currParamListSize;
 
+  /* stack size of current scope, not including parameter and for-init statement stack size
+  *  at entry of visitScope, it is stack size of parent scopeNode, if no parent, equal to 0  */
+  private int currentScopeStackSize;
+
   public IntelInstructionGenerator() {
     branchLabelGenerator = new LabelGenerator<>(".L", Label.class);
     dataLabelGenerator = new LabelGenerator<>(".LC", Label.class);
@@ -119,6 +112,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     dataSection = new LinkedHashMap<>();
     biDataSection = new LinkedHashMap<>();
     currParamListSize = 0;
+    currentScopeStackSize = 0;
   }
 
   @Override
@@ -270,13 +264,14 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     // todo: 1 mov should be consistent with moved in parameter size,
     //       2 should move to stack below rsp, prevent overwrite variable in using by main body
 
+    System.out.println("in function call");
     for (int i = paramNum - 1; i >= 0; i--) {
       ExprNode expr = params.get(i);
       visit(expr);
       IntelConcreteRegister reg = intelRegAllocator.curr();
       int size = expr.getType().getSize();
-      instructions.add(new Sub(size, IntelInstructionSize.Q, rbp));
-      instructions.add(new Mov(reg.withSize(intToIntelSize.get(size)), new IntelAddress(rbp)));
+      instructions.add(new Sub(size, IntelInstructionSize.Q, rsp));
+      instructions.add(new Mov(reg.withSize(intToIntelSize.get(size)), new IntelAddress(rsp)));
 
       intelRegAllocator.free();
 
@@ -290,7 +285,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* 3 add back stack pointer */
     if (paramSize > 0) {
-      instructions.add(new Add(paramSize, IntelInstructionSize.Q, rbp));
+      instructions.add(new Add(paramSize, IntelInstructionSize.Q, rsp));
     }
 
     /* 4 get result, put in a general register */
@@ -307,6 +302,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     System.out.println("offset " + currSymbolTable.getStackOffset(node.getName(), node.getSymbol()));
     System.out.println("paramList size " + currParamListSize);
     System.out.println("stack offset" + stackOffset);
+    System.out.println("ident size " + identTypeSize);
+    System.out.print("ident type ");
+    node.getType().showType();
+    System.out.println();
     System.out.println();
     int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
         - currParamListSize + stackOffset;
@@ -467,7 +466,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* TODO: add intel move type here */
 
-    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset();
+    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset() - currParamListSize;
 
     instructions.add(new Mov(intelRegAllocator.curr().withSize(intToIntelSize.get(identTypeSize)), new IntelAddress(rbp, -offset)));
     intelRegAllocator.free();
@@ -555,7 +554,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   private final Map<Type, String> printTypeStringMap = Map.of(
       INT_BASIC_TYPE,    "%d",
       CHAR_BASIC_TYPE,   "%c",
-      STRING_BASIC_TYPE, "%s",
+      STRING_BASIC_TYPE_INTEL, "%s",
       CHAR_ARRAY_TYPE,   "%s"
   );
 
