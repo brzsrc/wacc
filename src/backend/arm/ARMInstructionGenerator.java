@@ -268,7 +268,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
 
     List<Instruction> insList = ARMArithmeticLogic.binopInstruction
         .get(operator)
-        .binopAssemble(e1reg, e1reg, op2, operator);
+        .binopAssemble(e1reg, e2reg, op2, operator);
     instructions.addAll(insList.stream().map(i -> (ARMInstruction) i).collect(Collectors.toList()));
     if (operator == Binop.DIV || operator == Binop.MOD) {
       checkAndAddRoutine(CHECK_DIVIDE_BY_ZERO, msgLabelGenerator, dataSegmentMessages);

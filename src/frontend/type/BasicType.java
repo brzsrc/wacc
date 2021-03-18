@@ -49,6 +49,8 @@ public class BasicType implements Type {
       case INT:
         return WORD_SIZE;
       case STRING:
+        System.out.println("using intel string = " + INTEL_POINTER_SIZE );
+        System.out.println("arch is " + arch.name());
         return arch.equals(AssemblyArchitecture.ARMv6) ? Utils.ARM_POINTER_SIZE : Utils.INTEL_POINTER_SIZE;
       default:
         throw new IllegalArgumentException("unsupported base type enum: " + basicTypeEnum);

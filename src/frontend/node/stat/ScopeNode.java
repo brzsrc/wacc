@@ -16,7 +16,6 @@ public class ScopeNode extends StatNode {
   private final List<StatNode> body;
   private boolean avoidSubStack = false;
   private boolean isBeginEnd = false;
-  private boolean isForStat  = false;
 
   public ScopeNode(StatNode node) {
     body = new ArrayList<>();
@@ -28,6 +27,7 @@ public class ScopeNode extends StatNode {
     setLeaveAtEnd(getEndValue());
     isBeginEnd = true;
     setScope(node.getScope());
+    this.minStackSpace = node.minStackSpace;
   }
 
   /* Handle the sequential statement */
@@ -36,6 +36,7 @@ public class ScopeNode extends StatNode {
     mergeScope(before);
     mergeScope(after);
     setLeaveAtEnd(getEndValue());
+    this.minStackSpace = before.minStackSpace + after.minStackSpace;
   }
 
   /* constructor used by optimisation */
@@ -44,11 +45,15 @@ public class ScopeNode extends StatNode {
     this.isBeginEnd = cloneSrc.isBeginEnd;
     this.avoidSubStack = cloneSrc.avoidSubStack;
     this.scope = cloneSrc.scope;
+    this.minStackSpace = body.stream()
+            .map(StatNode::minStackRequired)
+            .reduce(Integer::sum).orElse(0);
   }
 
   private void mergeScope(StatNode s) {
     if (s instanceof ScopeNode && !((ScopeNode) s).isBeginEnd) {
-      body.addAll(((ScopeNode) s).body);
+      ScopeNode scope = (ScopeNode) s;
+      body.addAll(scope.body);
     } else if (!(s instanceof SkipNode)) {
       body.add(s);
     }
@@ -72,8 +77,8 @@ public class ScopeNode extends StatNode {
     avoidSubStack = true;
   }
 
-  public void setForStat() {
-    isForStat = true;
+  public boolean isAvoidSubStack() {
+    return avoidSubStack;
   }
 
   public int getStackSize() {
@@ -82,4 +87,8 @@ public class ScopeNode extends StatNode {
     }
     return scope.getSize();
   }
+
+//  public int getMaxAccumulativeDepth() {
+//    return maxAccumulativeDepth;
+//  }
 }

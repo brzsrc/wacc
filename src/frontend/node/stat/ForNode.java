@@ -17,6 +17,7 @@ public class ForNode extends StatNode {
         this.cond = cond;
         this.increment = increment;
         this.body = body;
+        this.minStackSpace = init.minStackSpace + increment.minStackSpace + body.minStackSpace;
     }
 
     public StatNode getInit() {

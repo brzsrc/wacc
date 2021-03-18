@@ -12,6 +12,7 @@ import backend.arm.instructions.addressing.AddressingMode2.AddrMode2;
 import backend.arm.instructions.addressing.ARMImmediate;
 import backend.arm.instructions.addressing.ARMImmediate.BitNum;
 import backend.arm.instructions.addressing.Operand2;
+import backend.arm.instructions.addressing.Operand2.Operand2Operator;
 import backend.common.address.Address;
 import backend.common.arithmeticLogic.ArithmeticLogic;
 import backend.common.arithmeticLogic.BinopAssemble;
@@ -33,13 +34,16 @@ public abstract class ARMArithmeticLogic extends ArithmeticLogic implements ARMI
 
   public static final BinopAssemble BasicBinopAsm = (rd, rn, op2, b) -> {
     Map<Binop, ARMInstruction> m = Map.of(
-        Binop.PLUS, new Add(rd, rn, op2, Cond.S),
-        Binop.MINUS, new Sub(rd, rn, op2, Cond.S),
-        Binop.MUL, new SMull(rd, rn, op2),
-        Binop.AND, new And(rd, rn, op2),
-        Binop.OR, new Or(rd, rn, op2),
-        Binop.BITAND, new And(rd, rn, op2),
-        Binop.BITOR, new Or(rd, rn, op2)
+        Binop.PLUS, new Add(rd, rd, op2, Cond.S),
+        Binop.MINUS, new Sub(rd, rd, op2, Cond.S),
+        Binop.MUL, new SMull(rd, rd, op2),
+        Binop.AND, new And(rd, rd, op2),
+        Binop.OR, new Or(rd, rd, op2),
+        Binop.BITAND, new And(rd, rd, op2),
+        Binop.BITOR, new Or(rd, rd, op2),
+        Binop.BITXOR, new Eor(rd, rd, op2),
+        Binop.BITSHL, new Mov(rd, new Operand2(rd, rn, Operand2Operator.LSL)),
+        Binop.BITSHR, new Mov(rd, new Operand2(rd, rn, Operand2Operator.ASR))
     );
     return List.of(m.get(b));
   };
@@ -82,21 +86,24 @@ public abstract class ARMArithmeticLogic extends ArithmeticLogic implements ARMI
   };
 
   public static final Map<Binop, BinopAssemble> binopInstruction = Map.ofEntries(
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.PLUS, BasicBinopAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MINUS, BasicBinopAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MUL, BasicBinopAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.AND, BasicBinopAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.OR, BasicBinopAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.BITAND, BasicBinopAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.BITOR, BasicBinopAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.DIV, DivModAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.MOD, DivModAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.GREATER, CmpAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.GREATER_EQUAL, CmpAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.LESS, CmpAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.LESS_EQUAL, CmpAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.EQUAL, CmpAsm),
-      new AbstractMap.SimpleEntry<Binop, BinopAssemble>(Binop.INEQUAL, CmpAsm)
+      new AbstractMap.SimpleEntry<>(Binop.PLUS, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.MINUS, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.MUL, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.AND, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.OR, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.BITAND, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.BITOR, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.BITXOR, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.BITSHL, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.BITSHR, BasicBinopAsm),
+      new AbstractMap.SimpleEntry<>(Binop.DIV, DivModAsm),
+      new AbstractMap.SimpleEntry<>(Binop.MOD, DivModAsm),
+      new AbstractMap.SimpleEntry<>(Binop.GREATER, CmpAsm),
+      new AbstractMap.SimpleEntry<>(Binop.GREATER_EQUAL, CmpAsm),
+      new AbstractMap.SimpleEntry<>(Binop.LESS, CmpAsm),
+      new AbstractMap.SimpleEntry<>(Binop.LESS_EQUAL, CmpAsm),
+      new AbstractMap.SimpleEntry<>(Binop.EQUAL, CmpAsm),
+      new AbstractMap.SimpleEntry<>(Binop.INEQUAL, CmpAsm)
   );
 
   public static final UnopAssemble armUnopAsm = (rd, rn, op, notUsed) -> {
@@ -105,26 +112,12 @@ public abstract class ARMArithmeticLogic extends ArithmeticLogic implements ARMI
         Unop.CHR, List.of(),
         Unop.MINUS, List.of(new Rsb(rd, rn, new Operand2(new ARMImmediate(0, BitNum.CONST8)))),
         Unop.NOT, List.of(new Xor(rd, rn, new Operand2(new ARMImmediate(1, BitNum.CONST8)))),
-        Unop.ORD, List.of()
+        Unop.ORD, List.of(),
+        Unop.BITNOT, List.of(new Mov(rd, new Operand2(rn), ARMMovType.MVN), new And(rd, rd, new Operand2(rn)))
     );
 
     return m.get(op);
   };
-
-  public static UnopAssemble ComplementAsm = (rd, rn, op, notUsed) -> {
-    List<Instruction> list = new ArrayList<>();
-    list.add(new Mov(rd, new Operand2(rn), ARMMovType.MVN));
-    return list;
-  };
-
-  public static final Map<Unop, UnopAssemble> unopInstruction = Map.ofEntries(
-      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.LEN, armUnopAsm),
-      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.MINUS, armUnopAsm),
-      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.NOT, armUnopAsm),
-      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.ORD, armUnopAsm),
-      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.CHR, armUnopAsm),
-      new AbstractMap.SimpleEntry<Unop, UnopAssemble>(Unop.COMPLEMENT, ComplementAsm)
-  );
 
   protected ARMArithmeticLogic(Register rd, Register rn, Address operand2) {
     super(rd, rn, operand2);

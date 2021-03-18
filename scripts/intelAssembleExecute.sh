@@ -2,13 +2,13 @@
 
 VALID_EXAMPLES=(
                 #"/advanced"
-                #"/array"
+                "/array"
                 "/basic"
                 "/expressions"
-                #"/function"
+                "/function"
                 "/if"
                 "/IO"
-                #"/pairs"
+                "/pairs"
                 #"/runtimeErr"
                 "/scope"
                 "/sequence"
