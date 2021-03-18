@@ -16,14 +16,16 @@ public class ScopeNode extends StatNode {
   private final List<StatNode> body;
   private boolean avoidSubStack = false;
   private boolean isBeginEnd = false;
-  private boolean isForStat  = false;
+  private int maxAccumulativeDepth = 0;
 
   public ScopeNode(StatNode node) {
     body = new ArrayList<>();
     if (node instanceof ScopeNode) {
       body.addAll(((ScopeNode) node).body);
+      maxAccumulativeDepth = ((ScopeNode) node).maxAccumulativeDepth;
     } else {
       body.add(node);
+      maxAccumulativeDepth = node.getScope().getSize();
     }
     setLeaveAtEnd(getEndValue());
     isBeginEnd = true;
@@ -35,6 +37,7 @@ public class ScopeNode extends StatNode {
     body = new ArrayList<>();
     mergeScope(before);
     mergeScope(after);
+    
     setLeaveAtEnd(getEndValue());
   }
 
@@ -44,13 +47,17 @@ public class ScopeNode extends StatNode {
     this.isBeginEnd = cloneSrc.isBeginEnd;
     this.avoidSubStack = cloneSrc.avoidSubStack;
     this.scope = cloneSrc.scope;
+    this.maxAccumulativeDepth = cloneSrc.getMaxAccumulativeDepth();
   }
 
   private void mergeScope(StatNode s) {
     if (s instanceof ScopeNode && !((ScopeNode) s).isBeginEnd) {
-      body.addAll(((ScopeNode) s).body);
+      ScopeNode scope = (ScopeNode) s;
+      body.addAll(scope.body);
+      this.maxAccumulativeDepth = Math.max(scope.maxAccumulativeDepth, this.maxAccumulativeDepth);
     } else if (!(s instanceof SkipNode)) {
       body.add(s);
+      this.maxAccumulativeDepth = Math.max(s.getScope().getSize(), this.maxAccumulativeDepth);
     }
   }
 
@@ -72,10 +79,6 @@ public class ScopeNode extends StatNode {
     avoidSubStack = true;
   }
 
-  public void setForStat() {
-    isForStat = true;
-  }
-
   public boolean isAvoidSubStack() {
     return avoidSubStack;
   }
@@ -85,5 +88,9 @@ public class ScopeNode extends StatNode {
       return 0;
     }
     return scope.getSize();
+  }
+
+  public int getMaxAccumulativeDepth() {
+    return maxAccumulativeDepth;
   }
 }
