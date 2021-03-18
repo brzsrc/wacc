@@ -1,12 +1,12 @@
-# evaluating multiplication
+# bitwise or operation
 
 # Output:
-# 1
+# 7
 
 # Program:
 
 begin
   int x = 5 ;
   int y = 3 ;
-  println x & y
+  println x | y
 end
