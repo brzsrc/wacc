@@ -33,6 +33,12 @@ public class SwitchNode extends StatNode {
         this.expr = expr;
         this.cases = cases;
         this.defaultCase = defaultCase;
+        this.minStackSpace = cases.stream()
+                .map(CaseStat::getBody)
+                .map(StatNode::minStackRequired)
+                .reduce(Integer::max)
+                .orElse(0);
+        this.minStackSpace = Math.max(minStackSpace, defaultCase.minStackSpace);
     }
 
     public ExprNode getExpr() {

@@ -81,9 +81,12 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   private int currParamListSize;
 
-  /* stack size of current scope, not including parameter and for-init statement stack size
-  *  at entry of visitScope, it is stack size of parent scopeNode, if no parent, equal to 0  */
-  private int currentScopeStackSize;
+  /* mark whether this scope is function top level scope
+  *  Level -1: not in function
+  *  Level 0: set by funcNode
+  *  Level 1: function top level
+  *  Level 2+: not function top level */
+  int funcLevel;
 
   public IntelInstructionGenerator() {
     branchLabelGenerator = new LabelGenerator<>(".L", Label.class);
@@ -92,7 +95,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     dataSection = new LinkedHashMap<>();
     biDataSection = new LinkedHashMap<>();
     currParamListSize = 0;
-    currentScopeStackSize = 0;
+    funcLevel = 0;
   }
 
   @Override
@@ -287,8 +290,15 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     node.getType().showType();
     System.out.println();
     System.out.println();
-    int offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
-        - currParamListSize + stackOffset;
+
+    int offset;
+    if (funcLevel == 1) {
+      offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
+              - currParamListSize + stackOffset;
+    } else {
+      offset = currSymbolTable.getStackOffset(node.getName(), node.getSymbol())
+              + stackOffset;
+    }
 
     /* if is lhs, then only put address in register */
     if (isLhs) {
@@ -446,7 +456,12 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* TODO: add intel move type here */
 
-    int offset = node.getScope().lookup(node.getIdentifier()).getStackOffset() - currParamListSize;
+    int offset;
+    if (funcLevel == 1) {
+      offset = node.getScope().lookup(node.getIdentifier()).getStackOffset() - currParamListSize;
+    } else {
+      offset = node.getScope().lookup(node.getIdentifier()).getStackOffset();
+    }
 
     instructions.add(new Mov(intelRegAllocator.curr().withSize(intToIntelSize.get(identTypeSize)), new IntelAddress(rbp, -offset)));
     intelRegAllocator.free();
@@ -639,9 +654,25 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   public Void visitScopeNode(ScopeNode node) {
     List<StatNode> list = node.getBody();
 
+    System.out.println("funcLevel = " + funcLevel);
+
     /* 1 leave space for variables in stack */
     int stackSize = node.getScope().getParentSymbolTable() == null
-        ? 0 : node.getScope().getParentSymbolTable().getSize();
+              ? 0 : node.getScope().getParentSymbolTable().getSize();
+
+    if (funcLevel == 2) {
+      /* prev scope was top level scope of function */
+      stackSize = node.getScope().getParentSymbolTable().getSize() - currParamListSize;
+    }
+
+    if (funcLevel == -1) {
+      /* not in function, no operation */
+    } else {
+      /* function level increase on enter a new scope */
+      funcLevel++;
+    }
+
+
     int temp = stackSize;
     while (temp > 0) {
       int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
@@ -669,6 +700,13 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
       instructions.add(new Add(realStackSize, IntelInstructionSize.Q, rbp));
       temp = temp - realStackSize;
+    }
+
+    if (funcLevel == -1) {
+      /* not in function, no operation */
+    } else {
+      /* function level decrease on exit a scope */
+      funcLevel--;
     }
 
     return null;
@@ -744,8 +782,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   public Void visitFuncNode(FuncNode node) {
     /* cannot call get stack size on function body, as that will return 0
      * public field used here, so that on visit return statement, return can add stack back */
-    funcStackSize = node.getFunctionBody().getScope().getSize();
-    funcStackSize -= node.paramListStackSize();
+    funcStackSize = node.getFunctionBody().minStackRequired();
 
     /* 1 add function label,
      *   PUSH {lr}
@@ -762,8 +799,11 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     /* 3 visit function,
      *   RETURN are responsible for adding stack back
+     *   no need to set back isFuncTopLevel, since next visitFunc will set as true again,
+     *      visit program will set it false after all visitFunc
      */
     currParamListSize = node.paramListStackSize();
+    funcLevel = 0;
     visit(node.getFunctionBody());
     currParamListSize = 0;
 
@@ -780,6 +820,10 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       visitFuncNode(func);
     }
 
+    /* clear fields associated with function visit */
+    funcLevel = -1;
+    currParamListSize = 0;
+
     /* 2 start of main */
     Label mainLabel = new Label("main");
     instructions.add(mainLabel);
@@ -787,8 +831,8 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     /* 3 PUSH rsp and MOV rsp to rbp */
     instructions.add(new Push(Collections.singletonList(rbp)));
     instructions.add(new Mov(rsp, rbp));
-    int rspOffset = Math.max(16, ((ScopeNode) node.getBody()).getMaxAccumulativeDepth());
-    System.out.println("#################rsp offset: " + ((ScopeNode) node.getBody()).getMaxAccumulativeDepth());
+    int rspOffset = Math.max(16, node.getBody().minStackRequired());
+    System.out.println("#################rsp offset: " + node.getBody().minStackRequired());
     instructions.add(new Sub(rspOffset, IntelInstructionSize.Q, rsp));
 
     /* 4 main body */

@@ -16,20 +16,18 @@ public class ScopeNode extends StatNode {
   private final List<StatNode> body;
   private boolean avoidSubStack = false;
   private boolean isBeginEnd = false;
-  private int maxAccumulativeDepth = 0;
 
   public ScopeNode(StatNode node) {
     body = new ArrayList<>();
     if (node instanceof ScopeNode) {
       body.addAll(((ScopeNode) node).body);
-      maxAccumulativeDepth = ((ScopeNode) node).maxAccumulativeDepth;
     } else {
       body.add(node);
-      maxAccumulativeDepth = node.getScope().getSize();
     }
     setLeaveAtEnd(getEndValue());
     isBeginEnd = true;
     setScope(node.getScope());
+    this.minStackSpace = node.minStackSpace;
   }
 
   /* Handle the sequential statement */
@@ -37,8 +35,8 @@ public class ScopeNode extends StatNode {
     body = new ArrayList<>();
     mergeScope(before);
     mergeScope(after);
-    
     setLeaveAtEnd(getEndValue());
+    this.minStackSpace = before.minStackSpace + after.minStackSpace;
   }
 
   /* constructor used by optimisation */
@@ -47,17 +45,17 @@ public class ScopeNode extends StatNode {
     this.isBeginEnd = cloneSrc.isBeginEnd;
     this.avoidSubStack = cloneSrc.avoidSubStack;
     this.scope = cloneSrc.scope;
-    this.maxAccumulativeDepth = cloneSrc.getMaxAccumulativeDepth();
+    this.minStackSpace = body.stream()
+            .map(StatNode::minStackRequired)
+            .reduce(Integer::sum).orElse(0);
   }
 
   private void mergeScope(StatNode s) {
     if (s instanceof ScopeNode && !((ScopeNode) s).isBeginEnd) {
       ScopeNode scope = (ScopeNode) s;
       body.addAll(scope.body);
-      this.maxAccumulativeDepth = Math.max(scope.maxAccumulativeDepth, this.maxAccumulativeDepth);
     } else if (!(s instanceof SkipNode)) {
       body.add(s);
-      this.maxAccumulativeDepth = Math.max(s.getScope().getSize(), this.maxAccumulativeDepth);
     }
   }
 
@@ -90,7 +88,7 @@ public class ScopeNode extends StatNode {
     return scope.getSize();
   }
 
-  public int getMaxAccumulativeDepth() {
-    return maxAccumulativeDepth;
-  }
+//  public int getMaxAccumulativeDepth() {
+//    return maxAccumulativeDepth;
+//  }
 }

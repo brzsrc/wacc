@@ -18,6 +18,7 @@ public class IfNode extends StatNode {
     this.ifBody = ifBody;
     this.elseBody = elseBody;
     setLeaveAtEnd(getEndValue());
+    this.minStackSpace = Math.max(ifBody.minStackSpace, elseBody.minStackSpace);
   }
 
 
