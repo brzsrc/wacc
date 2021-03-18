@@ -3,6 +3,8 @@ package backend.intel;
 
 import backend.Instruction;
 import backend.InstructionGenerator;
+import backend.arm.instructions.B;
+import backend.arm.instructions.addressing.Operand2;
 import backend.intel.instructions.*;
 import backend.intel.instructions.Mov.IntelMovType;
 import backend.intel.instructions.address.IntelAddress;
@@ -49,10 +51,8 @@ import frontend.node.stat.StatNode;
 import frontend.node.stat.SwitchNode;
 import frontend.node.stat.WhileNode;
 import frontend.type.Type;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import utils.Utils.IntelInstructionSize;
 import utils.backend.LabelGenerator;
@@ -61,12 +61,12 @@ import utils.backend.register.intel.IntelConcreteRegister;
 import utils.backend.register.intel.IntelConcreteRegisterAllocator;
 
 import static utils.Utils.*;
-import static utils.backend.Cond.E;
-import static utils.backend.Cond.NE;
-import static utils.backend.Cond.NULL;
+import static utils.backend.Cond.*;
 import static utils.backend.register.intel.IntelConcreteRegister.*;
 
 public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruction> {
+
+  private final static int MAX_STACK_STEP = (1 << 10);
 
   /* label generators for data section and branches */
   private final LabelGenerator<Label> branchLabelGenerator;
@@ -88,6 +88,14 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   *  Level 2+: not function top level */
   int funcLevel;
 
+  /* stack size used by scopes in a loop, excluding init/increment statement size in for loop
+  *  BREAK and CONTINUE are responsible for adding rbp back by loopStackSize amount  */
+  int loopStackSize;
+
+  /* stack of label, BREAK and CONTINUE should jump to top of these stack records */
+  private Stack<Label> breakJumpToLabelStack;
+  private Stack<Label> continueJumpToLabelStack;
+
   public IntelInstructionGenerator() {
     branchLabelGenerator = new LabelGenerator<>(".L", Label.class);
     dataLabelGenerator = new LabelGenerator<>(".LC", Label.class);
@@ -96,6 +104,9 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     biDataSection = new LinkedHashMap<>();
     currParamListSize = 0;
     funcLevel = 0;
+    loopStackSize = 0;
+    breakJumpToLabelStack = new Stack<>();
+    continueJumpToLabelStack = new Stack<>();
   }
 
   @Override
@@ -652,8 +663,12 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     System.out.println("funcLevel = " + funcLevel);
 
-    /* 1 leave space for variables in stack */
-    int stackSize = node.getScope().getParentSymbolTable() == null
+    /* 1 leave space for variables in stack
+    *    special treat for three case:
+    *      for-loop init and increment
+    *      function top level scope (satisfy both of following OR conditions)
+    *      main function top level scope */
+    int stackSize = node.getScope().getParentSymbolTable() == null || node.isAvoidSubStack()
               ? 0 : node.getScope().getParentSymbolTable().getSize();
 
     if (funcLevel == -1) {
@@ -668,12 +683,9 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
       stackSize = node.getScope().getParentSymbolTable().getSize() - currParamListSize;
     }
 
-    int temp = stackSize;
-    while (temp > 0) {
-      int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
-      instructions.add(new Sub(realStackSize, IntelInstructionSize.Q, rbp));
-      temp = temp - realStackSize;
-    }
+    decStack(stackSize);
+    /* record loop size have increased */
+    loopStackSize += stackSize;
 
     /* 2 visit statements
      *   set currentSymbolTable here, eliminate all other set symbol table in other statNode */
@@ -684,12 +696,8 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     currSymbolTable = currSymbolTable.getParentSymbolTable();
     
     /* 3 restore stack */
-    temp = stackSize;
-    while (temp > 0) {
-      int realStackSize = temp / 1024 >= 1 ? 1024 : temp;
-      instructions.add(new Add(realStackSize, IntelInstructionSize.Q, rbp));
-      temp = temp - realStackSize;
-    }
+    incStack(stackSize);
+    loopStackSize -= stackSize;
 
     if (funcLevel == -1) {
       /* not in function, no operation */
@@ -752,8 +760,68 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     return null;
   }
 
-  @Override
+    @Override
   public Void visitForNode(ForNode node) {
+    /* 1 translate the initiator of the for-loop */
+    currSymbolTable = node.getIncrement().getScope();
+    int stackSize = currSymbolTable.getSize();
+    decStack(stackSize);
+
+    visit(node.getInit());
+
+    /* 2 create labels and translate for for-loop body */
+    Label bodyLabel = branchLabelGenerator.getLabel().asIntelLabel();
+    Label condLabel = branchLabelGenerator.getLabel().asIntelLabel();
+    Label nextLabel = branchLabelGenerator.getLabel().asIntelLabel();
+    Label incrementLabel = branchLabelGenerator.getLabel().asIntelLabel();
+
+    /* restore the last jump-to label after visiting the for-loop body */
+    breakJumpToLabelStack.push(nextLabel);
+    continueJumpToLabelStack.push(incrementLabel);
+
+    instructions.add(new Jmp(condLabel.getName()));
+
+    instructions.add(bodyLabel);
+    currForLoopSymbolTable = node.getBody().getScope();
+
+    /* record now much stack loop body have occupied */
+    int prevLoopSize = loopStackSize;
+    loopStackSize = 0;
+
+    visit(node.getBody());
+
+    /* restore parent loop stack size */
+    loopStackSize = prevLoopSize;
+
+    /* here we also need to append the for-loop increment at the end */
+    instructions.add(incrementLabel);
+    visit(node.getIncrement());
+
+    breakJumpToLabelStack.pop();
+    Label afterLabel = branchLabelGenerator.getLabel();
+    currContinueJumpToLabel = afterLabel;
+
+    /* 3 add label for condition checking */
+    instructions.add(condLabel);
+
+    currSymbolTable = node.getIncrement().getScope();
+    visit(node.getCond());
+
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
+    IntelConcreteRegister oneReg = intelRegAllocator.allocate();
+    instructions.add(new Mov(new IntelAddress(1), oneReg));
+    instructions.add(new Cmp(intelRegAllocator.curr().withSize(IntelInstructionSize.B), oneReg.withSize(IntelInstructionSize.B)));
+    intelRegAllocator.free();
+    /* 4 conditional branch jump to the start of loop */
+    instructions.add(new Jmp(E, bodyLabel.getName()));
+
+    /* 5 add the label for the following instructions after for-loop */
+    instructions.add(nextLabel);
+
+    /* loop varient's stack clearing should be after next label,
+       so that BREAK can add back stack used by varients */
+    incStack(stackSize);
+
     return null;
   }
 
@@ -859,5 +927,21 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   public Map<Label, String> getDataSection() {
     return dataSection;
+  }
+
+  private void decStack(int stackSize) {
+    while (stackSize > 0) {
+      int realStackSize = stackSize / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : stackSize;
+      instructions.add(new Sub(realStackSize, IntelInstructionSize.Q, rbp));
+      stackSize = stackSize - realStackSize;
+    }
+  }
+
+  private void incStack(int stackSize) {
+    while (stackSize > 0) {
+      int realStackSize = stackSize / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : stackSize;
+      instructions.add(new Add(realStackSize, IntelInstructionSize.Q, rbp));
+      stackSize = stackSize - realStackSize;
+    }
   }
 }
