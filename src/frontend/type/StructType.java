@@ -29,7 +29,7 @@ public class StructType implements Type {
 
     StructType otherStruct = (StructType) other;
 
-    if (name == null || otherStruct.name == null) {
+    if (name.equals("") || otherStruct.name.equals("")) {
       return true;
     }
 

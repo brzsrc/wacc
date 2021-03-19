@@ -4,5 +4,5 @@
 # Program:
 
 begin
-  a x = new a {}
+  a x = new a ()
 end

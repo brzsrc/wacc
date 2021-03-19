@@ -52,7 +52,6 @@ public class Compiler {
     File sourceFile = new File(args[0]);
     File file = new PreCompiler(sourceFile).preCompile();
 
-    // System.out.println(file.getName());
     // try-with-resources so that fis can be closed properly even when error occurs
     try (FileInputStream fis = new FileInputStream(file)) {
       // Input stream of the file

@@ -433,19 +433,19 @@ public class ConstantPropagation implements NodeVisitor<Node> {
 
   @Override
   public Node visitStructElemNode(StructElemNode node) {
-    // todo: support constant propagation on struct, same difficulty as array, pair
+    /* Not yet supporting this type of constant propagation */
     return node;
   }
 
   @Override
   public Node visitStructNode(StructNode node) {
-    // todo: support constant propagation on struct, same difficulty as array, pair
+    /* Not yet supporting this type of constant propagation */
     return node;
   }
 
   @Override
   public Node visitStructDeclareNode(StructDeclareNode node) {
-    // todo: support constant propagation on struct, same difficulty as array, pair
+    /* Not yet supporting this type of constant propagation */
     return node;
   }
 

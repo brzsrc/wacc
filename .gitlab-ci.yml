@@ -10,7 +10,7 @@ stages:
   - build
   - frontend-test
   - backend-test
-  - optimise-test
+  - extension-test
 
 build-job:
   stage: build
@@ -63,12 +63,22 @@ test-execute-valid:
       - log/assembly
       - log/output
 
-test-optimise:
-  stage: optimise-test
+test-extension:
+  stage: extension-test
   script:
-    - echo "compile oprimise sample tests and conpair with given .log result file"
+    - echo "compile optimise sample tests and conpair with given .log result file"
     - ./scripts/constantPropagationTest.sh
     - ./scripts/extensionValidTest.sh
+  artifacts:
+    paths:
+      - log/assembly
+      - log/output
+
+test-intel-isa:
+  stage: extension-test
+  script:
+    - echo "compile .wacc files under intel isa"
+    - ./scripts/intelAssembleExecute.sh
   artifacts:
     paths:
       - log/assembly
