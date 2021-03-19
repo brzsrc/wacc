@@ -1,0 +1,10 @@
+# Output:
+# #semantic error#
+
+# Program:
+
+begin
+  int foo(int i) is return 1 end
+  char foo(int c) is return 'a' end
+  skip
+end

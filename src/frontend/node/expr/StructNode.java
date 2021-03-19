@@ -4,6 +4,7 @@ import frontend.type.StructType;
 import java.util.List;
 import utils.NodeVisitor;
 import utils.Utils;
+import utils.Utils.AssemblyArchitecture;
 
 public class StructNode extends ExprNode {
 
@@ -15,13 +16,13 @@ public class StructNode extends ExprNode {
   /* if the struct variable is not = empty, then it is initialised */
   private final boolean isInitialised;
 
-  public StructNode(List<ExprNode> elemValues, List<Integer> elemOffsets, int size, String name) {
+  public StructNode(List<ExprNode> elemValues, List<Integer> elemOffsets, int size, String name, AssemblyArchitecture arch) {
     this.elemValues = elemValues;
     this.elemOffsets = elemOffsets;
     this.size = size;
     this.name = name;
     isInitialised = true;
-    type = new StructType(name);
+    type = new StructType(name, arch);
   }
 
   public StructNode() {

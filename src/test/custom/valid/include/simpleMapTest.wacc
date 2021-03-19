@@ -1,0 +1,24 @@
+include Map<int,string>
+
+begin
+  bool equals(int a, int b) is return a == b end
+
+  Map<int,string> map = new Map<int,string>();
+  bool isFreshKey = call put(map, 1, "one");
+  isFreshKey = call put(map, 2, "two");
+  bool hasOne = call containsKey(map, 1);
+  println hasOne;
+  bool hasTwo = call containsKey(map, 2);
+  println hasTwo;
+  bool hasThree = call containsKey(map, 3);
+  println hasThree;
+  string one = call getOrDefault(map, 1, "not found");
+  string two = call getOrDefault(map, 2, "not found");
+  string three = call getOrDefault(map, 3, "not found");
+  println one;
+  println two;
+  println three;
+  isFreshKey = call put(map, 2, "three");
+  three = call getOrDefault(map, 2, "not found");
+  println three
+end

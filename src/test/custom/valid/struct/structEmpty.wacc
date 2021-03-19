@@ -7,7 +7,7 @@ begin
   struct a is {b b}
   struct b is {int i}
   a a = empty;
-  a = new a {empty};
-  a.b = new b {1};
+  a = new a (empty);
+  a.b = new b (1);
   println a.b.i
 end

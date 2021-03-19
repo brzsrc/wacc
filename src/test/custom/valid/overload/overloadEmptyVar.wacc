@@ -1,0 +1,15 @@
+# Output:
+# 1
+
+# Program:
+
+begin
+  struct a is {int i}
+  struct b is {int i}
+  int foo(a x) is return 1 end
+  int foo(b y) is return 1 end
+
+  a x = empty;
+  int a = call foo(x);
+  println a
+end

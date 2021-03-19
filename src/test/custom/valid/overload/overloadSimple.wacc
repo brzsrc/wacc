@@ -1,0 +1,15 @@
+# Output:
+# 10
+# 1
+
+# Program:
+
+begin
+  int foo() is return 10 end
+  int foo(int n) is return n end
+
+  int a = call foo();
+  println a;
+  int b = call foo(1);
+  println b
+end

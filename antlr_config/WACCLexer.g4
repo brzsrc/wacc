@@ -91,9 +91,13 @@ EQUAL         : '==' ;
 UNEQUAL       : '!=' ;
 AND           : '&&' ;
 OR            : '||' ;
-BitWiseAnd    : '&' ;
-BitWiseOr     : '|' ;
-BitWiseComplement    : '~' ;
+BITAND    : '&' ;
+BITOR     : '|' ;
+BITNOT    : '~' ;
+BITSL     : '<<';
+BITSR     : '>>';
+BITXOR    : '^';
+
 
 INT_LITER         : DIGIT+ ;
 BINARY_LITER      : '0b' BINARY+ ;

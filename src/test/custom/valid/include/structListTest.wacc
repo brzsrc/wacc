@@ -1,0 +1,16 @@
+include List<a>
+
+begin
+  struct a is {int i}
+
+  List<a> list = new List<a>();
+  int out = call add(list, new a{10});
+  out = call add(list, new a{100});
+  out = call add(list, new a{1000});
+  a first = call get(list, 0);
+  a second = call get(list, 1);
+  a third = call get(list, 2);
+  println first.i;
+  println second.i;
+  println third.i
+end

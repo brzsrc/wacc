@@ -1,8 +1,8 @@
 package frontend.type;
 
 public enum BasicTypeEnum {
-  INTEGER,
-  BOOLEAN,
+  INT,
+  BOOL,
   CHAR,
   STRING
 }

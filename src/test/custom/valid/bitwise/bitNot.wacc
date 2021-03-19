@@ -1,0 +1,11 @@
+# bitwise not operation
+
+# Output:
+# -6
+
+# Program:
+
+begin
+  int x = 5 ;
+  println ~x
+end

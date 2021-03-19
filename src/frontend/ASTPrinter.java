@@ -222,6 +222,8 @@ public class ASTPrinter implements NodeVisitor<Void> {
 
   @Override
   public Void visitIfNode(IfNode node) {
+    boolean isIfElse = node.getElseBody() != null;
+
     /* if EXPR : */
     appendLeadingSpace();
     System.out.print("if ");
@@ -233,14 +235,16 @@ public class ASTPrinter implements NodeVisitor<Void> {
     visit(node.getIfBody());
     leadingSpace -= INDENT_SIZE;
 
-    /* else */
-    appendLeadingSpace();
-    System.out.println("else");
+    if (isIfElse) {
+      /* else */
+      appendLeadingSpace();
+      System.out.println("else");
 
-    /* show else body */
-    leadingSpace += INDENT_SIZE;
-    visit(node.getElseBody());
-    leadingSpace -= INDENT_SIZE;
+      /* show else body */
+      leadingSpace += INDENT_SIZE;
+      visit(node.getElseBody());
+      leadingSpace -= INDENT_SIZE;
+    }
 
     /*\n */
     appendLeadingSpace();
@@ -432,10 +436,12 @@ public class ASTPrinter implements NodeVisitor<Void> {
       leadingSpace -= INDENT_SIZE;
     }
 
-    appendLeadingSpace();
-    System.out.println("default");
-    leadingSpace += INDENT_SIZE;
-    visit(node.getDefault());
+    if (node.getDefault() != null) {
+      appendLeadingSpace();
+      System.out.println("default");
+      leadingSpace += INDENT_SIZE;
+      visit(node.getDefault());
+    }
 
     leadingSpace -= 2 * INDENT_SIZE;
 

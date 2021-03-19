@@ -12,6 +12,7 @@ public abstract class StatNode implements Node {
   private boolean leaveAtEnd = false;
   protected SymbolTable scope;
   protected int weight = 0;
+  protected int minStackSpace;
 
   /* Set leaveAtEnd if needs overwrite */
   protected void setLeaveAtEnd(boolean value) {
@@ -29,6 +30,11 @@ public abstract class StatNode implements Node {
 
   public SymbolTable getScope() {
     return scope;
+  }
+
+  /* return how much stack is required at least to execute this statement */
+  public int minStackRequired() {
+    return minStackSpace;
   }
 
   @Override

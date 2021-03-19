@@ -12,9 +12,7 @@ func        : type IDENT OPEN_PARENTHESES param_list? CLOSE_PARENTHESES IS stat 
 param_list  : param (COMMA param )* ;
 param       : type IDENT;
 
-import_file : IMPORT FILE_NAME         # ImportUserDefine // import example.hwacc
-            | IMPORT '<' FILE_NAME '>' # ImportSTDFile// import <FILE_FROM_LIB.hwacc>
-            ;
+import_file : IMPORT FILE_NAME;
 
 
 stat : skp                            #StatSkipStat    // This visitor will be replaced by #SkipStat
@@ -28,7 +26,7 @@ stat : skp                            #StatSkipStat    // This visitor will be r
      | println                        #StatPrintlnStat // This visitor will be replaced by #PrintlnStat
      | BREAK                          #BreakStat
      | CONTINUE                       #ContinueStat
-     | IF expr THEN stat ELSE stat FI #IfStat
+     | IF expr THEN stat (ELSE stat)? FI #IfStat
      | FOR OPEN_PARENTHESES
        for_stat SEMICOLON
        expr SEMICOLON
@@ -79,7 +77,7 @@ assign_rhs : expr                                                          #Expr
 arg_list  : expr (COMMA expr)*;
 
 struct_elem : IDENT (DOT IDENT)+;
-new_struct  : NEW IDENT OPEN_CURLY_BRACKET arg_list? CLOSE_CURLY_BRACKET ;
+new_struct  : NEW IDENT OPEN_PARENTHESES arg_list? CLOSE_PARENTHESES ;
 
 pair_elem : FST expr #FstExpr
           | SND expr #SndExpr
@@ -129,9 +127,10 @@ expr : INT_LITER      #IntExpr
      | uop=( '-' | '!' | 'len' | 'ord' | 'chr' | '~') expr #UnopExpr
      | expr bop=( '*' | '/' | '%' ) expr              #ArithmeticExpr
      | expr bop=( '+' | '-' ) expr                    #ArithmeticExpr
+     | expr bop=( '<<' | '>>' ) expr                  #BitwiseExpr
      | expr bop=( '>' | '>=' | '<' | '<=' ) expr      #CmpExpr
      | expr bop=( '==' | '!=' ) expr                  #EqExpr
-     | expr bitop=( '&' | '|' ) expr                    #BitwiseExpr
+     | expr bop=( '&' | '|' | '^' ) expr              #BitwiseExpr
      | expr '&&' expr                                 #AndExpr
      | expr '||' expr                                 #OrExpr
      | OPEN_PARENTHESES expr CLOSE_PARENTHESES        #ParenExpr

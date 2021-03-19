@@ -1,0 +1,126 @@
+define List<E>() List<E>{empty,0}
+define List<E> List_E
+define Node<E> Node_E
+
+struct List<E> is {Node<E> root, int length}
+struct Node<E> is {E val, Node<E> next}
+
+
+int size(List<E> list) is return list.length end
+
+int add(List<E> list, E val) is
+  Node<E> node = new Node<E>{val, empty};
+  int output = 0;
+  if (list.root == empty) then
+    list.root = node
+  else
+    output = 1;
+    Node<E> cur = list.root;
+    while (cur.next != empty) do
+      cur = cur.next;
+      output = output + 1
+    done;
+    cur.next = node
+  fi;
+  list.length = list.length + 1;
+  return output
+end
+
+bool add(List<E> list, E val, int pos) is
+  Node<E> node = new Node<E>{val, empty};
+  if (pos == 0) then
+    Node<E> next = list.root;
+    node.next = next;
+    list.root = node;
+    list.length = list.length + 1;
+    return true
+  else
+    if (list.root == empty) then
+      return false
+    else
+      Node<E> cur = list.root;
+      Node<E> next = cur.next;
+      while (pos > 1) do
+        if (next == empty) then
+          return false
+        else
+          skip
+        fi;
+        cur = next;
+        next = next.next;
+        pos = pos - 1
+      done;
+      cur.next = node;
+      node.next = next;
+      list.length = list.length + 1;
+      return true
+    fi
+  fi
+end
+
+bool remove(List<E> list, int pos) is
+  if (list.root == empty) then
+   return false
+  else
+    if (pos == 0) then
+      Node<E> next = list.root.next;
+      free list.root;
+      list.root = next;
+      list.length = list.length - 1;
+      return true
+    else
+      if (list.root.next == empty) then
+        return false
+      else
+        Node<E> cur = list.root;
+        Node<E> next = cur.next;
+        while (pos > 1) do
+          cur = next;
+          next = next.next;
+          pos = pos - 1;
+          if (next == empty) then
+            return false
+          else
+            skip
+          fi
+        done;
+        cur.next = next.next;
+        free next;
+        list.length = list.length - 1;
+        return true
+      fi
+    fi
+  fi
+end
+
+E get(List<E> list, int pos) is
+  string errorMsg = "index out of bound!";
+  if (list.root == empty) then
+    println errorMsg;
+    exit -1
+  else
+    Node<E> cur = list.root;
+    while (pos > 0) do
+      cur = cur.next;
+      pos = pos - 1;
+      if (cur == empty) then
+        println errorMsg;
+        exit -1
+      else
+        skip
+      fi
+    done;
+    return cur.val
+  fi
+end
+
+bool destroy(List<E> list) is
+  Node<E> cur = list.root;
+  while (cur != empty) do
+    Node<E> next = cur.next;
+    free cur;
+    cur = next
+  done;
+  free list;
+  return true
+end

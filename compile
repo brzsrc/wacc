@@ -18,13 +18,14 @@ helpFunction()
    exit 1
 }
 
-while getopts "pto:axh" opt
+while getopts "pto:axhi" opt
 do
    case $opt in
       p ) PARSE_ONLY="--parse_only" ;;
       t ) PRINT_AST="--print_ast" ;;
       o ) OPTIMISE="--optimise $OPTARG" ;;
       a ) ASSEMBLY="--assembly" ;;
+      i ) INTEL="--intel" ;;
       x ) EXECUTE="--execute" ;;
       h ) helpFunction ;;
       ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
@@ -40,4 +41,4 @@ fi
 
 # compile the given wacc file here
 # default as using -o1 optimise and generate assembly
-java -cp ./bin:./lib/antlr-4.9.1-complete.jar Compiler $1 $PARSE_ONLY $PRINT_AST $OPTIMISE "--optimise" "1" "--assembly" $EXECUTE
+java -cp ./bin:./lib/antlr-4.9.1-complete.jar Compiler $1 $PARSE_ONLY $PRINT_AST $OPTIMISE "--optimise" "1" "--assembly" $EXECUTE $INTEL

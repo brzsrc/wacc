@@ -2,6 +2,7 @@ package frontend.node.expr;
 
 import frontend.type.PairType;
 import utils.NodeVisitor;
+import utils.Utils.AssemblyArchitecture;
 
 public class PairNode extends ExprNode {
 
@@ -20,17 +21,17 @@ public class PairNode extends ExprNode {
   private ExprNode fst;
   private ExprNode snd;
 
-  public PairNode(ExprNode fst, ExprNode snd) {
+  public PairNode(ExprNode fst, ExprNode snd, AssemblyArchitecture arch) {
     this.fst = fst;
     this.snd = snd;
-    this.type = new PairType(fst.type, snd.type);
+    this.type = new PairType(fst.type, snd.type, arch);
     this.weight = 1;
   }
 
-  public PairNode() {
+  public PairNode(AssemblyArchitecture arch) {
     this.fst = null;
     this.snd = null;
-    this.type = new PairType();
+    this.type = new PairType(arch);
     this.weight = 1;
   }
 

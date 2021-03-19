@@ -10,6 +10,7 @@ FRONTEND_DIR := frontend
 BACKEND_DIR  := backend
 OPTIMIZE_DIR := optimize
 ENTRY_FILE   := $(SOURCE_DIR)/Compiler.java
+HELPER_FILE  := $(SOURCE_DIR)/PreCompiler.java
 
 JFLAGS	:= -sourcepath $(SOURCE_DIR) -d $(OUTPUT_DIR) -cp $(ROOT_DIR)/lib/antlr-4.9.1-complete.jar
 
@@ -29,11 +30,14 @@ optimize:
 main:
 	$(JAVAC) $(JFLAGS) $(ENTRY_FILE)
 
+helper:
+	$(JAVAC) $(JFLAGS) $(HELPER_FILE)
+
 clean:
 	cd $(FRONTEND_DIR) && make clean
 	cd $(BACKEND_DIR) && make clean
 	cd $(OPTIMIZE_DIR) && make clean
 
-.PHONY: all frontend backend optimize main clean
+.PHONY: all frontend backend optimize main helper clean
 
 

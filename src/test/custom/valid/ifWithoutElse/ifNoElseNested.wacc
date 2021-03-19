@@ -1,0 +1,24 @@
+# a nested if-no-else test
+
+# Output:
+# correct
+
+# Program:
+
+begin
+  bool b1 = true;
+  bool b2 = false;
+  bool b3 = true;
+  if b1 then
+    if b2 then
+      println "incorrect"
+    else
+      if b3 then
+        println "correct"
+      else
+        println "incorrect"
+      fi
+    fi
+  fi
+end
+

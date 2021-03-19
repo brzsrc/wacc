@@ -17,6 +17,7 @@ public class WhileNode extends StatNode {
     this.cond = cond;
     this.body = body;
     this.isDoWhile = isDoWhile;
+    this.minStackSpace = body.minStackSpace;
   }
 
   public WhileNode(ExprNode cond, StatNode body) {
