@@ -1,16 +1,22 @@
+# a switch with a scope inside its first branch
+
+# Output:
+# The first branch with a: 1
+
 begin
   int i = 0;
   switch i do
     case 0
-      int a = 0;
-      println "The first branch with a"; 
+      int a = 1;
+      print "The first branch with a: "; 
       println a;
       break
     case 1
-      println "The second branch"
+      println "SHOULD NOT print this line"
     case 2
-      println "The third branch!"
+      println "SHOULD NOT print this line"
     default
-      println "SHOULD print this line"
-  done
+      println "SHOULD NOT print this line"
+  done;
+  int c = 0
 end

@@ -30,7 +30,6 @@ import frontend.node.expr.*;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.UnopNode.Unop;
 import frontend.node.stat.*;
-import frontend.node.stat.JumpNode.JumpContext;
 import frontend.node.stat.JumpNode.JumpType;
 import frontend.node.stat.SwitchNode.CaseStat;
 import frontend.type.Type;
@@ -42,12 +41,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import utils.NodeVisitor;
 import utils.backend.LabelGenerator;
 import utils.backend.register.arm.ARMConcreteRegister;
 import utils.backend.register.arm.ARMConcreteRegisterAllocator;
 import utils.backend.register.Register;
-import utils.frontend.symbolTable.SymbolTable;
 
 public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction> {
 
@@ -71,9 +68,6 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
   /* call getLabel() on msgLabelGenerator to get label in the format of "msg_0, msg_1, msg_2, ..."*/
   protected final LabelGenerator<Label> msgLabelGenerator;
 
-  /* used when a break/jump occure in a loop statment, accumulated on entering scope */
-  private int sectionStackSize;
-
   /* used for mapping type with its print routine function */
   private final Map<Type, RoutineInstruction> typeRoutineMap = Map.of(
     INT_BASIC_TYPE,    PRINT_INT,
@@ -82,9 +76,6 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     STRING_BASIC_TYPE, PRINT_STRING,
     CHAR_ARRAY_TYPE,   PRINT_STRING
   );
-  /* recording the jump-to label for branching statement, i.e. break, continue */
-  private Label currBreakJumpToLabel;
-  private Label currContinueJumpToLabel;
 
   public ARMInstructionGenerator() {
     super();
@@ -677,7 +668,8 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
 
     /* accumulate function stack size, in case this scope is a function scope and contain return */
     funcStackSize += stackSize;
-    sectionStackSize += stackSize;
+    breakSectionStackSize += stackSize;
+    continueSectionStackSize += stackSize;
 
     /* 2 visit statements
      *   set currentSymbolTable here, eliminate all other set symbol table in other statNode */
@@ -689,7 +681,8 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
 
     /* decrease function stack size, as from this point stack is freed by the scope, not by return */
     funcStackSize -= stackSize;
-    sectionStackSize -= stackSize;
+    breakSectionStackSize -= stackSize;
+    continueSectionStackSize -= stackSize;
 
     /* 3 restore stack */
     incStack(stackSize);
@@ -716,22 +709,25 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     Label nextLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* restore the last jump-to label after visiting the while-loop body */
-    Label lastBreakJumpToLabel = currBreakJumpToLabel;
-    Label lastContinueJumpToLabel = currContinueJumpToLabel;
+    Label lastBreakJumpToLabel = currBreakJumpToLabel == null ? null : currBreakJumpToLabel.asArmLabel();
+    Label lastContinueJumpToLabel = currContinueJumpToLabel == null ? null : currContinueJumpToLabel.asArmLabel();
     currBreakJumpToLabel = nextLabel;
     currContinueJumpToLabel = testLabel;
 
     instructions.add(startLabel);
 
     /* record how much stack parent loop used */
-    int prevLoopSize = sectionStackSize;
-    sectionStackSize = 0;
+    int prevBreakLoopSize = breakSectionStackSize;
+    int prevContinueLoopSize = continueSectionStackSize;
+    breakSectionStackSize = 0;
+    continueSectionStackSize = 0;
 
     /* 3 loop body */
     visit(node.getBody());
     
     /* restore parent loop stack size */
-    sectionStackSize = prevLoopSize;
+    breakSectionStackSize = prevBreakLoopSize;
+    continueSectionStackSize = prevContinueLoopSize;
 
     currBreakJumpToLabel = lastBreakJumpToLabel;
     currContinueJumpToLabel = lastContinueJumpToLabel;
@@ -863,30 +859,31 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     Label incrementLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* restore the last jump-to label after visiting the for-loop body */
-    Label lastBreakJumpToLabel = currBreakJumpToLabel;
-    Label lastContinueJumpToLabel = currContinueJumpToLabel;
+    Label lastBreakJumpToLabel = currBreakJumpToLabel == null ? null : currBreakJumpToLabel.asArmLabel();
+    Label lastContinueJumpToLabel = currContinueJumpToLabel == null ? null : currContinueJumpToLabel.asArmLabel();
     currBreakJumpToLabel = nextLabel;
     currContinueJumpToLabel = incrementLabel;
 
     instructions.add(new B(NULL, condLabel.getName()));
 
     instructions.add(bodyLabel);
-    currForLoopSymbolTable = node.getBody().getScope();
 
     /* record now much stack loop body have occupied */
-    int prevLoopSize = sectionStackSize;
-    sectionStackSize = 0;
+    int prevBreakLoopSize = breakSectionStackSize;
+    int prevContinueLoopSize = continueSectionStackSize;
+    breakSectionStackSize = 0;
+    continueSectionStackSize = 0;
 
     visit(node.getBody());
 
     /* restore parent loop stack size */
-    sectionStackSize = prevLoopSize;
+    breakSectionStackSize = prevBreakLoopSize;
+    continueSectionStackSize = prevContinueLoopSize;
     
     /* here we also need to append the for-loop increment at the end */
     instructions.add(incrementLabel);
     visit(node.getIncrement());
 
-    // todo: is here the intended behavior
     currBreakJumpToLabel = lastBreakJumpToLabel;
     currContinueJumpToLabel = lastContinueJumpToLabel;
 
@@ -914,13 +911,12 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
 
   @Override
   public Void visitJumpNode(JumpNode node) {
-    List<Instruction> addStack = new ArrayList<>();
-    /* this snippet is to deal with for-loop stack difference */
-    incStack(sectionStackSize);
-
     if (node.getJumpType().equals(JumpType.BREAK)) {
+      /* this snippet is to deal with for-loop stack difference */
+      incStack(breakSectionStackSize);
       instructions.add(new B(NULL, currBreakJumpToLabel.getName()));
     } else if (node.getJumpType().equals(JumpType.CONTINUE)) {
+      incStack(continueSectionStackSize);
       instructions.add(new B(NULL, currContinueJumpToLabel.getName()));
     }
 
@@ -946,34 +942,28 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     Label afterLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* restore the jump-to label after visiting the switch cases and default */
-    Label lastBreakJumpToLabel = currBreakJumpToLabel;
+    Label lastBreakJumpToLabel = currBreakJumpToLabel == null ? null : currBreakJumpToLabel.asArmLabel();
     currBreakJumpToLabel = afterLabel;
 
     instructions.add(new B(NULL, defaultLabel.getName()));
 
     for (int i = 0; i < cLabels.size(); i++) {
       instructions.add(cLabels.get(i));
-
-      /* record now much stack switch body have occupied
-      *   */
-      int prevLoopSize = sectionStackSize;
-      sectionStackSize = 0;
-
+      /* record now much stack switch body have occupied */
+      int prevLoopSize = breakSectionStackSize;
+      breakSectionStackSize = 0;
       visit(node.getCases().get(i).getBody());
-
       /* restore parent switch stack size */
-      sectionStackSize = prevLoopSize;
+      breakSectionStackSize = prevLoopSize;
     }
 
-    int prevLoopSize = sectionStackSize;
-    sectionStackSize = 0;
+    int prevLoopSize = breakSectionStackSize;
+    breakSectionStackSize = 0;
 
     instructions.add(defaultLabel);
     visit(node.getDefault());
     
-    sectionStackSize = prevLoopSize;
-
-
+    breakSectionStackSize = prevLoopSize;
     currBreakJumpToLabel = lastBreakJumpToLabel;
 
     instructions.add(afterLabel);

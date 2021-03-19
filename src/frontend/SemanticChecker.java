@@ -143,7 +143,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     if (semanticError) {
-      System.out.println("error found");
+      System.out.println("semantic errors found in the program!");
       System.exit(SEMANTIC_ERROR_CODE);
     }
 
@@ -554,7 +554,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     _init.setAvoidSubStack();
     ScopeNode _increment = increment instanceof ScopeNode ? (ScopeNode) increment : new ScopeNode(increment);
     _increment.setAvoidSubStack();
-    // StatNode _body = body instanceof ScopeNode ? body : new ScopeNode(body);
 
     StatNode forNode = new ForNode(_init, cond, _increment, _body);
 

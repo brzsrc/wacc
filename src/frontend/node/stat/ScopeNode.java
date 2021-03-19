@@ -87,8 +87,4 @@ public class ScopeNode extends StatNode {
     }
     return scope.getSize();
   }
-
-//  public int getMaxAccumulativeDepth() {
-//    return maxAccumulativeDepth;
-//  }
 }

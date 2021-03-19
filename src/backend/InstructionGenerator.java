@@ -32,6 +32,10 @@ public abstract class InstructionGenerator<T extends Instruction> implements Nod
   protected LabelInstruction currBreakJumpToLabel;
   protected LabelInstruction currContinueJumpToLabel;
 
+  /* used when a break/jump occure in a loop statment, accumulated on entering scope */
+  protected int breakSectionStackSize;
+  protected int continueSectionStackSize;
+
   public InstructionGenerator() {
     instructions = new ArrayList<>();
     currSymbolTable = null;
@@ -40,5 +44,7 @@ public abstract class InstructionGenerator<T extends Instruction> implements Nod
     currBreakJumpToLabel = null;
     currContinueJumpToLabel = null;
     currForLoopSymbolTable = null;
+    breakSectionStackSize = 0;
+    continueSectionStackSize = 0;
   }
 }
