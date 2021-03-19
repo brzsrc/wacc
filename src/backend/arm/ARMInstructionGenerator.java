@@ -1078,3 +1078,4 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
   }
 
 }
+
