@@ -77,7 +77,7 @@ assign_rhs : expr                                                          #Expr
 arg_list  : expr (COMMA expr)*;
 
 struct_elem : IDENT (DOT IDENT)+;
-new_struct  : NEW IDENT OPEN_CURLY_BRACKET arg_list? CLOSE_CURLY_BRACKET ;
+new_struct  : NEW IDENT OPEN_PARENTHESES arg_list? CLOSE_PARENTHESES ;
 
 pair_elem : FST expr #FstExpr
           | SND expr #SndExpr

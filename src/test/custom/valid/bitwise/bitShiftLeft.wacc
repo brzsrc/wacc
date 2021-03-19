@@ -1,0 +1,11 @@
+# bitwise shift left operation
+
+# Output:
+# 20
+
+# Program:
+
+begin
+  int x = 5;
+  println x << 2
+end

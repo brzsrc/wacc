@@ -73,8 +73,8 @@ public class PreCompiler {
       str = str.split(commentMark, 2)[0];
       if (str.contains(defineRuleContext)) {
         /* process and store the macros info */
-        String[] macro = str.split(" ", 3);
-        if (macro.length != 3 || macro[0].length() != defineRuleContext.length() - 1) {
+        String[] macro = str.trim().split(" ", 3);
+        if (macro.length != 3 || !macro[0].equals(defineRuleContext.trim())) {
           mediateFile.delete();
           System.out.println("Invalid macro at line " + lineCounter);
           System.exit(SYNTAX_ERROR_CODE);
@@ -82,12 +82,12 @@ public class PreCompiler {
         macros.add(new MacroInfo(macro[1], macro[2]));
       } else if (str.contains(includeRuleContext)) {
         /* process and store the stdlib including info */
-        String[] tokens = str.split("<", 2);
+        String[] tokens = str.trim().split("<", 2);
         /* e.g. include lib<a, b, c>, tokens[0] = include lib, tokens[1] = a, b, c> */
         String[] prefix = tokens[0].split(" ", 2);
-        String libName = prefix[1];
+        String libName = prefix[1].trim();
         List<String> typeParams = (tokens.length == 1) ? new ArrayList<>() : getTypeParam(tokens[1],
-            lineCounter, prefix[0].length() == includeRuleContext.length() - 1, mediateFile);
+            lineCounter, prefix[0].equals(includeRuleContext.trim()), mediateFile);
         imports.add(new IncludeInfo(libName, typeParams, lineCounter));
       } else if (str.contains(programBodyMark)) {
         bw.write(str + "\n");
@@ -158,7 +158,7 @@ public class PreCompiler {
 
       if (str.contains(defineRuleContext)) {
         /* get the lib's macro info, assume macros in stdlib are all valid */
-        String[] macro = str.split(" ", 3);
+        String[] macro = str.trim().split(" ", 3);
         macros.add(new MacroInfo(macro[1], macro[2]));
       } else {
         bw.write("  " + str + "\n"); /* copy the content */
@@ -204,7 +204,11 @@ public class PreCompiler {
       if (c == '<') depth++;
       if (c == '>') depth--;
 
-      if (depth == 0) {
+      if (c == '[' || c == '(') {
+        mediateFile.delete();
+        System.out.println("Array or pair type are not supported: line " + lineNum);
+        System.exit(SYNTAX_ERROR_CODE);
+      } else if (depth == 0) {
         typeParams.add(token.toString());
         break;
       } else  if (depth == 1 && c == ',') {
@@ -215,15 +219,7 @@ public class PreCompiler {
       }
     }
 
-    boolean hasJunkAtEnd = false;
-    for (i = i + 1; i < str.length(); i++) {
-      if (str.charAt(i) != ' ') {
-        hasJunkAtEnd = true;
-        break;
-      }
-    }
-
-    if (hasJunkAtEnd || !matchInclude || depth != 0) {
+    if (i != str.length() - 1 || !matchInclude || depth != 0) {
       mediateFile.delete();
       System.out.println("Invalid include statement at line " + lineNum);
       System.exit(SYNTAX_ERROR_CODE);

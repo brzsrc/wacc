@@ -16,6 +16,7 @@ import backend.intel.instructions.Not;
 import backend.intel.instructions.Set;
 import backend.intel.instructions.Set.IntelSetType;
 import backend.intel.instructions.address.IntelAddress;
+import frontend.node.expr.ArrayElemNode;
 import frontend.node.expr.ArrayNode;
 import frontend.node.expr.BinopNode.Binop;
 import frontend.node.expr.IdentNode;
@@ -60,8 +61,13 @@ public abstract class IntelArithmeticLogic extends ArithmeticLogic implements In
     int len = 0;
 
     if (op.equals(Unop.LEN)) {
-      IdentNode id = (IdentNode) expr;
-      len = ((ArrayNode) (id.getSymbol().getExprNode())).getLength();
+      if (expr instanceof IdentNode) {
+        IdentNode id = (IdentNode) expr;
+        len = ((ArrayNode) (id.getSymbol().getExprNode())).getLength();
+      } else {
+        ArrayElemNode elem = (ArrayElemNode) expr;
+        len = ((ArrayNode) elem.getArray()).getLength();
+      }
     }
 
     Map<Unop, List<Instruction>> m = Map.of(
