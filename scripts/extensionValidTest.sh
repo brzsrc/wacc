@@ -2,7 +2,7 @@
 
 VALID_EXAMPLES=(
                  "/binOctHex"
-                 "/bitwiseOperation"
+                 "/bitwise"
                  "/do-while"
                  "/for"
                  "/import"

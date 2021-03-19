@@ -88,9 +88,9 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
   *  Level 2+: not function top level */
   int funcLevel;
 
-  /* stack size used by scopes in a loop, excluding init/increment statement size in for loop
-  *  BREAK and CONTINUE are responsible for adding rbp back by loopStackSize amount  */
-  int loopStackSize;
+  /* stack size used by scopes in a loop/switch statement, excluding init/increment statement size in for loop
+  *  BREAK and CONTINUE are responsible for adding rbp back by sectionStackSize amount  */
+  int sectionStackSize;
 
   /* stack of label, BREAK and CONTINUE should jump to top of these stack records */
   private Stack<Label> breakJumpToLabelStack;
@@ -104,7 +104,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     biDataSection = new LinkedHashMap<>();
     currParamListSize = 0;
     funcLevel = 0;
-    loopStackSize = 0;
+    sectionStackSize = 0;
     breakJumpToLabelStack = new Stack<>();
     continueJumpToLabelStack = new Stack<>();
   }
@@ -685,7 +685,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
     decStack(stackSize);
     /* record loop size have increased */
-    loopStackSize += stackSize;
+    sectionStackSize += stackSize;
 
     /* 2 visit statements
      *   set currentSymbolTable here, eliminate all other set symbol table in other statNode */
@@ -697,7 +697,7 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     
     /* 3 restore stack */
     incStack(stackSize);
-    loopStackSize -= stackSize;
+    sectionStackSize -= stackSize;
 
     if (funcLevel == -1) {
       /* not in function, no operation */
@@ -785,21 +785,20 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
     currForLoopSymbolTable = node.getBody().getScope();
 
     /* record now much stack loop body have occupied */
-    int prevLoopSize = loopStackSize;
-    loopStackSize = 0;
+    int prevLoopSize = sectionStackSize;
+      sectionStackSize = 0;
 
     visit(node.getBody());
 
     /* restore parent loop stack size */
-    loopStackSize = prevLoopSize;
+      sectionStackSize = prevLoopSize;
 
     /* here we also need to append the for-loop increment at the end */
     instructions.add(incrementLabel);
     visit(node.getIncrement());
 
     breakJumpToLabelStack.pop();
-    Label afterLabel = branchLabelGenerator.getLabel();
-    currContinueJumpToLabel = afterLabel;
+    continueJumpToLabelStack.pop();
 
     /* 3 add label for condition checking */
     instructions.add(condLabel);
@@ -827,11 +826,71 @@ public class IntelInstructionGenerator extends InstructionGenerator<IntelInstruc
 
   @Override
   public Void visitJumpNode(JumpNode node) {
+    List<Instruction> addStack = new ArrayList<>();
+    /* this snippet is to deal with for-loop stack difference
+    *  don't add stack only when it is a break in switch */
+    incStack(sectionStackSize);
+
+    if (node.getJumpType().equals(JumpNode.JumpType.BREAK)) {
+      instructions.add(new Jmp(currBreakJumpToLabel.getName()));
+    } else if (node.getJumpType().equals(JumpNode.JumpType.CONTINUE)) {
+      instructions.add(new Jmp(currContinueJumpToLabel.getName()));
+    }
     return null;
   }
 
   @Override
   public Void visitSwitchNode(SwitchNode node) {
+    visit(node.getExpr());
+
+    List<Label> cLabels = new ArrayList<>();
+    IntelInstructionSize size = intToIntelSize.get(node.getExpr().getType().getSize());
+
+    for (SwitchNode.CaseStat c : node.getCases()) {
+      visit(c.getExpr());
+      Label cLabel = branchLabelGenerator.getLabel().asIntelLabel();
+      cLabels.add(cLabel.asIntelLabel());
+      instructions.add(new Cmp(intelRegAllocator.last().withSize(size), intelRegAllocator.curr().withSize(size)));
+      instructions.add(new Jmp(E, cLabel.getName()));
+      intelRegAllocator.free();
+    }
+
+    Label defaultLabel = branchLabelGenerator.getLabel().asIntelLabel();
+    Label afterLabel = branchLabelGenerator.getLabel().asIntelLabel();
+
+    /* restore the jump-to label after visiting the switch cases and default */
+    Label lastBreakJumpToLabel = currBreakJumpToLabel.asIntelLabel();
+    currBreakJumpToLabel = afterLabel;
+
+    instructions.add(new Jmp(defaultLabel.getName()));
+
+    for (int i = 0; i < cLabels.size(); i++) {
+      instructions.add(cLabels.get(i).asIntelLabel());
+
+      /* record now much stack switch body have occupied
+       *   */
+      int prevLoopSize = sectionStackSize;
+      sectionStackSize = 0;
+
+      visit(node.getCases().get(i).getBody());
+
+      /* restore parent switch stack size */
+      sectionStackSize = prevLoopSize;
+    }
+
+    int prevLoopSize = sectionStackSize;
+    sectionStackSize = 0;
+
+    instructions.add(defaultLabel);
+    visit(node.getDefault());
+
+    sectionStackSize = prevLoopSize;
+
+
+    currBreakJumpToLabel = lastBreakJumpToLabel;
+
+    instructions.add(afterLabel);
+
     return null;
   }
 

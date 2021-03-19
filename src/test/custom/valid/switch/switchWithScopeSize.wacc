@@ -1,0 +1,16 @@
+begin
+  int i = 0;
+  switch i do
+    case 0
+      int a = 0;
+      println "The first branch with a"; 
+      println a;
+      break
+    case 1
+      println "The second branch"
+    case 2
+      println "The third branch!"
+    default
+      println "SHOULD print this line"
+  done
+end
