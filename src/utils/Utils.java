@@ -37,6 +37,7 @@ public class Utils {
   public static final Type BOOL_BASIC_TYPE = new BasicType(BasicTypeEnum.BOOL, AssemblyArchitecture.ARMv6);
   public static final Type CHAR_BASIC_TYPE = new BasicType(BasicTypeEnum.CHAR, AssemblyArchitecture.ARMv6);
   public static final Type STRING_BASIC_TYPE = new BasicType(BasicTypeEnum.STRING, AssemblyArchitecture.ARMv6);
+  public static final Type STRING_BASIC_TYPE_INTEL = new BasicType(BasicTypeEnum.STRING, AssemblyArchitecture.Intelx86);
   public static final Type ARRAY_TYPE = new ArrayType(AssemblyArchitecture.ARMv6);
   public static final Type PAIR_TYPE = new PairType(AssemblyArchitecture.ARMv6);
   public static final Type STRUCT_TYPE = new StructType("",  AssemblyArchitecture.ARMv6);
@@ -46,11 +47,11 @@ public class Utils {
 
   /* a list of allowed types in read, free, cmp statement */
   public static final Set<Type> readStatAllowedTypes = new HashSet<>(
-      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
+      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE, STRING_BASIC_TYPE_INTEL));
   public static final Set<Type> freeStatAllowedTypes = new HashSet<>(
       Arrays.asList(ARRAY_TYPE, PAIR_TYPE, STRUCT_TYPE));
   public static final Set<Type> cmpStatAllowedTypes = new HashSet<>(
-      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE));
+      Arrays.asList(STRING_BASIC_TYPE, INT_BASIC_TYPE, CHAR_BASIC_TYPE, STRING_BASIC_TYPE_INTEL));
 
   /* mapping from string literals to internal representations of UnopEnum and Type */
   public static final Map<String, Unop> unopEnumMapping = Map.of(
@@ -59,7 +60,7 @@ public class Utils {
       "!", Unop.NOT,
       "len", Unop.LEN,
       "ord", Unop.ORD,
-      "~", Unop.COMPLEMENT
+      "~", Unop.BITNOT
   );
   public static final Map<String, Type> unopTypeMapping = Map.of(
       "-", INT_BASIC_TYPE,
@@ -79,7 +80,10 @@ public class Utils {
 
   public static final Map<String, Binop> bitwiseOpEnumMapping = Map.of(
       "|", Binop.BITOR,
-      "&", Binop.BITAND
+      "&", Binop.BITAND,
+      "^", Binop.BITXOR,
+      "<<", Binop.BITSHL,
+      ">>", Binop.BITSHR
   );
 
   public static final Map<String, Binop> EqEnumMapping = Map.of(
@@ -111,7 +115,10 @@ public class Utils {
           Binop.BITAND, ((x, y) -> y == 0 ? null : new IntegerNode(x & y, AssemblyArchitecture.ARMv6)),
           Binop.BITOR, ((x, y) -> y == 0 ? null : new IntegerNode(x | y, AssemblyArchitecture.ARMv6)),
           Binop.DIV, ((x, y) -> y == 0 ? null : new IntegerNode(x / y, AssemblyArchitecture.ARMv6)),
-          Binop.MOD, ((x, y) -> y == 0 ? null : new IntegerNode(x % y, AssemblyArchitecture.ARMv6))
+          Binop.MOD, ((x, y) -> y == 0 ? null : new IntegerNode(x % y, AssemblyArchitecture.ARMv6)),
+          Binop.BITXOR, ((x, y) -> new IntegerNode(x ^ y, AssemblyArchitecture.ARMv6)),
+          Binop.BITSHL, ((x, y) -> new IntegerNode(x << y, AssemblyArchitecture.ARMv6)),
+          Binop.BITSHR, ((x, y) -> new IntegerNode(x >> y, AssemblyArchitecture.ARMv6))
   );
 
   public static final Map<Binop, BiFunction<Integer, Integer, Boolean>> cmpMap = Map.of(
@@ -130,7 +137,8 @@ public class Utils {
           Unop.NOT, (x -> new BoolNode(x.getCastedVal() != 1, AssemblyArchitecture.ARMv6)),
           Unop.LEN, (x -> new IntegerNode(x.getCastedVal(), AssemblyArchitecture.ARMv6)),
           Unop.ORD, (x -> new IntegerNode(x.getCastedVal(), AssemblyArchitecture.ARMv6)),
-          Unop.CHR, (x -> new CharNode((char) x.getCastedVal(), AssemblyArchitecture.ARMv6))
+          Unop.CHR, (x -> new CharNode((char) x.getCastedVal(), AssemblyArchitecture.ARMv6)),
+          Unop.BITNOT, (x -> new IntegerNode(~x.getCastedVal(), AssemblyArchitecture.ARMv6))
   );
 
   private static ExprNode arithmeticWithCheck(int a, int b, BinaryOperator<Integer> exactOperator) {

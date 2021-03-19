@@ -48,7 +48,6 @@ public class SymbolTable {
   }
 
   public Symbol lookup(String name) {
-    // System.out.println("looking up " + name + dictionary.get(name).getStackOffset());
     return dictionary.get(name);
   }
 

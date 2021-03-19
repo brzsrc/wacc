@@ -1,0 +1,10 @@
+# bitwise shift left operation
+
+# Output:
+# 11
+
+# Program:
+
+begin
+  println 2 ^ 9
+end

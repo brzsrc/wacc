@@ -17,6 +17,7 @@ public class DeclareNode extends StatNode {
   public DeclareNode(String identifier, ExprNode rhs) {
     this.identifier = identifier;
     this.rhs = rhs;
+    this.minStackSpace = rhs.getType().getSize();
   }
 
   public String getIdentifier() {

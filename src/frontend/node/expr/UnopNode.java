@@ -13,7 +13,7 @@ public class UnopNode extends ExprNode {
    */
 
   public enum Unop {
-    NOT, MINUS, LEN, ORD, CHR, COMPLEMENT
+    NOT, MINUS, LEN, ORD, CHR, BITNOT
   }
 
   ExprNode expr;
@@ -33,6 +33,9 @@ public class UnopNode extends ExprNode {
         break;
       case CHR:
         type = new BasicType(BasicTypeEnum.CHAR, arch);
+        break;
+      case BITNOT:
+        type = new BasicType(BasicTypeEnum.INT, arch);
         break;
     }
   }

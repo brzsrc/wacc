@@ -1,5 +1,6 @@
 package backend.arm.instructions.arithmeticLogic;
 
+import backend.arm.instructions.addressing.AddressingMode2;
 import backend.arm.instructions.addressing.Operand2;
 import backend.common.address.Address;
 import utils.backend.Cond;

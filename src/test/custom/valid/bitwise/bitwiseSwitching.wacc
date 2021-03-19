@@ -1,0 +1,17 @@
+# bitwise shift left operation
+
+# Output:
+# 12
+# 5
+
+# Program:
+
+begin
+  int a = 5;
+  int b = 12;
+  a = a ^ b;
+  b = a ^ b;
+  a = a ^ b;
+  println a;
+  println b
+end
