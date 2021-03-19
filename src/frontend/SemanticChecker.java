@@ -1,47 +1,192 @@
 package frontend;
 
+import static utils.Utils.ARRAY_TYPE;
+import static utils.Utils.AssemblyArchitecture;
+import static utils.Utils.BOOL_BASIC_TYPE;
+import static utils.Utils.CHAR_BASIC_TYPE;
+import static utils.Utils.CmpEnumMapping;
+import static utils.Utils.EqEnumMapping;
+import static utils.Utils.INT_BASIC_TYPE;
+import static utils.Utils.PAIR_TYPE;
+import static utils.Utils.QUAD_SIZE;
+import static utils.Utils.SEMANTIC_ERROR_CODE;
+import static utils.Utils.STRING_BASIC_TYPE;
+import static utils.Utils.STRING_BASIC_TYPE_INTEL;
+import static utils.Utils.STRUCT_TYPE;
+import static utils.Utils.WORD_SIZE;
+import static utils.Utils.binopEnumMapping;
+import static utils.Utils.bitwiseOpEnumMapping;
+import static utils.Utils.cmpStatAllowedTypes;
+import static utils.Utils.escCharMap;
+import static utils.Utils.findOverloadFuncName;
+import static utils.Utils.formatFuncName;
+import static utils.Utils.freeStatAllowedTypes;
+import static utils.Utils.intParse;
+import static utils.Utils.isCharInRange;
+import static utils.Utils.isInteger;
+import static utils.Utils.lookUpWithNotFoundException;
+import static utils.Utils.overloadSeparator;
+import static utils.Utils.readStatAllowedTypes;
+import static utils.Utils.typeCheck;
+import static utils.Utils.unopEnumMapping;
+import static utils.Utils.unopTypeMapping;
+import static utils.frontend.SemanticErrorHandler.branchStatementMutipleError;
+import static utils.frontend.SemanticErrorHandler.branchStatementPositionError;
+import static utils.frontend.SemanticErrorHandler.charOperatorRangeError;
+import static utils.frontend.SemanticErrorHandler.functionJunkAfterReturn;
+import static utils.frontend.SemanticErrorHandler.importFileErrorException;
+import static utils.frontend.SemanticErrorHandler.invalidFuncArgCount;
+import static utils.frontend.SemanticErrorHandler.invalidFunctionReturnExit;
+import static utils.frontend.SemanticErrorHandler.invalidPairError;
+import static utils.frontend.SemanticErrorHandler.invalidRuleException;
+import static utils.frontend.SemanticErrorHandler.overloadUnclearTypeError;
+import static utils.frontend.SemanticErrorHandler.returnFromMainError;
+import static utils.frontend.SemanticErrorHandler.symbolNotFound;
+import static utils.frontend.SemanticErrorHandler.symbolRedeclared;
+
 import frontend.antlr.WACCLexer;
 import frontend.antlr.WACCParser;
-import frontend.antlr.WACCParser.*;
+import frontend.antlr.WACCParser.AndExprContext;
+import frontend.antlr.WACCParser.ArithmeticExprContext;
+import frontend.antlr.WACCParser.ArrayExprContext;
+import frontend.antlr.WACCParser.ArrayTypeContext;
+import frontend.antlr.WACCParser.Array_elemContext;
+import frontend.antlr.WACCParser.Array_literContext;
+import frontend.antlr.WACCParser.Array_typeContext;
+import frontend.antlr.WACCParser.AssignStatContext;
+import frontend.antlr.WACCParser.BinaryExprContext;
+import frontend.antlr.WACCParser.BitwiseExprContext;
+import frontend.antlr.WACCParser.BoolExprContext;
+import frontend.antlr.WACCParser.BoolTypeContext;
+import frontend.antlr.WACCParser.BreakStatContext;
+import frontend.antlr.WACCParser.CharExprContext;
+import frontend.antlr.WACCParser.CharTypeContext;
+import frontend.antlr.WACCParser.CmpExprContext;
+import frontend.antlr.WACCParser.ContinueStatContext;
+import frontend.antlr.WACCParser.DeclarationContext;
+import frontend.antlr.WACCParser.DeclareStatContext;
+import frontend.antlr.WACCParser.DoWhileStatContext;
+import frontend.antlr.WACCParser.EmptyStructExprContext;
+import frontend.antlr.WACCParser.EqExprContext;
+import frontend.antlr.WACCParser.ExitStatContext;
+import frontend.antlr.WACCParser.ExprContext;
+import frontend.antlr.WACCParser.ForStatContext;
+import frontend.antlr.WACCParser.ForStatSeqContext;
+import frontend.antlr.WACCParser.FreeStatContext;
+import frontend.antlr.WACCParser.FstExprContext;
+import frontend.antlr.WACCParser.FuncContext;
+import frontend.antlr.WACCParser.FunctionCallContext;
+import frontend.antlr.WACCParser.HexExprContext;
+import frontend.antlr.WACCParser.IdExprContext;
+import frontend.antlr.WACCParser.IdentContext;
+import frontend.antlr.WACCParser.IfStatContext;
+import frontend.antlr.WACCParser.Import_fileContext;
+import frontend.antlr.WACCParser.IntExprContext;
+import frontend.antlr.WACCParser.IntTypeContext;
+import frontend.antlr.WACCParser.LibraryContext;
+import frontend.antlr.WACCParser.NewPairContext;
+import frontend.antlr.WACCParser.OctalExprContext;
+import frontend.antlr.WACCParser.OrExprContext;
+import frontend.antlr.WACCParser.PairElemPairTypeContext;
+import frontend.antlr.WACCParser.PairExprContext;
+import frontend.antlr.WACCParser.PairTypeContext;
+import frontend.antlr.WACCParser.Pair_typeContext;
+import frontend.antlr.WACCParser.ParamContext;
+import frontend.antlr.WACCParser.ParenExprContext;
+import frontend.antlr.WACCParser.PrintStatContext;
+import frontend.antlr.WACCParser.PrintlnStatContext;
+import frontend.antlr.WACCParser.ProgramContext;
+import frontend.antlr.WACCParser.ReadStatContext;
+import frontend.antlr.WACCParser.ReturnStatContext;
+import frontend.antlr.WACCParser.ScopeStatContext;
+import frontend.antlr.WACCParser.SeqStatContext;
+import frontend.antlr.WACCParser.SkipStatContext;
+import frontend.antlr.WACCParser.SndExprContext;
+import frontend.antlr.WACCParser.StrExprContext;
+import frontend.antlr.WACCParser.StringTypeContext;
+import frontend.antlr.WACCParser.StructContext;
+import frontend.antlr.WACCParser.StructElemExprContext;
+import frontend.antlr.WACCParser.StructExprContext;
+import frontend.antlr.WACCParser.StructTypeContext;
+import frontend.antlr.WACCParser.Struct_elemContext;
+import frontend.antlr.WACCParser.Struct_typeContext;
+import frontend.antlr.WACCParser.SwitchStatContext;
+import frontend.antlr.WACCParser.UnopExprContext;
+import frontend.antlr.WACCParser.WhileStatContext;
 import frontend.antlr.WACCParserBaseVisitor;
-
+import frontend.node.FuncNode;
+import frontend.node.Node;
+import frontend.node.ProgramNode;
 import frontend.node.StructDeclareNode;
-
+import frontend.node.TypeDeclareNode;
+import frontend.node.expr.ArrayElemNode;
+import frontend.node.expr.ArrayNode;
+import frontend.node.expr.BinopNode;
+import frontend.node.expr.BinopNode.Binop;
+import frontend.node.expr.BoolNode;
+import frontend.node.expr.CharNode;
+import frontend.node.expr.ExprNode;
+import frontend.node.expr.FunctionCallNode;
+import frontend.node.expr.IdentNode;
+import frontend.node.expr.IntegerNode;
+import frontend.node.expr.PairElemNode;
+import frontend.node.expr.PairNode;
+import frontend.node.expr.StringNode;
+import frontend.node.expr.StructElemNode;
+import frontend.node.expr.StructNode;
+import frontend.node.expr.UnopNode;
+import frontend.node.expr.UnopNode.Unop;
+import frontend.node.stat.AssignNode;
+import frontend.node.stat.DeclareNode;
+import frontend.node.stat.ExitNode;
+import frontend.node.stat.ForNode;
+import frontend.node.stat.FreeNode;
+import frontend.node.stat.IfNode;
+import frontend.node.stat.JumpNode;
+import frontend.node.stat.JumpNode.JumpContext;
+import frontend.node.stat.JumpNode.JumpType;
+import frontend.node.stat.PrintNode;
+import frontend.node.stat.PrintlnNode;
+import frontend.node.stat.ReadNode;
+import frontend.node.stat.ReturnNode;
+import frontend.node.stat.ScopeNode;
+import frontend.node.stat.SkipNode;
+import frontend.node.stat.StatNode;
+import frontend.node.stat.SwitchNode;
+import frontend.node.stat.SwitchNode.CaseStat;
+import frontend.node.stat.WhileNode;
+import frontend.type.ArrayType;
+import frontend.type.PairType;
+import frontend.type.StructType;
+import frontend.type.Type;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
-
-import frontend.node.FuncNode;
-import frontend.node.Node;
-import frontend.node.ProgramNode;
-import frontend.node.TypeDeclareNode;
-import frontend.node.expr.*;
-import frontend.node.stat.*;
-import frontend.node.stat.JumpNode.JumpContext;
-import frontend.node.stat.JumpNode.JumpType;
-import frontend.node.stat.SwitchNode.CaseStat;
-import frontend.node.expr.BinopNode.Binop;
-import frontend.node.expr.UnopNode.Unop;
-
-import frontend.type.*;
-
-import org.antlr.v4.runtime.tree.TerminalNode;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import utils.frontend.ParserErrorHandler;
-
 import utils.frontend.symbolTable.Symbol;
 import utils.frontend.symbolTable.SymbolTable;
 
-import static utils.frontend.SemanticErrorHandler.*;
-import static utils.Utils.*;
-
 public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
+  /* record all files that have been imported */
+  private static final Set<String> allImportCollection = new HashSet<>();
+  /* global data struct table, used to record all struct */
+  private final Map<String, StructDeclareNode> globalStructTable;
+  /* global function table, used to record all functions */
+  private final Map<String, FuncNode> globalFuncTable;
   /**
    * SemanticChecker will not only check the semantics of the provided .wacc file, but also generate
    * an internal representation of the program using ExprNode and StatNode. This will aid the
@@ -50,46 +195,27 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   /* where the compiling file lives, used for determine include file */
   private String path;
-
   /* recording the current SymbolTable during parser tree visits */
   private SymbolTable currSymbolTable;
-
-  /* global data struct table, used to record all struct */
-  private final Map<String, StructDeclareNode> globalStructTable;
-
-  /* global function table, used to record all functions */
-  private final Map<String, FuncNode> globalFuncTable;
-
   /* used after function declare step, to detect RETURN statement in main body */
   private boolean isMainFunction;
-
   /* used in determining whether branching statement is legal, i.e. break/continue is within a loop/switch */
-  private Stack<Boolean> isBreakAllowed;
-  private Stack<Boolean> isContinueAllowed;
-  private Stack<Boolean> isJumpRepeated;
-  private Stack<JumpContext> jumpContext;
-  /* record the for-loop incrementer so that break and continue know what to do before jumping */
-  private Stack<StatNode> currForLoopIncrementBreak;
-  private Stack<StatNode> currForLoopIncrementContinue;
-
+  private final Stack<Boolean> isBreakAllowed;
+  private final Stack<Boolean> isContinueAllowed;
+  private final Stack<Boolean> isJumpRepeated;
+  private final Stack<JumpContext> jumpContext;
   /* used only in function declare step, to check function has the correct return type */
   private Type expectedFunctionReturn;
-
   /* record whether a skipable semantic error is found in visiting to support checking of multiple errors */
   private boolean semanticError;
-
   /* record which file have already been included, IN the current import chain */
-  private Set<String> libraryCollection;
-
-  /* record all files that have been imported */
-  private static Set<String> allImportCollection = new HashSet<>();
-
+  private final Set<String> libraryCollection;
   /* for function overload */
-  private Set<String> overloadFuncNames = new HashSet<>();
+  private final Set<String> overloadFuncNames = new HashSet<>();
 
 
   /* indicate the architecture */
-  private AssemblyArchitecture arch;
+  private final AssemblyArchitecture arch;
 
   /* constructor of SemanticChecker */
   public SemanticChecker(Set<String> libraryCollection, AssemblyArchitecture arch) {
@@ -110,8 +236,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     isJumpRepeated.push(false);
 
     expectedFunctionReturn = null;
-    currForLoopIncrementBreak = new Stack<>();
-    currForLoopIncrementContinue = new Stack<>();
     this.libraryCollection = libraryCollection;
     this.arch = arch;
   }
@@ -253,13 +377,13 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     /* detect circular import */
     if (libraryCollection.contains(importFile)) {
       importFileErrorException(ctx, "circular import of " + importFile);
-      return ;
+      return;
     }
     libraryCollection.add(importFile);
 
     /* do not import file that has already been import */
     if (allImportCollection.contains(importFile)) {
-      return ;
+      return;
     }
     allImportCollection.add(importFile);
 
@@ -296,7 +420,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     }
 
     /* remove this import file from dfs import set
-    *  meaning allowing import collision, 2 .hwacc file import the third same .hwacc file */
+     *  meaning allowing import collision, 2 .hwacc file import the third same .hwacc file */
     libraryCollection.remove(importFile);
   }
 
@@ -475,14 +599,14 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     jumpContext.pop();
 
     StatNode node = (body instanceof ScopeNode) ?
-            new WhileNode(condition, body) :
-            new WhileNode(condition, new ScopeNode(body));
+        new WhileNode(condition, body) :
+        new WhileNode(condition, new ScopeNode(body));
     node.setScope(currSymbolTable);
 
     return node;
   }
 
-  @Override 
+  @Override
   public Node visitDoWhileStat(DoWhileStatContext ctx) {
     /* check that the condition of while statement is of type boolean */
     ExprNode condition = visit(ctx.expr()).asExprNode();
@@ -509,8 +633,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     StatNode node = (body instanceof ScopeNode) ?
-            new WhileNode(condition, body, true) :
-            new WhileNode(condition, new ScopeNode(body), true);
+        new WhileNode(condition, body, true) :
+        new WhileNode(condition, new ScopeNode(body), true);
     node.setScope(currSymbolTable);
 
     return node;
@@ -522,7 +646,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = new SymbolTable(currSymbolTable);
     /* visit the initiator */
     StatNode init = visit(ctx.for_stat(0)).asStatNode();
-    
+
     ExprNode cond = visit(ctx.expr()).asExprNode();
     StatNode increment = visit(ctx.for_stat(1)).asStatNode();
 
@@ -533,7 +657,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     isBreakAllowed.push(true);     // FOR allow break
     isContinueAllowed.push(true);  // FOR allow continue
     jumpContext.push(JumpContext.FOR);   // BREAK and CONTINUE are in FOR context
-    currForLoopIncrementContinue.push(increment); // When continue occur in FOR, execute increment
 
     /* visit the for loop body */
     StatNode body = visit(ctx.stat()).asStatNode();
@@ -543,7 +666,6 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     isBreakAllowed.pop();
     isContinueAllowed.pop();
     jumpContext.pop();
-    currForLoopIncrementContinue.pop();
 
     StatNode _body = body instanceof ScopeNode ? body : new ScopeNode(body);
     body.setScope(currSymbolTable);
@@ -552,7 +674,8 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     ScopeNode _init = init instanceof ScopeNode ? (ScopeNode) init : new ScopeNode(init);
     _init.setAvoidSubStack();
-    ScopeNode _increment = increment instanceof ScopeNode ? (ScopeNode) increment : new ScopeNode(increment);
+    ScopeNode _increment =
+        increment instanceof ScopeNode ? (ScopeNode) increment : new ScopeNode(increment);
     _increment.setAvoidSubStack();
 
     StatNode forNode = new ForNode(_init, cond, _increment, _body);
@@ -563,7 +686,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     forNode.setScope(currSymbolTable);
-    
+
     return forNode;
   }
 
@@ -571,7 +694,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   public Node visitForStatSeq(ForStatSeqContext ctx) {
     StatNode stat1 = visit(ctx.for_stat(0)).asStatNode();
     StatNode stat2 = visit(ctx.for_stat(1)).asStatNode();
-    
+
     return new ScopeNode(stat1, stat2);
   }
 
@@ -583,9 +706,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (!isBreakAllowed.peek()) {
       branchStatementPositionError(ctx, JumpType.BREAK);
     }
-    
+
     // break does not involve any instruction after exit a loop
-    StatNode breakNode = new JumpNode(JumpType.BREAK, null, jumpContext.peek());  
+    StatNode breakNode = new JumpNode(JumpType.BREAK);
     breakNode.setScope(currSymbolTable);
     isJumpRepeated.pop();
     isJumpRepeated.push(true);
@@ -600,7 +723,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     if (!isContinueAllowed.peek()) {
       branchStatementPositionError(ctx, JumpType.CONTINUE);
     }
-    StatNode continueNode = new JumpNode(JumpType.CONTINUE, null, jumpContext.peek());
+    StatNode continueNode = new JumpNode(JumpType.CONTINUE);
     continueNode.setScope(currSymbolTable);
     isJumpRepeated.pop();
     isJumpRepeated.push(true);
@@ -622,7 +745,7 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
     jumpContext.push(JumpContext.SWITCH);
 
     StatNode defaultCase = visit(ctx.stat(numOfCases - 1)).asStatNode();
-    
+
     defaultCase.setScope(switchSymbolTable);
 
     for (int i = 1; i < numOfCases; i++) {
@@ -1131,12 +1254,14 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
   @Override
   public Node visitBinaryExpr(BinaryExprContext ctx) {
-    return new IntegerNode(Integer.parseInt(ctx.BINARY_LITER().getText().substring(2), 2), this.arch);
+    return new IntegerNode(Integer.parseInt(ctx.BINARY_LITER().getText().substring(2), 2),
+        this.arch);
   }
 
   @Override
   public Node visitOctalExpr(OctalExprContext ctx) {
-    return new IntegerNode(Integer.parseInt(ctx.OCTAL_LITER().getText().substring(2), 8), this.arch);
+    return new IntegerNode(Integer.parseInt(ctx.OCTAL_LITER().getText().substring(2), 8),
+        this.arch);
   }
 
   @Override
@@ -1287,7 +1412,9 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
   }
 
   @Override
-  public Node visitStructType(StructTypeContext ctx) { return visitStruct_type(ctx.struct_type()); }
+  public Node visitStructType(StructTypeContext ctx) {
+    return visitStruct_type(ctx.struct_type());
+  }
 
   @Override
   public Node visitStruct_type(Struct_typeContext ctx) {

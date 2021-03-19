@@ -1,17 +1,13 @@
 package backend;
 
-import backend.arm.ARMInstructionGenerator;
-import backend.arm.instructions.ARMInstruction;
 import backend.common.LabelInstruction;
-import backend.intel.IntelInstructionGenerator;
-import backend.intel.instructions.IntelInstruction;
-
 import java.util.ArrayList;
 import java.util.List;
 import utils.NodeVisitor;
 import utils.frontend.symbolTable.SymbolTable;
 
 public abstract class InstructionGenerator<T extends Instruction> implements NodeVisitor<Void> {
+
   /* the code section of the assembly code */
   protected final List<T> instructions;
   /* record the current symbolTable used during instruction generation */

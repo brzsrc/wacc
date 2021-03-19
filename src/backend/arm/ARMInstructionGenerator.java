@@ -1,37 +1,121 @@
 package backend.arm;
 
-import static backend.arm.instructions.LDR.LdrMode.*;
-import static backend.arm.instructions.STR.StrMode.*;
-import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.*;
-import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.armUnopAsm;
-import static backend.arm.instructions.addressing.ARMImmediate.BitNum.CONST8;
-import static backend.arm.instructions.addressing.Operand2.Operand2Operator.*;
-import static frontend.node.expr.UnopNode.Unop.MINUS;
-import static utils.Utils.RoutineInstruction;
-import static utils.Utils.RoutineInstruction.*;
-import static utils.Utils.SystemCallInstruction.*;
-import static utils.Utils.*;
 import static backend.arm.instructions.ARMInstructionRoutines.routineFunctionMap;
-import static utils.backend.Cond.*;
-import static utils.backend.register.arm.ARMConcreteRegister.*;
+import static backend.arm.instructions.LDR.LdrMode.LDR;
+import static backend.arm.instructions.LDR.LdrMode.LDRSB;
+import static backend.arm.instructions.STR.StrMode.STR;
+import static backend.arm.instructions.STR.StrMode.STRB;
+import static backend.arm.instructions.addressing.ARMImmediate.BitNum.CONST8;
+import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.OFFSET;
+import static backend.arm.instructions.addressing.AddressingMode2.AddrMode2.PREINDEX;
+import static backend.arm.instructions.addressing.Operand2.Operand2Operator.ASR;
+import static backend.arm.instructions.addressing.Operand2.Operand2Operator.LSL;
+import static backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic.armUnopAsm;
+import static frontend.node.expr.UnopNode.Unop.MINUS;
+import static utils.Utils.ARM_POINTER_SIZE;
+import static utils.Utils.BOOL_BASIC_TYPE;
+import static utils.Utils.BRANCH_HEADER;
+import static utils.Utils.CHAR_ARRAY_TYPE;
+import static utils.Utils.CHAR_BASIC_TYPE;
+import static utils.Utils.FALSE;
+import static utils.Utils.FUNC_HEADER;
+import static utils.Utils.INT_BASIC_TYPE;
+import static utils.Utils.MAIN_BODY_NAME;
+import static utils.Utils.MSG_HEADER;
+import static utils.Utils.PAIR_TYPE;
+import static utils.Utils.RoutineInstruction;
+import static utils.Utils.RoutineInstruction.CHECK_ARRAY_BOUND;
+import static utils.Utils.RoutineInstruction.CHECK_DIVIDE_BY_ZERO;
+import static utils.Utils.RoutineInstruction.CHECK_NULL_POINTER;
+import static utils.Utils.RoutineInstruction.FREE_ARRAY;
+import static utils.Utils.RoutineInstruction.FREE_PAIR;
+import static utils.Utils.RoutineInstruction.PRINT_BOOL;
+import static utils.Utils.RoutineInstruction.PRINT_CHAR;
+import static utils.Utils.RoutineInstruction.PRINT_INT;
+import static utils.Utils.RoutineInstruction.PRINT_LN;
+import static utils.Utils.RoutineInstruction.PRINT_REFERENCE;
+import static utils.Utils.RoutineInstruction.PRINT_STRING;
+import static utils.Utils.RoutineInstruction.READ_CHAR;
+import static utils.Utils.RoutineInstruction.READ_INT;
+import static utils.Utils.RoutineInstruction.THROW_OVERFLOW_ERROR;
+import static utils.Utils.RoutineInstruction.THROW_RUNTIME_ERROR;
+import static utils.Utils.STRING_BASIC_TYPE;
+import static utils.Utils.SystemCallInstruction.EXIT;
+import static utils.Utils.SystemCallInstruction.MALLOC;
+import static utils.Utils.TRUE;
+import static utils.Utils.WORD_SIZE;
+import static utils.backend.Cond.EQ;
+import static utils.backend.Cond.NE;
+import static utils.backend.Cond.NULL;
+import static utils.backend.Cond.VS;
+import static utils.backend.register.arm.ARMConcreteRegister.LR;
+import static utils.backend.register.arm.ARMConcreteRegister.PC;
+import static utils.backend.register.arm.ARMConcreteRegister.SP;
+import static utils.backend.register.arm.ARMConcreteRegister.r0;
+import static utils.backend.register.arm.ARMConcreteRegister.r1;
+import static utils.backend.register.arm.ARMConcreteRegister.r4;
 
 import backend.Instruction;
 import backend.InstructionGenerator;
-import backend.arm.instructions.*;
+import backend.arm.instructions.ARMInstruction;
+import backend.arm.instructions.B;
+import backend.arm.instructions.BL;
+import backend.arm.instructions.Cmp;
+import backend.arm.instructions.LDR;
 import backend.arm.instructions.LDR.LdrMode;
-import backend.arm.instructions.STR.StrMode;
-import backend.arm.instructions.addressing.*;
-import backend.arm.instructions.arithmeticLogic.*;
+import backend.arm.instructions.LTORG;
+import backend.arm.instructions.Label;
+import backend.arm.instructions.Mov;
 import backend.arm.instructions.Pop;
 import backend.arm.instructions.Push;
+import backend.arm.instructions.STR;
+import backend.arm.instructions.STR.StrMode;
+import backend.arm.instructions.addressing.ARMImmediate;
+import backend.arm.instructions.addressing.AddressingMode2;
+import backend.arm.instructions.addressing.ImmedAddress;
+import backend.arm.instructions.addressing.Operand2;
+import backend.arm.instructions.arithmeticLogic.ARMArithmeticLogic;
+import backend.arm.instructions.arithmeticLogic.Add;
+import backend.arm.instructions.arithmeticLogic.Sub;
 import backend.common.address.Address;
-import frontend.node.*;
-import frontend.node.expr.*;
+import frontend.node.FuncNode;
+import frontend.node.ProgramNode;
+import frontend.node.StructDeclareNode;
+import frontend.node.expr.ArrayElemNode;
+import frontend.node.expr.ArrayNode;
+import frontend.node.expr.BinopNode;
 import frontend.node.expr.BinopNode.Binop;
+import frontend.node.expr.BoolNode;
+import frontend.node.expr.CharNode;
+import frontend.node.expr.ExprNode;
+import frontend.node.expr.FunctionCallNode;
+import frontend.node.expr.IdentNode;
+import frontend.node.expr.IntegerNode;
+import frontend.node.expr.PairElemNode;
+import frontend.node.expr.PairNode;
+import frontend.node.expr.StringNode;
+import frontend.node.expr.StructElemNode;
+import frontend.node.expr.StructNode;
+import frontend.node.expr.UnopNode;
 import frontend.node.expr.UnopNode.Unop;
-import frontend.node.stat.*;
+import frontend.node.stat.AssignNode;
+import frontend.node.stat.DeclareNode;
+import frontend.node.stat.ExitNode;
+import frontend.node.stat.ForNode;
+import frontend.node.stat.FreeNode;
+import frontend.node.stat.IfNode;
+import frontend.node.stat.JumpNode;
 import frontend.node.stat.JumpNode.JumpType;
+import frontend.node.stat.PrintNode;
+import frontend.node.stat.PrintlnNode;
+import frontend.node.stat.ReadNode;
+import frontend.node.stat.ReturnNode;
+import frontend.node.stat.ScopeNode;
+import frontend.node.stat.SkipNode;
+import frontend.node.stat.StatNode;
+import frontend.node.stat.SwitchNode;
 import frontend.node.stat.SwitchNode.CaseStat;
+import frontend.node.stat.WhileNode;
 import frontend.type.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,9 +126,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import utils.backend.LabelGenerator;
+import utils.backend.register.Register;
 import utils.backend.register.arm.ARMConcreteRegister;
 import utils.backend.register.arm.ARMConcreteRegisterAllocator;
-import utils.backend.register.Register;
 
 public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction> {
 
@@ -52,29 +136,26 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
   public static int MAX_STACK_STEP = (1 << 10);
   /* const used in visitBinop, for checking multiply overflow */
   public static int ASR_SHIFT_CONST = 31;
-
-  /* the ARM concrete register allocator */
-  private final ARMConcreteRegisterAllocator armRegAllocator;
   /* the .data section of the assembly code */
   protected final Map<Label, String> dataSegmentMessages;
+  /* call getLabel() on branchLabelGenerator to get label in the format of "L0, L1, L2, ..." */
+  protected final LabelGenerator<Label> branchLabelGenerator;
+  /* call getLabel() on msgLabelGenerator to get label in the format of "msg_0, msg_1, msg_2, ..."*/
+  protected final LabelGenerator<Label> msgLabelGenerator;
+  /* the ARM concrete register allocator */
+  private final ARMConcreteRegisterAllocator armRegAllocator;
   /* a list of instructions for storing different helper functions
    * would be appended to the end of instructions list while printing */
   private final List<ARMInstruction> ARMRoutines;
   /* record which helpers already exist, we don't want repeated helper functions */
   private final Set<RoutineInstruction> alreadyExist;
-
-  /* call getLabel() on branchLabelGenerator to get label in the format of "L0, L1, L2, ..." */
-  protected final LabelGenerator<Label> branchLabelGenerator;
-  /* call getLabel() on msgLabelGenerator to get label in the format of "msg_0, msg_1, msg_2, ..."*/
-  protected final LabelGenerator<Label> msgLabelGenerator;
-
   /* used for mapping type with its print routine function */
   private final Map<Type, RoutineInstruction> typeRoutineMap = Map.of(
-    INT_BASIC_TYPE,    PRINT_INT,
-    CHAR_BASIC_TYPE,   PRINT_CHAR,
-    BOOL_BASIC_TYPE,   PRINT_BOOL,
-    STRING_BASIC_TYPE, PRINT_STRING,
-    CHAR_ARRAY_TYPE,   PRINT_STRING
+      INT_BASIC_TYPE, PRINT_INT,
+      CHAR_BASIC_TYPE, PRINT_CHAR,
+      BOOL_BASIC_TYPE, PRINT_BOOL,
+      STRING_BASIC_TYPE, PRINT_STRING,
+      CHAR_ARRAY_TYPE, PRINT_STRING
   );
 
   public ARMInstructionGenerator() {
@@ -134,7 +215,8 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     /* visit the content */
     for (int i = 0; i < node.getElemCount(); i++) {
       visit(node.getElem(i));
-      instructions.add(new STR(armRegAllocator.curr(), new AddressingMode2(OFFSET, addrReg, node.getElemOffset(i)), STR));
+      instructions.add(new STR(armRegAllocator.curr(),
+          new AddressingMode2(OFFSET, addrReg, node.getElemOffset(i)), STR));
       armRegAllocator.free();
     }
 
@@ -335,7 +417,8 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
 
     /* 2 call function with B instruction */
     String overloadName = node.getFunction().getOverloadName();
-    String actualFuncName = (overloadName != null) ? overloadName : node.getFunction().getFunctionName();
+    String actualFuncName =
+        (overloadName != null) ? overloadName : node.getFunction().getFunctionName();
     instructions.add(new BL(FUNC_HEADER + actualFuncName));
 
     /* 3 add back stack pointer */
@@ -709,8 +792,10 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     Label nextLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* restore the last jump-to label after visiting the while-loop body */
-    Label lastBreakJumpToLabel = currBreakJumpToLabel == null ? null : currBreakJumpToLabel.asArmLabel();
-    Label lastContinueJumpToLabel = currContinueJumpToLabel == null ? null : currContinueJumpToLabel.asArmLabel();
+    Label lastBreakJumpToLabel =
+        currBreakJumpToLabel == null ? null : currBreakJumpToLabel.asArmLabel();
+    Label lastContinueJumpToLabel =
+        currContinueJumpToLabel == null ? null : currContinueJumpToLabel.asArmLabel();
     currBreakJumpToLabel = nextLabel;
     currContinueJumpToLabel = testLabel;
 
@@ -724,7 +809,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
 
     /* 3 loop body */
     visit(node.getBody());
-    
+
     /* restore parent loop stack size */
     breakSectionStackSize = prevBreakLoopSize;
     continueSectionStackSize = prevContinueLoopSize;
@@ -859,8 +944,10 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     Label incrementLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* restore the last jump-to label after visiting the for-loop body */
-    Label lastBreakJumpToLabel = currBreakJumpToLabel == null ? null : currBreakJumpToLabel.asArmLabel();
-    Label lastContinueJumpToLabel = currContinueJumpToLabel == null ? null : currContinueJumpToLabel.asArmLabel();
+    Label lastBreakJumpToLabel =
+        currBreakJumpToLabel == null ? null : currBreakJumpToLabel.asArmLabel();
+    Label lastContinueJumpToLabel =
+        currContinueJumpToLabel == null ? null : currContinueJumpToLabel.asArmLabel();
     currBreakJumpToLabel = nextLabel;
     currContinueJumpToLabel = incrementLabel;
 
@@ -879,7 +966,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     /* restore parent loop stack size */
     breakSectionStackSize = prevBreakLoopSize;
     continueSectionStackSize = prevContinueLoopSize;
-    
+
     /* here we also need to append the for-loop increment at the end */
     instructions.add(incrementLabel);
     visit(node.getIncrement());
@@ -898,7 +985,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     armRegAllocator.free();
     /* 4 conditional branch jump to the start of loop */
     instructions.add(new B(EQ, bodyLabel.getName()));
-    
+
     /* 5 add the label for the following instructions after for-loop */
     instructions.add(nextLabel);
     
@@ -928,7 +1015,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     visit(node.getExpr());
 
     List<Label> cLabels = new ArrayList<>();
-    
+
     for (CaseStat c : node.getCases()) {
       visit(c.getExpr());
       Label cLabel = branchLabelGenerator.getLabel().asArmLabel();
@@ -942,7 +1029,8 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     Label afterLabel = branchLabelGenerator.getLabel().asArmLabel();
 
     /* restore the jump-to label after visiting the switch cases and default */
-    Label lastBreakJumpToLabel = currBreakJumpToLabel == null ? null : currBreakJumpToLabel.asArmLabel();
+    Label lastBreakJumpToLabel =
+        currBreakJumpToLabel == null ? null : currBreakJumpToLabel.asArmLabel();
     currBreakJumpToLabel = afterLabel;
 
     instructions.add(new B(NULL, defaultLabel.getName()));
@@ -962,7 +1050,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
 
     instructions.add(defaultLabel);
     visit(node.getDefault());
-    
+
     breakSectionStackSize = prevLoopSize;
     currBreakJumpToLabel = lastBreakJumpToLabel;
 
@@ -975,7 +1063,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     while (stackSize > 0) {
       int realStackSize = stackSize / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : stackSize;
       instructions.add(new Add(SP, SP,
-              new Operand2(realStackSize)));
+          new Operand2(realStackSize)));
       stackSize = stackSize - realStackSize;
     }
   }
@@ -984,7 +1072,7 @@ public class ARMInstructionGenerator extends InstructionGenerator<ARMInstruction
     while (stackSize > 0) {
       int realStackSize = stackSize / MAX_STACK_STEP >= 1 ? MAX_STACK_STEP : stackSize;
       instructions.add(new Sub(SP, SP,
-              new Operand2(realStackSize)));
+          new Operand2(realStackSize)));
       stackSize = stackSize - realStackSize;
     }
   }
