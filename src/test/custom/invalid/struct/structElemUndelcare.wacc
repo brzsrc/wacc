@@ -5,6 +5,6 @@
 
 begin
   struct a is {int b}
-  a x = new a {1};
+  a x = new a (1);
   println a.c
 end

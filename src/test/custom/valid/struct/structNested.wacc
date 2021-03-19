@@ -9,7 +9,7 @@
 begin
   struct a is {int i, b b}
   struct b is {int j, a a}
-  a a = new a {1, new b {2, empty}};
+  a a = new a (1, new b (2, empty));
   a.b.a = a;
   println a.i;
   println a.b.j;

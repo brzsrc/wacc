@@ -5,5 +5,5 @@
 
 begin
   struct a is {int i, char j}
-  a x = new a {1}
+  a x = new a (1)
 end

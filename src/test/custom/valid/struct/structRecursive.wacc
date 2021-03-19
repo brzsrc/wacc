@@ -6,12 +6,12 @@
 begin
   struct node is {int i, node next}
   int count = 0;
-  node start = new node {count, empty};
+  node start = new node (count, empty);
   node cur = start;
   count = count + 1;
 
   while count <= 10 do
-    cur.next = new node {count, empty};
+    cur.next = new node (count, empty);
     cur = cur.next;
     count = count + 1
   done;
