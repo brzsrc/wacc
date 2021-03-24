@@ -550,21 +550,20 @@ public class SemanticChecker extends WACCParserBaseVisitor<Node> {
 
     /* create the StatNode for the else body and generate new child scope */
     StatNode elseBody = null;
+    currSymbolTable = new SymbolTable(currSymbolTable);
     if (ctx.stat(1) != null) {
-      currSymbolTable = new SymbolTable(currSymbolTable);
       elseBody = visit(ctx.stat(1)).asStatNode();
-      currSymbolTable = currSymbolTable.getParentSymbolTable();
+    } else {
+      elseBody = new SkipNode(currSymbolTable);
     }
+    currSymbolTable = currSymbolTable.getParentSymbolTable();
 
     /* restore permit/not permit jump */
     isJumpRepeated.pop();
     isJumpRepeated.push(permitJump);
 
     StatNode realIfBody = ifBody instanceof ScopeNode ? ifBody : new ScopeNode(ifBody);
-    StatNode realElseBody = null;
-    if (elseBody != null) {
-      realElseBody = elseBody instanceof ScopeNode ? elseBody : new ScopeNode(elseBody);
-    }
+    StatNode realElseBody = elseBody instanceof ScopeNode ? elseBody : new ScopeNode(elseBody);
 
     StatNode node = new IfNode(condition, realIfBody, realElseBody);
 
